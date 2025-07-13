@@ -7,15 +7,50 @@
 
 import SwiftUI
 
+enum Tab {
+    case home
+    case ranking
+    case research
+    case myInfo
+}
+
 struct ContentView: View {
+    @State private var selectedTab: Tab = .home
+    
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView(selection: $selectedTab) {
+            MainHomeView()
+                .tabItem {
+                    Image(selectedTab == .home ? .homeFilled : .homeUnfilled)
+                    Text("홈")
+                        .foregroundStyle(selectedTab == .home ? Color.primaryColor: Color.textGrayColor)
+                }
+                .tag(Tab.home)
+            
+            RankingView()
+                .tabItem {
+                    Image(selectedTab == .ranking ? .rankingFilled : .rankingUnfilled)
+                    Text("랭킹")
+                }
+                .tag(Tab.ranking)
+            
+            ResearchView()
+                .tabItem {
+                    Image(selectedTab == .research ? .reseachFilled : .researchUnfilled)
+                    Text("탐색")
+                }
+                .tag(Tab.research)
+            
+            MyInfoView()
+                .tabItem {
+                    Image(selectedTab == .myInfo ? .myInfoFilled : .myInfoUnfilled)
+                    Text("마이")
+                }
+                .tag(Tab.myInfo)
+            
         }
-        .padding()
+        .foregroundStyle(Color.primaryColor)
+
     }
 }
 
