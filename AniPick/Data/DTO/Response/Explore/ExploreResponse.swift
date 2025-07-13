@@ -7,8 +7,8 @@
 
 struct ExploreResponse: Decodable {
     let code: Int
-    let success: String
-    let result: [ExploreResult]
+    let value: String
+    let result: ExploreResult
 }
 
 struct ExploreResult: Decodable {

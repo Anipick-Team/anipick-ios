@@ -1,32 +1,33 @@
+//
+//  CharacterVoiceActorResponse.swift
+//  AniPick
+//
+//  Created by cho on 7/13/25.
+//
+
+
 import Foundation
 
-// MARK: - Top-Level Response
-struct CharacterVoiceActorResponse: Codable {
+struct CharacterVoiceActorResponse: Decodable {
     let code: Int
     let value: String
     let result: [CharacterVoicePair]
 }
 
-// MARK: - Character + VoiceActor Pair
-struct CharacterVoicePair: Codable, Identifiable {
+struct CharacterVoicePair: Decodable, Identifiable {
+    let id = UUID()
     let character: CharacterInfo
     let voiceActor: VoiceActorInfo
-
-    // For convenience (e.g., ForEach)
-    var id: String {
-        "\(character.id)-\(voiceActor.id)"
-    }
 }
 
-// MARK: - Character Info
-struct CharacterInfo: Codable, Identifiable {
+struct CharacterInfo: Decodable, Identifiable {
     let id: Int
     let name: String
     let imageUrl: String
 }
 
-// MARK: - Voice Actor Info
-struct VoiceActorInfo: Codable, Identifiable {
+struct VoiceActorInfo: Decodable, Identifiable {
     let id: Int
     let name: String
-    let im
+    let imageUrl: String
+}

@@ -8,21 +8,23 @@
 import SwiftUI
 
 struct EmailLoginView: View {
-    
-    @StateObject var viewModel: EmailLoginViewModel = EmailLoginViewModel()
+    @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject var navigationManager: NavigationManager
+
+    @StateObject var viewModel: EmailLoginViewModel
         
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()
-                .frame(height: 34)
+                .frame(height: 28)
             
             VStack(alignment: .leading) {
                 Text("이메일 로그인")
-                    .font(.system(size: 24, weight: .semibold))
+                    .customFontStyle(size: 24, color: .anipickBlack, weight: .semibold)
                     .padding(.bottom, 4)
                 
                 Text("회원 서비스 이용을 위해 로그인 해주세요.")
-                    .font(.system(size: 14, weight: .medium))
+                    .customFontStyle(size: 14, color: .textGray)
             }
             
             Spacer().frame(height: 64)
@@ -49,6 +51,7 @@ struct EmailLoginView: View {
                     Spacer()
                     
                     Button {
+                        self.navigationManager.push(route: AppRoute.emailSignup)
                         print("tapped 회원가입")
                     } label: {
                         Text("회원가입")
@@ -59,6 +62,7 @@ struct EmailLoginView: View {
                         .padding(.horizontal, 20)
                     
                     Button {
+                        self.navigationManager.push(route: AppRoute.findPassword)
                         print("tapped 비밀번호 찾기")
                     } label: {
                         Text("비밀번호 찾기")
@@ -81,11 +85,28 @@ struct EmailLoginView: View {
             
             Spacer().frame(height: 32)
             
-            FullWidthButton(isEnable: $viewModel.isEnableLoginButton, buttonText: "로그인") {
+            FullWidthButton(
+                isEnable: $viewModel.isEnableLoginButton,
+                buttonText: "로그인"
+            ) {
                 print("로그인 버튼 탭")
+                Task {
+                    await viewModel.loginWithEmail()
+                }
             }
             .padding(.bottom, 16)
            
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(.chevronLeft)
+                        .foregroundColor(.black)
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
@@ -95,5 +116,5 @@ struct EmailLoginView: View {
 }
 
 #Preview {
-    EmailLoginView()
+   // AppDIContainer.makeEmailLoginView()
 }

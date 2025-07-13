@@ -14,11 +14,12 @@ struct TextFieldComponents: View {
     @State var enableEyeIcon: Bool = false
     @State var enableTimer: Bool = false
     @State var timerCount: String = "sdd"
+    @State private var eyeIconVisible: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(titleText)
-                .font(.system(size: 18, weight: .bold))
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
                 .padding(.bottom, 12)
             
             ZStack {
@@ -30,6 +31,7 @@ struct TextFieldComponents: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.textGray)
                     )
+                    .foregroundColor(.anipickBlack)
                     .padding(16)
                     .background(.textFieldBackground)
                     .cornerRadius(8)
@@ -41,16 +43,21 @@ struct TextFieldComponents: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.textGray)
                     )
+                    .foregroundColor(.anipickBlack)
                     .padding(16)
                     .background(.textFieldBackground)
                     .cornerRadius(8)
                 }
                 
                 if enableEyeIcon {
-                    HStack {
-                        Spacer()
-                        Image(.eyeUnvisibleIcons)
-                            .padding(.trailing, 15)
+                    Button {
+                        self.eyeIconVisible.toggle()
+                    } label: {
+                        HStack {
+                            Spacer()
+                            Image(self.eyeIconVisible ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                                .padding(.trailing, 15)
+                        }
                     }
                 }
                 

@@ -1,3 +1,12 @@
+//
+//  TabWidthPreferenceKey.swift
+//  AniPick
+//
+//  Created by cho on 5/25/25.
+//
+
+import SwiftUI
+
 struct TabWidthPreferenceKey: PreferenceKey {
     static var defaultValue: [SearchTab: CGFloat] = [:]
     static func reduce(value: inout [SearchTab: CGFloat], nextValue: () -> [SearchTab: CGFloat]) {

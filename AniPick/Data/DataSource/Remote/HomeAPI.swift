@@ -1,5 +1,5 @@
 //
-//  HomeAPIService.swift
+//  HomeAPI.swift
 //  AniPick
 //
 //  Created by cho on 6/12/25.
@@ -7,17 +7,22 @@
 
 import Alamofire
 
-enum HomeAPIService {
+enum HomeAPI {
     case trending
-    
-    var baseUrl: String {
-        "https://" // TODO: baseURL 작성
-    }
+    case recentReviews
+    case upcomingSeason
+    case comingSoonAnimes
     
     var path: String {
         switch self {
         case .trending :
-            return "/api/home/animes/trending"
+            return "api/home/animes/trending"
+        case .recentReviews:
+            return "api/home/reviews/recent"
+        case .upcomingSeason:
+            return "api/animes/upcoming-season"
+        case .comingSoonAnimes:
+            return "api/home/animes/coming-soon"
         }
     }
     
@@ -25,21 +30,24 @@ enum HomeAPIService {
         switch self {
         case .trending:
             return .get
+        case .recentReviews:
+            return .get
+        case .upcomingSeason:
+            return .get
+        case .comingSoonAnimes:
+            return .get
         }
     }
     
     var parameters: Parameters? {
         switch self {
-        case .trending:
+        case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes:
             return nil
         }
     }
     
     var header: HTTPHeaders {
-        return ["Content-Type": "application/json"]
-    }
-    
-    var url: String {
-        baseUrl + path
+        return ["Content-Type": "application/json",
+                "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }
 }

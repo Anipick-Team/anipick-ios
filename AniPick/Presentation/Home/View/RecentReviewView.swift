@@ -8,11 +8,35 @@
 import SwiftUI
 
 struct RecentReviewView: View {
-    
+    @Environment(\.dismiss) private var dismiss
     @State private var menuFrame: CGRect = .zero
     @State private var isShowBlockMenu: Bool = false
     
     var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack {
+                HStack(alignment: .center, spacing: 0) {
+                    Button {
+                        DLog("뒤로가기 버튼 탭탭")
+                        dismiss()
+                    } label: {
+                        Image(.chevronLeft)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                    }
+                    .padding(.leading, 20)
+                    Spacer()
+                }
+                
+                Spacer()
+                
+                Text("최근 리뷰")
+                    .customFontStyle(size: 18, color: .anipickBlack)
+                
+                Spacer()
+            }
+            Spacer().frame(height: 30)
+
         ZStack(alignment: .topLeading) {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
@@ -45,7 +69,8 @@ struct RecentReviewView: View {
         }
         .background(.gray7)
         
-        
+            
+        }
     }
 }
 

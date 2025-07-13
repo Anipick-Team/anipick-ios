@@ -1,0 +1,53 @@
+//
+//  NavigationManager.swift
+//  AniPick
+//
+//  Created by cho on 6/22/25.
+//
+
+import SwiftUI
+
+final class NavigationManager: ObservableObject {
+    @Published var path = NavigationPath()
+    
+    func push(route: AppRoute) {
+        print("🔥 pushing route: \(route)")
+           path.append(route)
+        print("📦 current path: \(path)")
+    }
+    
+    func pop() {
+        path.removeLast()
+    }
+    
+    func popToRoot() {
+        path.removeLast(path.count)
+    }
+}
+
+
+enum AppRoute: Hashable {
+    case homeView
+    case emailLogin
+    case LoginProblem
+    case emailSignup
+    case findPassword
+    case successLogin
+    case homeSearch
+    
+    // Setting
+    case editNickname
+    case editEmail
+    case editPassword
+    case linkedSNS
+    case appVersion
+    case inquiry
+    case termsOfService
+    case privacyPolicy
+    case notice
+    case logout
+    case deleteAccount
+
+    // MyInfo
+    case myInfoInToWatchList
+}

@@ -1,13 +1,5 @@
 //
-//  ToWatchListView 2.swift
-//  AniPick
-//
-//  Created by cho on 7/13/25.
-//
-
-
-//
-//  ToWatchListView.swift
+//  WatchingListView.swift
 //  AniPick
 //
 //  Created by cho on 7/5/25.
@@ -15,13 +7,14 @@
 
 import SwiftUI
 
-struct ToWatchListView: View {
+struct WatchingListView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject var viewModel: MyInfoViewModel
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
         
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            NavigationBackButtonView(title: "볼 애니") {
+            NavigationBackButtonView(title: "보는 중") {
                 dismiss()
             }
             .padding(.horizontal, -20)
@@ -46,6 +39,17 @@ struct ToWatchListView: View {
                 }
             }
             .scrollIndicators(.hidden)
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(.chevronLeft)
+                        .foregroundColor(.black)
+                }
+            }
         }
         .padding(.horizontal, 20)
     }
@@ -83,5 +87,5 @@ struct ToWatchListView: View {
 }
 
 #Preview {
-    ToWatchListView()
+    AppDIContainer.makeMyInfoInWatchingListView()
 }

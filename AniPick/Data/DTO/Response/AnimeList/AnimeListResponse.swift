@@ -1,18 +1,26 @@
+//
+//  AnimeListResponse.swift
+//  AniPick
+//
+//  Created by cho on 7/13/25.
+//
+
+
 import Foundation
 
 // MARK: - Top-Level Response
-struct AnimeListResponse: Codable {
+struct AnimeSeriesListResponse: Decodable {
     let code: Int
     let value: String
-    let result: [AnimeItem]
+    let result: [AnimeSeriesItem]
 }
 
 // MARK: - Anime Item
-struct AnimeItem: Codable, Identifiable {
+struct AnimeSeriesItem: Decodable, Identifiable {
     let animeId: Int
     let title: String
     let coverImageUrl: String
-    let airDate: String
+    let airDate: String?
 
     var id: Int { animeId }
 }

@@ -1,5 +1,5 @@
 //
-//  WatchListView.swift
+//  ToWatchListView.swift
 //  AniPick
 //
 //  Created by cho on 7/5/25.
@@ -7,8 +7,9 @@
 
 import SwiftUI
 
-struct WatchListView: View {
+struct ToWatchListView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject var viewModel: MyInfoViewModel
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
         
     var body: some View {
@@ -38,6 +39,17 @@ struct WatchListView: View {
                 }
             }
             .scrollIndicators(.hidden)
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(.chevronLeft)
+                        .foregroundColor(.black)
+                }
+            }
         }
         .padding(.horizontal, 20)
     }
@@ -75,5 +87,5 @@ struct WatchListView: View {
 }
 
 #Preview {
-    WatchListView()
+    AppDIContainer.makeMyInfoInToWatchView()
 }

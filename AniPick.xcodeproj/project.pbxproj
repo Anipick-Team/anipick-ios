@@ -6,7 +6,40 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		DE7A22552DEBFDB900B485EA /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22542DEBFDB900B485EA /* KakaoSDK */; };
+		DE7A22572DEBFDB900B485EA /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22562DEBFDB900B485EA /* KakaoSDKAuth */; };
+		DE7A22592DEBFDB900B485EA /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22582DEBFDB900B485EA /* KakaoSDKUser */; };
+		DE7A225C2DEBFDC200B485EA /* Alamofire in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A225B2DEBFDC200B485EA /* Alamofire */; };
+		DE7A22622DEC009800B485EA /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22612DEC009800B485EA /* GoogleSignIn */; };
+		DE7A22642DEC009800B485EA /* GoogleSignInSwift in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22632DEC009800B485EA /* GoogleSignInSwift */; };
+		DE7A22762DEC46ED00B485EA /* Auth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE7A226C2DEC46ED00B485EA /* Auth.framework */; };
+		DE7A22812DEC46ED00B485EA /* Auth.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DE7A226C2DEC46ED00B485EA /* Auth.framework */; };
+		DE7A22822DEC46ED00B485EA /* Auth.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = DE7A226C2DEC46ED00B485EA /* Auth.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
+		DE7A22772DEC46ED00B485EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DEC4D2412DAD24960013C05E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DE7A226B2DEC46ED00B485EA;
+			remoteInfo = Auth;
+		};
+		DE7A22792DEC46ED00B485EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DEC4D2412DAD24960013C05E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DEC4D2482DAD24960013C05E;
+			remoteInfo = AniPick;
+		};
+		DE7A227F2DEC46ED00B485EA /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = DEC4D2412DAD24960013C05E /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DE7A226B2DEC46ED00B485EA;
+			remoteInfo = Auth;
+		};
 		DEC4D25A2DAD24980013C05E /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = DEC4D2412DAD24960013C05E /* Project object */;
@@ -23,15 +56,49 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		DE7A22872DEC46ED00B485EA /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				DE7A22822DEC46ED00B485EA /* Auth.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		DE7A226C2DEC46ED00B485EA /* Auth.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Auth.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		DE7A22752DEC46ED00B485EA /* AuthTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AuthTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEC4D2492DAD24960013C05E /* AniPick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AniPick.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEC4D2592DAD24980013C05E /* AniPickTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AniPickTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		DEC4D2632DAD24980013C05E /* AniPickUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AniPickUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		DE7A22662DEC00F800B485EA /* Exceptions for "AniPick" folder in "AniPick" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = DEC4D2482DAD24960013C05E /* AniPick */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		DE7A227B2DEC46ED00B485EA /* AuthTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = AuthTests;
+			sourceTree = "<group>";
+		};
 		DEC4D24B2DAD24960013C05E /* AniPick */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				DE7A22662DEC00F800B485EA /* Exceptions for "AniPick" folder in "AniPick" target */,
+			);
 			path = AniPick;
 			sourceTree = "<group>";
 		};
@@ -48,10 +115,32 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		DE7A22692DEC46ED00B485EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE7A22722DEC46ED00B485EA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DE7A22762DEC46ED00B485EA /* Auth.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DEC4D2462DAD24960013C05E /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DE7A22622DEC009800B485EA /* GoogleSignIn in Frameworks */,
+				DE7A22552DEBFDB900B485EA /* KakaoSDK in Frameworks */,
+				DE7A225C2DEBFDC200B485EA /* Alamofire in Frameworks */,
+				DE7A22642DEC009800B485EA /* GoogleSignInSwift in Frameworks */,
+				DE7A22572DEBFDB900B485EA /* KakaoSDKAuth in Frameworks */,
+				DE7A22592DEBFDB900B485EA /* KakaoSDKUser in Frameworks */,
+				DE7A22812DEC46ED00B485EA /* Auth.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +167,7 @@
 				DEC4D24B2DAD24960013C05E /* AniPick */,
 				DEC4D25C2DAD24980013C05E /* AniPickTests */,
 				DEC4D2662DAD24980013C05E /* AniPickUITests */,
+				DE7A227B2DEC46ED00B485EA /* AuthTests */,
 				DEC4D24A2DAD24960013C05E /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,13 +178,69 @@
 				DEC4D2492DAD24960013C05E /* AniPick.app */,
 				DEC4D2592DAD24980013C05E /* AniPickTests.xctest */,
 				DEC4D2632DAD24980013C05E /* AniPickUITests.xctest */,
+				DE7A226C2DEC46ED00B485EA /* Auth.framework */,
+				DE7A22752DEC46ED00B485EA /* AuthTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
+/* Begin PBXHeadersBuildPhase section */
+		DE7A22672DEC46ED00B485EA /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
 /* Begin PBXNativeTarget section */
+		DE7A226B2DEC46ED00B485EA /* Auth */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DE7A22832DEC46ED00B485EA /* Build configuration list for PBXNativeTarget "Auth" */;
+			buildPhases = (
+				DE7A22672DEC46ED00B485EA /* Headers */,
+				DE7A22682DEC46ED00B485EA /* Sources */,
+				DE7A22692DEC46ED00B485EA /* Frameworks */,
+				DE7A226A2DEC46ED00B485EA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Auth;
+			packageProductDependencies = (
+			);
+			productName = Auth;
+			productReference = DE7A226C2DEC46ED00B485EA /* Auth.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		DE7A22742DEC46ED00B485EA /* AuthTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DE7A22882DEC46ED00B485EA /* Build configuration list for PBXNativeTarget "AuthTests" */;
+			buildPhases = (
+				DE7A22712DEC46ED00B485EA /* Sources */,
+				DE7A22722DEC46ED00B485EA /* Frameworks */,
+				DE7A22732DEC46ED00B485EA /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DE7A22782DEC46ED00B485EA /* PBXTargetDependency */,
+				DE7A227A2DEC46ED00B485EA /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				DE7A227B2DEC46ED00B485EA /* AuthTests */,
+			);
+			name = AuthTests;
+			packageProductDependencies = (
+			);
+			productName = AuthTests;
+			productReference = DE7A22752DEC46ED00B485EA /* AuthTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		DEC4D2482DAD24960013C05E /* AniPick */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = DEC4D26D2DAD24980013C05E /* Build configuration list for PBXNativeTarget "AniPick" */;
@@ -102,16 +248,24 @@
 				DEC4D2452DAD24960013C05E /* Sources */,
 				DEC4D2462DAD24960013C05E /* Frameworks */,
 				DEC4D2472DAD24960013C05E /* Resources */,
+				DE7A22872DEC46ED00B485EA /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				DE7A22802DEC46ED00B485EA /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				DEC4D24B2DAD24960013C05E /* AniPick */,
 			);
 			name = AniPick;
 			packageProductDependencies = (
+				DE7A22542DEBFDB900B485EA /* KakaoSDK */,
+				DE7A22562DEBFDB900B485EA /* KakaoSDKAuth */,
+				DE7A22582DEBFDB900B485EA /* KakaoSDKUser */,
+				DE7A225B2DEBFDC200B485EA /* Alamofire */,
+				DE7A22612DEC009800B485EA /* GoogleSignIn */,
+				DE7A22632DEC009800B485EA /* GoogleSignInSwift */,
 			);
 			productName = AniPick;
 			productReference = DEC4D2492DAD24960013C05E /* AniPick.app */;
@@ -173,6 +327,13 @@
 				LastSwiftUpdateCheck = 1620;
 				LastUpgradeCheck = 1620;
 				TargetAttributes = {
+					DE7A226B2DEC46ED00B485EA = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					DE7A22742DEC46ED00B485EA = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = DEC4D2482DAD24960013C05E;
+					};
 					DEC4D2482DAD24960013C05E = {
 						CreatedOnToolsVersion = 16.2;
 					};
@@ -196,6 +357,11 @@
 			);
 			mainGroup = DEC4D2402DAD24960013C05E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */,
+				DE7A225A2DEBFDC200B485EA /* XCRemoteSwiftPackageReference "Alamofire" */,
+				DE7A22602DEC009800B485EA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DEC4D24A2DAD24960013C05E /* Products */;
 			projectDirPath = "";
@@ -204,11 +370,27 @@
 				DEC4D2482DAD24960013C05E /* AniPick */,
 				DEC4D2582DAD24980013C05E /* AniPickTests */,
 				DEC4D2622DAD24980013C05E /* AniPickUITests */,
+				DE7A226B2DEC46ED00B485EA /* Auth */,
+				DE7A22742DEC46ED00B485EA /* AuthTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		DE7A226A2DEC46ED00B485EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE7A22732DEC46ED00B485EA /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DEC4D2472DAD24960013C05E /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -233,6 +415,20 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DE7A22682DEC46ED00B485EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		DE7A22712DEC46ED00B485EA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		DEC4D2452DAD24960013C05E /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -257,6 +453,21 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		DE7A22782DEC46ED00B485EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DE7A226B2DEC46ED00B485EA /* Auth */;
+			targetProxy = DE7A22772DEC46ED00B485EA /* PBXContainerItemProxy */;
+		};
+		DE7A227A2DEC46ED00B485EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DEC4D2482DAD24960013C05E /* AniPick */;
+			targetProxy = DE7A22792DEC46ED00B485EA /* PBXContainerItemProxy */;
+		};
+		DE7A22802DEC46ED00B485EA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DE7A226B2DEC46ED00B485EA /* Auth */;
+			targetProxy = DE7A227F2DEC46ED00B485EA /* PBXContainerItemProxy */;
+		};
 		DEC4D25B2DAD24980013C05E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = DEC4D2482DAD24960013C05E /* AniPick */;
@@ -270,6 +481,110 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		DE7A22842DEC46ED00B485EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = X32GZ3NKQ8;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moana.Auth;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		DE7A22852DEC46ED00B485EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUILD_LIBRARY_FOR_DISTRIBUTION = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = X32GZ3NKQ8;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				ENABLE_MODULE_VERIFIER = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
+				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu17 gnu++20";
+				PRODUCT_BUNDLE_IDENTIFIER = com.moana.Auth;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_INSTALL_OBJC_HEADER = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		DE7A22892DEC46ED00B485EA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X32GZ3NKQ8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moana.AuthTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AniPick.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AniPick";
+			};
+			name = Debug;
+		};
+		DE7A228A2DEC46ED00B485EA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = X32GZ3NKQ8;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.moana.AuthTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/AniPick.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/AniPick";
+			};
+			name = Release;
+		};
 		DEC4D26B2DAD24980013C05E /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -396,12 +711,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AniPick/AniPick.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"AniPick/Preview Content\"";
 				DEVELOPMENT_TEAM = X32GZ3NKQ8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AniPick/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -430,12 +747,14 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = AniPick/AniPick.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"AniPick/Preview Content\"";
 				DEVELOPMENT_TEAM = X32GZ3NKQ8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = AniPick/Info.plist;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -530,6 +849,24 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		DE7A22832DEC46ED00B485EA /* Build configuration list for PBXNativeTarget "Auth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE7A22842DEC46ED00B485EA /* Debug */,
+				DE7A22852DEC46ED00B485EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		DE7A22882DEC46ED00B485EA /* Build configuration list for PBXNativeTarget "AuthTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DE7A22892DEC46ED00B485EA /* Debug */,
+				DE7A228A2DEC46ED00B485EA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		DEC4D2442DAD24960013C05E /* Build configuration list for PBXProject "AniPick" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -567,6 +904,66 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.24.2;
+			};
+		};
+		DE7A225A2DEBFDC200B485EA /* XCRemoteSwiftPackageReference "Alamofire" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/Alamofire/Alamofire";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 5.10.2;
+			};
+		};
+		DE7A22602DEC009800B485EA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		DE7A22542DEBFDB900B485EA /* KakaoSDK */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDK;
+		};
+		DE7A22562DEBFDB900B485EA /* KakaoSDKAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKAuth;
+		};
+		DE7A22582DEBFDB900B485EA /* KakaoSDKUser */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;
+			productName = KakaoSDKUser;
+		};
+		DE7A225B2DEBFDC200B485EA /* Alamofire */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE7A225A2DEBFDC200B485EA /* XCRemoteSwiftPackageReference "Alamofire" */;
+			productName = Alamofire;
+		};
+		DE7A22612DEC009800B485EA /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE7A22602DEC009800B485EA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
+		DE7A22632DEC009800B485EA /* GoogleSignInSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE7A22602DEC009800B485EA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignInSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = DEC4D2412DAD24960013C05E /* Project object */;
 }

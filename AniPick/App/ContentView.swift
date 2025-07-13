@@ -19,10 +19,7 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-           // HomeView()
-          //  AppleLoginTestView()
-            AuthTestView()
-         //   MainLoginView()
+            AppDIContainer.makeLoginView()
                 .tabItem {
                     Image(selectedTab == .home ? .homeFilled : .homeUnfilled)
                     Text("홈")
@@ -31,30 +28,27 @@ struct ContentView: View {
                 .foregroundStyle(selectedTab == .home ? Color.primaryColor: Color.textGrayColor)
                 .tag(Tab.home)
             
-            RankingView()
+            AppDIContainer.makeHomeView()
                 .tabItem {
                     Image(selectedTab == .ranking ? .rankingFilled : .rankingUnfilled)
                     Text("랭킹")
                 }
                 .tag(Tab.ranking)
             
-            ResearchView()
+            AppDIContainer.makeExploreView()
                 .tabItem {
                     Image(selectedTab == .research ? .reseachFilled : .researchUnfilled)
                     Text("탐색")
                 }
                 .tag(Tab.research)
             
-            MyInfoView()
+            TestView()
                 .tabItem {
                     Image(selectedTab == .myInfo ? .myInfoFilled : .myInfoUnfilled)
                     Text("마이")
                 }
                 .tag(Tab.myInfo)
-            
         }
-       // .foregroundStyle(Color.primaryColor)
-
     }
 }
 

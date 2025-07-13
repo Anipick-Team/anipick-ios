@@ -9,11 +9,12 @@ import SwiftUI
 
 struct FinishedWatchingListView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject var viewModel: MyInfoViewModel
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
         
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            NavigationBackButtonView(title: "보는 중") {
+            NavigationBackButtonView(title: "다 본 애니") {
                 dismiss()
             }
             .padding(.horizontal, -20)
@@ -39,13 +40,24 @@ struct FinishedWatchingListView: View {
             }
             .scrollIndicators(.hidden)
         }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(.chevronLeft)
+                        .foregroundColor(.black)
+                }
+            }
+        }
         .padding(.horizontal, 20)
     }
     
     
     
     private func animationCell() -> some View {
-        return VStack(spacing: 0) {
+        return VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .topLeading) {
                 // 회색 배경 정사각형
                 RoundedRectangle(cornerRadius: 12)
@@ -59,7 +71,23 @@ struct FinishedWatchingListView: View {
                // .frame(width: 128, height: 45)
                 .font(.system(size: 14))
                 .lineLimit(2)
-                .padding(.top, 6)
+                .padding(.vertical, 6)
+            
+            HStack(alignment: .center, spacing: 0) {
+                Text("내 평가")
+                    .customFontStyle(size: 12, color: .gray8)
+                    .padding(.trailing, 8)
+                
+                Image(.fillPickStar)
+                    .resizable()
+                    .frame(width: 12, height: 12)
+                
+                Text("2.3")
+                    .customFontStyle(size: 14, color: .point)
+                
+                
+            }
+            
         }
     }
     
@@ -75,5 +103,5 @@ struct FinishedWatchingListView: View {
 }
 
 #Preview {
-    FinishedWatchingListView()
+    AppDIContainer.makeMyInfoFinishedWatchingView()
 }

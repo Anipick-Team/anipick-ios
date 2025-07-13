@@ -1,11 +1,20 @@
+//
+//  ClearTextEditor.swift
+//  AniPick
+//
+//  Created by cho on 7/5/25.
+//
+
+
 import SwiftUI
 
 struct ClearTextEditor: UIViewRepresentable {
     @Binding var text: String
-
+    var characterLimit: Int = 200
+    
     func makeUIView(context: Context) -> UITextView {
         let textView = UITextView()
-        textView.backgroundColor = .clear // ✅ 하얀 배경 제거
+        textView.backgroundColor = .clear
         textView.font = UIFont.systemFont(ofSize: 16)
         textView.textColor = UIColor.label
         textView.delegate = context.coordinator
@@ -26,8 +35,11 @@ struct ClearTextEditor: UIViewRepresentable {
         init(_ parent: ClearTextEditor) {
             self.parent = parent
         }
-
+        
         func textViewDidChange(_ textView: UITextView) {
+            if textView.text.count > parent.characterLimit {
+                textView.text = String(textView.text.prefix(parent.characterLimit))
+            }
             parent.text = textView.text
         }
     }

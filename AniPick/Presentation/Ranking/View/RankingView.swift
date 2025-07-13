@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct RankingView: View {
+    @State private var selectedGenre: String = "미스터리"
+    
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - 상단 로고 및 searchBar
@@ -43,19 +45,41 @@ struct RankingView: View {
             
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
-                        filterCell(title: "실시간")
-                            .padding(.trailing, 10)
+                    // TODO: 셋 중 하나만 선택해야함 -> selectedFilter 생성 후 관리
+                    filterCell(title: "실시간")
+                        .padding(.trailing, 8)
                     
-                    FilterButton(title: "년도/분기", selectedState: .notSelected) {
-                        print("년도/분기 탭탭")
-                    }
-                        .padding(.trailing, 10)
+                    filterCell(title: "년도/분기")
+                        .padding(.trailing, 8)
                     
-                    FilterButton(title: "장르", selectedState: .notSelected) {
-                        print("장르 탭탭")
-                    }
+                    filterCell(title: "역대")
+                        .padding(.trailing, 8)
+                    
                     
                     Spacer()
+                    
+                    Button {
+                        DLog("장르 선택")
+                    } label: {
+                        VStack(spacing: 0) {
+                            HStack(spacing: 0) {
+                                Text(self.selectedGenre)
+                                    .customFontStyle(size: 16, color: .anipickSecondary)
+                                    .padding(.trailing, 8)
+                                
+                                Image(.chevronDownBlue)
+                                
+                            }
+                        }
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 32)
+                                .stroke(Color.anipickSecondary)
+                        )
+                    }
+                    
+                    
                 }
                 .padding(.horizontal, 20)
             }
@@ -148,14 +172,17 @@ struct RankingView: View {
         }
     }
     private func filterCell(title: String) -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            Text(title)
-                .padding(.vertical, 7)
-                .padding(.horizontal, 16)
-                .font(.system(size: 14))
-                .foregroundStyle(.gray5)
-                .background(.anipickPrimary)
-                .cornerRadius(32)
+        return Button {
+            DLog("필터값 변경변경")
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(title)
+                    .padding(.vertical, 7)
+                    .padding(.horizontal, 12)
+                    .customFontStyle(size: 13, color: .gray5)
+                    .background(.anipickPrimary)
+                    .cornerRadius(32)
+            }
         }
     }
 }

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-class EmailSigninViewModel: ObservableObject {
+class EmailSignupViewModel: ObservableObject {
     @Published var isAgreeAll: Bool = false
     @Published var isAgreeOverFourteen: Bool = false
     @Published var isAgreeTermsOfUse: Bool = false
@@ -35,6 +35,33 @@ class EmailSigninViewModel: ObservableObject {
         }
     }
     
+    private let authUsecase: AuthUsecaseProtocol
+    private let navigationManager: NavigationManager
+    
+    init(authUsecase: AuthUsecaseProtocol,
+         navigationManager: NavigationManager) {
+        self.authUsecase = authUsecase
+        self.navigationManager = navigationManager
+    }
+}
+
+extension EmailSignupViewModel {
+    func signupWithEmail() async {
+        do {
+            let request = EmailSignupRequest(
+                email: self.emailString,
+                password: self.passwordString,
+                termsAndConditions: self.isAgreeAll
+            )
+            let response = try await authUsecase.postEmailSignup(request: request)
+            // TODO: UserName, id, accessToken, refreshToken -  UserDefaults에 저장 - Email 회원가입 정리
+        } catch {
+            DLog("signup with email error - \(error.localizedDescription)")
+        }
+    }
+}
+
+extension EmailSignupViewModel {
     func validateEmailInputs()  {
         print("validateInputs 호출호출!")
         // TODO: 이미 가입한 이메일일 경우, "이미 가입한 이메일입니다. 표시"
@@ -46,7 +73,7 @@ class EmailSigninViewModel: ObservableObject {
             self.emailGuideText = ""
         }
         
-        self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty
+        self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty && self.isAgreeAll
     }
     
     private func isValidEmail(_ email: String) -> Bool {
@@ -58,11 +85,9 @@ class EmailSigninViewModel: ObservableObject {
     func validateInputs()  {
         print("validateInputs 호출호출!")
 
-        self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty
+        self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty && self.isAgreeAll
     }
-    
 
-    
     
     func isValidPassword() -> Bool {
         var password = self.passwordString
@@ -103,6 +128,7 @@ class EmailSigninViewModel: ObservableObject {
         self.isAgreeOverFourteen = agreement
         self.isAgreeTermsOfUse = agreement
         self.isAgreePrivacyPolicy = agreement
+        self.validateInputs()
     }
     
     func toggleOverFourteen() {
@@ -122,6 +148,7 @@ class EmailSigninViewModel: ObservableObject {
     
     private func updateAllAgreement() {
         self.isAgreeAll = self.isAgreeOverFourteen && self.isAgreeTermsOfUse && self.isAgreePrivacyPolicy
+        self.validateInputs()
     }
     
 }

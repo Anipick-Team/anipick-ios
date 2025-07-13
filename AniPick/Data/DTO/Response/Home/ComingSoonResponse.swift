@@ -8,14 +8,8 @@
 struct ComingSoonResponse: Decodable {
     let code: Int
     let value: String
-    let result: [Amine]
+    let result: [Anime]
 }
 
-struct Amine: Decodable {
-    let animeId: Int
-    let title: String
-    let coverImageUrl: String
-    let releaseDate: String
-}
 
 

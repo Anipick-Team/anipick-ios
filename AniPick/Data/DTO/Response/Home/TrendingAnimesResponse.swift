@@ -8,10 +8,12 @@
 struct TrendingAnimesResponse: Decodable {
     let code: Int
     let value: String
-    let result: [TrendingAnimes]
+    let result: [TrendingAnimes]?
+    let errorReason: String?
+    let errorValue: String?
 }
 
-struct TrendingAnimes: Decodable {
+struct TrendingAnimes: Hashable, Decodable {
     let animeId: Int
     let title: String
     let coverImageUrl: String

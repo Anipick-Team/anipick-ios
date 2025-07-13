@@ -8,14 +8,13 @@
 import SwiftUI
 
 struct ForgetPasswordView: View {
-    @State var emailString: String = ""
+    @Environment(\.dismiss) private var dismiss
     
-    @StateObject var viewModel: ForgetPasswordViewModel = ForgetPasswordViewModel()
-    
+    @StateObject var viewModel: ForgetPasswordViewModel
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer()
-                .frame(height: 34)
+                .frame(height: 64)
             
             VStack(alignment: .leading) {
                 Text("비밀번호 찾기")
@@ -23,7 +22,7 @@ struct ForgetPasswordView: View {
                     .padding(.bottom, 4)
                 
                 Text("회원 서비스 사용을 위해 비밀번호를 찾아주세요.")
-                    .font(.system(size: 14, weight: .medium))
+                    .customFontStyle(size: 14, color: .gray8)
             }
             
             Spacer().frame(height: 64)
@@ -31,7 +30,7 @@ struct ForgetPasswordView: View {
             HStack(spacing: 0) {
                 TextField(
                     "",
-                    text: $emailString,
+                    text: $viewModel.emailString,
                     prompt: Text("이메일을 입력해주세요")
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.textGray)
@@ -41,36 +40,55 @@ struct ForgetPasswordView: View {
                 .cornerRadius(8)
                 
                 Button {
-                    print("인증번호 받기 탭탭")
+                    DLog("인증번호 받기 탭탭")
+                    Task {
+                        await viewModel.tappedValidNumberButton()
+                    }
                 } label: {
                     Text("인증번호 받기")
                         .foregroundColor(.white)
                         .font(.system(size: 16))
                         .frame(maxWidth: .infinity)
-                        .frame(height: 50)
+                        .frame(width: 120, height: 50)
                         .background(.anipickPrimary)
                         .cornerRadius(8)
+                        .padding(.leading, 12)
                 }
             }
             
+            Text(viewModel.emailGuideText)
+                .customFontStyle(size: 14, color: .point)
+                .padding(.top, 12)
+                .padding(.leading, 2)
+            
             Spacer().frame(height: 40)
             
-            TextFieldComponents(
-                titleText: "인증번호",
-                placeholderText: "비밀번호를 입력해주세요",
-                textFieldString: $viewModel.verificationCode,
-                enableEyeIcon: true
-            )
-
+            ZStack {
+                TextFieldComponents(
+                    titleText: "인증번호",
+                    placeholderText: "인증번호를 입력해주세요",
+                    textFieldString: $viewModel.verificationCode,
+                    enableTimer: true,
+                    timerCount: viewModel.timerCount
+                )
+            }
+            
+            Text(viewModel.emailGuideText)
+                .customFontStyle(size: 14, color: .point)
+                .padding(.top, 12)
+                .padding(.leading, 2)
+            
             Spacer().frame(height: 40)
+            
+            Spacer()
             
             Rectangle()
                 .frame(maxWidth: .infinity)
                 .frame(height: 1)
                 .foregroundStyle(.gray6)
                 .padding(.horizontal, -20)
+                .padding(.bottom, 32)
             
-            Spacer().frame(height: 32)
             
             FullWidthButton(isEnable: $viewModel.activeLoginButton, buttonText: "로그인") {
                 print("로그인 버튼 탭")
@@ -78,6 +96,17 @@ struct ForgetPasswordView: View {
             .padding(.bottom, 16)
            
         }
+        .navigationBarBackButtonHidden(true)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        dismiss()
+                    } label: {
+                        Image(.chevronLeft)
+                            .foregroundColor(.black)
+                    }
+                }
+            }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
         
@@ -85,5 +114,5 @@ struct ForgetPasswordView: View {
 }
 
 #Preview {
-    ForgetPasswordView()
+    AppDIContainer.makeFindPasswordView()
 }

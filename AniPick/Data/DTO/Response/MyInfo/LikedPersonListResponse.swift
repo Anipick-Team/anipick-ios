@@ -1,26 +1,29 @@
+//
+//  LikedPersonListResponse.swift
+//  AniPick
+//
+//  Created by cho on 7/13/25.
+//
+
 import Foundation
 
-// MARK: - Top-Level Response
-struct LikedPersonListResponse: Codable {
+struct LikedPersonListResponse: Decodable {
     let code: Int
     let value: String
     let result: LikedPersonListResult
 }
 
-// MARK: - Result
-struct LikedPersonListResult: Codable {
+struct LikedPersonListResult: Decodable {
     let count: Int
     let cursor: LikedPersonCursor
-    let persons: [LikedPerson]
+    let persons: [LikedRatedPerson]
 }
 
-// MARK: - Cursor
-struct LikedPersonCursor: Codable {
+struct LikedPersonCursor: Decodable {
     let lastId: Int
 }
 
-// MARK: - Liked Person
-struct LikedPerson: Codable, Identifiable {
+struct LikedRatedPerson: Decodable, Identifiable {
     let personId: Int
     let userLikedVoiceActorId: Int
     let name: String

@@ -8,8 +8,8 @@
 import SwiftUI
 
 extension Color {
-    static let primaryColor = Color("PrimaryColor")
+    static let primaryColor = Color("AnipickPrimaryColor")
     static let textGrayColor = Color("TextGrayColor")
     static let textFieldBackgroundColor = Color("textFieldBackgroundColor")
-    
+    static let grayColor = Color("GrayColor")
 }
