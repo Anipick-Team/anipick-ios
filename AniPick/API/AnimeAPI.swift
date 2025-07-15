@@ -17,11 +17,27 @@ enum AnimeAPI: URLRequestConvertible {
     // 리뷰 관련
     case reviewList(animeId: Int, sort: String, isSpoiler: Bool, lastValue: String, lastId: Int, size: Int)
     case registerRating(animeId: Int, rating: Double)
+    case editRating(reviewId: Int, rating: Double)
+    case deleteRating(reviewId: Int)
+    
+    // 애니메이션 좋아요/취소
+    case likeAnime(animeId: Int)
+    case cancelLikeAnime(animeId: Int)
+    
+    // 애니 시청 기록
+    case animeWatchingStatus(animeId: Int,  status: String) // WATCHLIST, WATCHING, FINISHED 중 하나
+    case deleteAnimeWatchingStatus(animeId: Int)
     
     case studioDetailInfo(studioId: Int, lastId: Int, lastValue: Int, size: Int)
     case charactersDetailInfo(animeId: Int, lastId: Int, lastValue: Int, size: Int)
+    
     case voiceActorDetailInfo(personId: Int, lastId: Int, size: Int)
+    case likePerson(personId: Int)
+    case cancelLikePerson(personId: Int)
+    
     case recommendationAnime(animeId: Int, lastId: Int, size: Int)
+    
+    
     case writeAndEditReview(animeId: Int, content: String, rating: Double, isSpoiler: Bool)
     case seriesAnimeList(animeId: Int, lastId: Int, size: Int)
     
@@ -35,26 +51,50 @@ enum AnimeAPI: URLRequestConvertible {
             return "api/animes/\(animeId)/detail/series"
         case .animeDetailRecommendation(let animeId):
             return "api/animes/\(animeId)/detail/recommendation"
-            
+        
             
         case let .reviewList(animeId, sort, isSpoiler, lastValue, lastId, size):
             return "api/animes/\(animeId)/reviews?sort={}"
         case let .registerRating(animeId, _):
             return "api/rating/\(animeId)/reviews"
+        case let .editRating(reviewId, _):
+            return "api/rating/\(reviewId)/animes"
+        case .deleteRating(let reviewId):
+            return "api/rating/\(reviewId)/animes"
             
+        case .likeAnime(let animeId):
+            return "api/animes/{animeId}/like"
+        case .cancelLikeAnime(let animeId):
+            return "api/animes/{animeId}/like"
+            
+        case let .animeWatchingStatus(animeId, _):
+            return "api/users/\(animeId)/status"
+        case let .deleteAnimeWatchingStatus(animeId):
+            return "api/users/\(animeId)/status"
             
         case .studioDetailInfo(let studioId, let lastId, let lastValue, let size):
-            <#code#>
+            return "api/studios/\(studioId)/animes"
+            
         case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
-            <#code#>
+            return "api/animes/\(animeId)/characters"
         case .voiceActorDetailInfo(let personId, let lastId, let size):
-            <#code#>
+            return "api/person/\(personId)"
+            
+            
+        case .likePerson(let personId):
+            return "api/persons/\(personId)/like"
+            
+        case .cancelLikePerson(let personId):
+            return "api/persons/\(personId)/like"
+            
+            
+            
         case .recommendationAnime(let animeId, let lastId, let size):
-            <#code#>
+           return "api/animes/\(animeId)/recommendations"
         case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
-            <#code#>
+            return "api/reviews/\(animeId)/animes"
         case .seriesAnimeList(let animeId, let lastId, let size):
-            <#code#>
+            return "api/animes/\(animeId)/series"
         }
     }
     
@@ -74,19 +114,40 @@ enum AnimeAPI: URLRequestConvertible {
             return .get
         case .registerRating:
             return .post
+        case .editRating:
+            return .patch
+        case .deleteRating:
+            return .delete
             
-        case .studioDetailInfo(let studioId, let lastId, let lastValue, let size):
-            <#code#>
+            
+        case .likeAnime:
+            return .post
+        case .cancelLikeAnime:
+            return .delete
+            
+            
+        case .animeWatchingStatus:
+            return .post
+        case .deleteAnimeWatchingStatus:
+            return .delete
+            
+        case .studioDetailInfo:
+            return .get
         case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
-            <#code#>
-        case .voiceActorDetailInfo(let personId, let lastId, let size):
-            <#code#>
+            return .get
+        case .voiceActorDetailInfo:
+            return .get
+        case .likePerson:
+            return .post
+        case .cancelLikePerson:
+            return .delete
+ 
         case .recommendationAnime(let animeId, let lastId, let size):
-            <#code#>
+            return .get
         case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
-            <#code#>
+            return .patch
         case .seriesAnimeList(let animeId, let lastId, let size):
-            <#code#>
+            return .get
         }
 
     }
@@ -115,18 +176,71 @@ enum AnimeAPI: URLRequestConvertible {
                 "rating": rating
             ]
             
+        case let .editRating(_, rating):
+            return [
+                "rating": rating
+            ]
+            
+        case let .deleteRating:
+            return nil
+            
+            
+            
+        case .likeAnime:
+            return nil
+        case .cancelLikeAnime:
+            return nil
+            
+        case let .animeWatchingStatus(_, status):
+            return [
+                "status": status
+            ]
+        case .deleteAnimeWatchingStatus:
+            return nil
+            
+            
         case .studioDetailInfo(let studioId, let lastId, let lastValue, let size):
-            <#code#>
+            return [
+                "lastId": lastId,
+                "lastValue": lastValue,
+                "size": size
+            ]
+            
         case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
-            <#code#>
+            return [
+                "lastId": lastId,
+                "lastValue": lastValue,
+                "size": size
+            ]
         case .voiceActorDetailInfo(let personId, let lastId, let size):
-            <#code#>
+            return [
+                "lastId": lastId,
+                "size": size
+            ]
+            
+        case .likePerson:
+            return nil
+        case .cancelLikePerson:
+            return nil
+            
+            
+            
         case .recommendationAnime(let animeId, let lastId, let size):
-            <#code#>
+            return [
+                "lastId": lastId,
+                "size": size
+            ]
         case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
-            <#code#>
+            return [
+                "content": content,
+                "rating": rating,
+                "isSpoiler": isSpoiler
+            ]
         case .seriesAnimeList(let animeId, let lastId, let size):
-            <#code#>
+            return [
+                "lastId": lastId,
+                "size": size
+            ]
         }
 
     }
@@ -153,20 +267,44 @@ enum AnimeAPI: URLRequestConvertible {
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .registerRating:
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+        case .editRating:
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+        case .deleteRating:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+            
+        case .likeAnime:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .cancelLikeAnime:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+            
+        case .animeWatchingStatus:
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+        case .deleteAnimeWatchingStatus:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+        case .charactersDetailInfo:
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
             
             
             
-            
-        case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
-            <#code#>
         case .voiceActorDetailInfo(let personId, let lastId, let size):
-            <#code#>
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+        case .likePerson:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .cancelLikePerson:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+            
+            
+            
         case .recommendationAnime(let animeId, let lastId, let size):
-            <#code#>
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
-            <#code#>
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .seriesAnimeList(let animeId, let lastId, let size):
-            <#code#>
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
             
             
         }
