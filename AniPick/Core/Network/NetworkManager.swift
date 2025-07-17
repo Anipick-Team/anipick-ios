@@ -9,7 +9,8 @@ import Foundation
 import Alamofire
 
 enum NetworkManager {
-    static let baseUrl: String = "http://14.36.136.229:8080/"
+    // TODO: BaseUrl 입력 필요
+    static let baseUrl: String = "http://anipick.p-e.kr:8080/"
     
     private static let defaultSession: Session = {
         let configuration = URLSessionConfiguration.default
@@ -58,7 +59,10 @@ enum NetworkManager {
             )
             .validate()
             .responseString { response in
-                DLog("responseString - \(response)")
+                if let data = response.data,
+                   let rawJson = String(data: data, encoding: .utf8) {
+                    DLog("📦 Raw Response JSON:\n\(rawJson)")
+                }
             }
             .responseDecodable(of: T.self) { response in
                 switch response.result {
@@ -73,4 +77,6 @@ enum NetworkManager {
         }
     }
 }
+
+
 

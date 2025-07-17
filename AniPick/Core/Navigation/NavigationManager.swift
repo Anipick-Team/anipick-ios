@@ -34,8 +34,15 @@ enum AppRoute: Hashable {
     case findPassword
     case successLogin
     case homeSearch
-    
+    case ranking
+    case research
+    case review
+    case explore
+    case animeDetail(animeId: Int)
+    case resetPassword
+    case content
     // Setting
+    case setting
     case editNickname
     case editEmail
     case editPassword
@@ -49,5 +56,14 @@ enum AppRoute: Hashable {
     case deleteAccount
 
     // MyInfo
+    case myInfo
     case myInfoInToWatchList
+    case myInfoWatchingList
+    case finishedWatchList
+    case likeAnimeList
+    case likePersonList
+    case ratedAnimeList
+    
+    
+    
 }

@@ -12,11 +12,11 @@ struct RecentReviewInHomeResponse: Codable {
 }
 
 struct Review: Hashable, Codable {
-    let reviewId: Int
-    let animeId: Int
-    let animeTitle: String
-    let reviewContent: String
-    let nickname: String
-    let createdAt: String
+    let reviewId: Int?
+    let animeId: Int?
+    let animeTitle: String?
+    let reviewContent: String?
+    let nickname: String?
+    let createdAt: String?
 }
 

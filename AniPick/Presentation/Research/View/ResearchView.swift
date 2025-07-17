@@ -13,7 +13,7 @@ enum ResearchSelectedTab: String, CaseIterable {
     case releaseType = "타입"
 }
 struct ResearchView: View {
-    
+    @StateObject var viewModel: ResearchViewModel
     let genreList: [String] = [  "액션", "모험", "코미디", "드라마", "섹시",
                                  "판타지", "성인", "공포", "마법소녀", "메카",
                                  "음악", "미스터리", "심리", "로맨스", "SF",
@@ -379,7 +379,7 @@ struct ResearchView: View {
 }
 
 #Preview {
-    ResearchView()
+    AppDIContainer.makeResearchView()
 }
 
 

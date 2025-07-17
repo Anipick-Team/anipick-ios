@@ -23,14 +23,19 @@ struct MainLoginView: View {
                 Spacer()
                     .frame(height: 48)
                 
-                VStack(spacing: 0) {
-                    Text("나에게 딱 맞는 애니 추천을 위해.")
-                        .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
-                        .padding(.bottom, 8)
-                    Text("사용할수록 더 좋아지는 애니메이션 환경을 만나보세요")
-                        .customFontStyle(size: 14, color: .anipickBlack)
+                // TODO: test code - delete me
+                Button {
+                    viewModel.testtest()
+                } label: {
+                    VStack(spacing: 0) {
+                        Text("나에게 딱 맞는 애니 추천을 위해.")
+                            .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
+                            .padding(.bottom, 8)
+                        Text("사용할수록 더 좋아지는 애니메이션 환경을 만나보세요")
+                            .customFontStyle(size: 14, color: .anipickBlack)
+                    }
+                    .padding(.bottom, 60)
                 }
-                .padding(.bottom, 60)
                 
                 Button {
                     DLog("kakao로 로그인 하기")

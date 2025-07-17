@@ -10,6 +10,7 @@ import SwiftUI
 struct WriteReviewView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var starRating: Int = 3
+    @StateObject var viewModel: WriteReviewViewModel
     
     @State private var reviewTextString: String = ""
     var placeholder: String = "리뷰 내용을 입력해주세요."
@@ -179,5 +180,5 @@ struct WriteReviewView: View {
 }
 
 #Preview {
-    WriteReviewView()
+    AppDIContainer.makeReviewView()
 }

@@ -12,7 +12,7 @@ final class TokenInterceptor: RequestInterceptor {
     static let shared = TokenInterceptor()
     
     private var requestsToRetry: [(RetryResult) -> Void] = []
-    
+    let excludedPaths = ["/login", "/users", "/auth"]
     // accessToken 붙이기
     func adapt(
         _ urlRequest: URLRequest,
@@ -22,15 +22,29 @@ final class TokenInterceptor: RequestInterceptor {
         DLog("alamofire - adapt 진입")
 
         DLog("토큰 재발급 필요")
-        // TODO: accessToken이 필요없는 곳에 대해서는 제외처리 해야함
+//        // TODO: accessToken이 필요없는 곳에 대해서는 제외처리 해야함
         var modifiedRequest = urlRequest
-        if !modifiedRequest.url!.absoluteString.contains("/login") {
-            modifiedRequest.setValue("Bearer \(UserDefaultsManager.shared.getAccessToken())", forHTTPHeaderField: "Authorization")
-        } else {
-            DLog("포함 안하고 있음")
+        let urlString = modifiedRequest.url!.absoluteString
+
+//        if !modifiedRequest.url!.absoluteString.contains("/login") {
+//            modifiedRequest.setValue("Bearer \(UserDefaultsManager.shared.getAccessToken())", forHTTPHeaderField: "Authorization")
+//        } else {
+//            DLog("포함 안하고 있음")
+//            completion(.success(modifiedRequest))
+//            return
+//        }
+        
+        // 제외할 경로가 포함되어 있다면 토큰 없이 요청
+        if excludedPaths.contains(where: { urlString.contains($0) }) {
+            DLog("Authorization 없이 요청: \(urlString)")
             completion(.success(modifiedRequest))
             return
         }
+
+        // 그 외엔 토큰 추가
+        let token = UserDefaultsManager.shared.getAccessToken()
+        modifiedRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        completion(.success(modifiedRequest))
         
         //      self.isRefreshing = false
         DLog("토큰 재발급 성공해서 modifiedRequest 요청")

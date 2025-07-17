@@ -119,6 +119,7 @@ struct SettingView: View {
                     .frame(height: 50)
             }
         }
+        .navigationBarBackButtonHidden()
     }
     
     @ViewBuilder

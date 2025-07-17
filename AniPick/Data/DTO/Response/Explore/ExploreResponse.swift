@@ -19,7 +19,7 @@ struct ExploreResult: Decodable {
 }
 
 struct Cursor: Decodable {
-    let sort: String
-    let lastId: Int
+    let sort: String?
+    let lastId: Int?
     let lastValue: String? // 탐색 - 평점 순일 경우에만 있음
 }

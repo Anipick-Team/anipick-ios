@@ -45,9 +45,14 @@ extension EmailLoginViewModel {
             DLog("loginWithEmail - \(response)")
             
             if response.code == 200 {
-                UserDefaultsManager.shared.setAccessToken(accessToken: response.result?.token?.accessToken ?? "")
-                UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
-                self.navigationManager.push(route: AppRoute.homeView)
+                if let result = response.result {
+                    UserDefaultsManager.shared.setAccessToken(accessToken: result.token?.accessToken ?? "")
+                    DLog("\(UserDefaultsManager.shared.getAccessToken())")
+                    UserDefaultsManager.shared.setRefreshToken(refreshToken: result.token?.refreshToken ?? "")
+                    UserDefaultsManager.shared.setNickname(result.nickname ?? "123123")
+                    DLog("\(UserDefaultsManager.shared.getNickname())")
+                    self.navigationManager.push(route: AppRoute.content)
+                }
             }
             
         } catch {
@@ -56,7 +61,7 @@ extension EmailLoginViewModel {
     }
 
     private func moveToHomeView() {
-        self.navigationManager.push(route: AppRoute.homeView)
+        self.navigationManager.push(route: AppRoute.content)
     }
     func validateInputs()  {
         print("validateInputs 호출호출!")

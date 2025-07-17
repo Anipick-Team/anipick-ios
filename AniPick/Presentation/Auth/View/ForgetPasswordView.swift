@@ -90,8 +90,10 @@ struct ForgetPasswordView: View {
                 .padding(.bottom, 32)
             
             
-            FullWidthButton(isEnable: $viewModel.activeLoginButton, buttonText: "로그인") {
-                print("로그인 버튼 탭")
+            FullWidthButton(isEnable: $viewModel.activeNextButton, buttonText: "다음") {
+                Task {
+                    await self.viewModel.tappedValidNumberButton()
+                }
             }
             .padding(.bottom, 16)
            

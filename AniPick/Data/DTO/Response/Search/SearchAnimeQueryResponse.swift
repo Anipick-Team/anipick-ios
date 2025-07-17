@@ -5,6 +5,7 @@
 //  Created by cho on 6/17/25.
 //
 
+// HomeSearchResponse로 통일
 struct SearchAnimeQueryResponse: Decodable {
     let code: Int
     let value: String
@@ -20,14 +21,7 @@ struct AnimeResult: Decodable {
     let animes: [AnimeWithClickLog]
 }
 
-struct CursorId: Decodable {
+struct CursorId: Decodable, Hashable {
     let lastId: Int
 }
 
-struct AnimeWithClickLog: Decodable {
-    let animeId: Int
-    let title: String
-    let coverImageUrl: String
-    let clickLog: String
-    let impressionLogs: String?
-}

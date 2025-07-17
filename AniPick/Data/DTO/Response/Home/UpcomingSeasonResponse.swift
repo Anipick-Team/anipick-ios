@@ -18,7 +18,7 @@ struct AnimeSeasonResult: Codable {
 }
 
 struct Anime: Hashable, Codable {
-    let animeId: Int
+    let animeId: Int?
     let title: String?
-    let coverImageUrl: String
+    let coverImageUrl: String?
 }

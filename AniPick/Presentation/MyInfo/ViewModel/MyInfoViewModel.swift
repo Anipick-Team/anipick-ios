@@ -6,8 +6,15 @@
 //
 
 import SwiftUI
+import Alamofire
 
 final class MyInfoViewModel: ObservableObject {
+    
+    @Published var myInfoProfileData: UserProfile?
+    @Published var watchListCount: Int = 0
+    @Published var watchingCount: Int = 0
+    @Published var finishedCount: Int = 0
+    
     
     private let navigationManager: NavigationManager
     
@@ -22,5 +29,37 @@ final class MyInfoViewModel: ObservableObject {
 extension MyInfoViewModel {
     func tappedToWatchList() {
         self.navigationManager.push(route: .myInfoInToWatchList)
+    }
+    
+    func tappedSettingButton() {
+        self.navigationManager.push(route: .setting)
+    }
+}
+
+extension MyInfoViewModel {
+    func fetchMyInfo() {
+        AF.request(MyInfoAPI.myInfo)
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: MyInfoResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    
+                    if let data = value.result {
+                        if let watchs = data.watchCounts {
+                            self.watchingCount = watchs.watching ?? 0
+                            self.watchListCount = watchs.watchList ?? 0
+                            self.finishedCount = watchs.finished ?? 0
+                        }
+                        
+                        
+                    }
+         
+                    print("✅ 성공: \(value)")
+                case .failure(let error):
+                    print("❌ 실패: \(error)")
+                }
+            }
     }
 }

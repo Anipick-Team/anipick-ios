@@ -19,13 +19,21 @@ class ForgetPasswordViewModel: ObservableObject {
         }
     }
     
-    @Published var verificationCode: String = "" {
+    @Published var newPassword: String = ""
+    @Published var checkNewPassword: String = "" {
         didSet {
-            
+            checkPassword()
         }
     }
     
-    @Published var activeLoginButton: Bool = false
+    @Published var verificationCode: String = "" {
+        didSet {
+            isVerificationCodeValid()
+        }
+    }
+    
+    @Published var isEnableFindPasswordButton: Bool = false
+    @Published var activeNextButton: Bool = false
     
     private let authUsecase: AuthUsecaseProtocol
     private let navigationManager: NavigationManager
@@ -37,7 +45,11 @@ class ForgetPasswordViewModel: ObservableObject {
     }
     
     func isVerificationCodeValid() {
-        self.activeLoginButton = verificationCode.isEmpty == false && Int(verificationCode) != nil
+        self.activeNextButton = verificationCode.isEmpty == false
+    }
+    
+    func checkPassword() {
+        self.isEnableFindPasswordButton = checkNewPassword.isEmpty == false
     }
     
     func validateEmailInputs()  {
@@ -63,13 +75,44 @@ class ForgetPasswordViewModel: ObservableObject {
     func tappedValidNumberButton() async {
         // TODO: 인증번호 받고 처리하는 로직 필요
         do {
-            let response = try await authUsecase.sendEmailVerificationCode(email: self.emailString)
+            let response = try await authUsecase.sendEmailVerificationCode(
+                email: self.emailString
+            )
+            if response.code == 200 {
+                self.navigationManager.push(route: .resetPassword)
+            }
         } catch {
             DLog("validNumber Error - \(error.localizedDescription)")
         }
     }
     
-    func isValidVaildNumnber() {
-        
+    func tappedNextButton() async {
+        do {
+            let request = VerifyVerificationCodeRequest(email: self.emailString, code: self.verificationCode)
+            let response = try await authUsecase.verifyEmailVerificationCode(request: request)
+            if response.code == 200 {
+                self.navigationManager.push(route: .content)
+            }
+        } catch {
+            DLog("eerrorororor")
+        }
+    }
+    
+    func resetPassword() async {
+        do {
+            let request = ResetPasswordRequest(
+                email: self.emailString,
+                newPassword: newPassword,
+                checkNewPassword: checkNewPassword
+            )
+            let response = try await authUsecase.resetPassword(request: request)
+            if response.code == 200 {
+                self.navigationManager.push(route: .content)
+            } else {
+                DLog("비밀번호 변경 실패")
+            }
+        } catch {
+            DLog("resetPassword error - \(error.localizedDescription)")
+        }
     }
 }

@@ -71,4 +71,8 @@ extension HomeViewModel {
     func moveToSearchView() {
         self.navigationManager.push(route: AppRoute.homeSearch)
     }
+    
+    func moveToAnimeDetailView(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
 }

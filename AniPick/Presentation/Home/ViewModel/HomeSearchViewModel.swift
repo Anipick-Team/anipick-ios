@@ -11,6 +11,9 @@ import SwiftUI
 final class HomeSearchViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var initAnimeList: [Anime] = []
+    @Published var recentKeywordList: [String] = []
+    @Published var isShowRecentKeyword: Bool = false
+    @Published var selectedTab: SearchTab = .initSearch
     
     private let usecase: SearchUsecaseProtocol
     private let navigationManager: NavigationManager
@@ -33,6 +36,39 @@ final class HomeSearchViewModel: ObservableObject {
             DLog("searchView에서 init anime data error - \(error.localizedDescription)")
         }
     }
+    
+    func saveRecentKeyword(_ keyword: String) {
+        UserDefaultsManager.shared.setHomeRecentKeyword(keyword)
+        self.recentKeywordList.insert(keyword, at: 0)
+    }
+    
+    func clearAllRecentKeywordList() {
+        UserDefaultsManager.shared.clearHomeRecentKeyword()
+        self.recentKeywordList.removeAll()
+        self.isShowRecentKeyword = false
+    }
+    
+    func removeSpecificKeyword(_ keyword: String) {
+        self.recentKeywordList.removeAll { $0 == keyword }
+
+        UserDefaultsManager.shared.setHomeRecentKeywordList(recentKeywordList)
+        self.isShowRecentKeyword = !self.recentKeywordList.isEmpty
+    }
+    
+    func checkRecentKeywordList() {
+        let keywords = UserDefaultsManager.shared.getHomeRecentKeyword()
+        if keywords.isEmpty {
+            self.isShowRecentKeyword = false
+        } else {
+            self.isShowRecentKeyword = true
+            self.recentKeywordList = keywords
+        }
+    }
+    
+    func moveToAnimeDetailView(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
+    
     
  
 }

@@ -14,7 +14,8 @@ struct TrendingAnimesResponse: Decodable {
 }
 
 struct TrendingAnimes: Hashable, Decodable {
-    let animeId: Int
-    let title: String
-    let coverImageUrl: String
+    let animeId: Int?
+    let title: String?
+    let coverImageUrl: String?
+    let rank: Int?
 }

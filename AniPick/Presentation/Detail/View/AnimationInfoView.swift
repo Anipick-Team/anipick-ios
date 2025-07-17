@@ -1,5 +1,5 @@
 //
-//  AnimationInfo.swift
+//  AnimationInfoView.swift
 //  AniPick
 //
 //  Created by cho on 5/25/25.
@@ -7,11 +7,10 @@
 
 import SwiftUI
 
-struct AnimationInfo: View {
+struct AnimationInfoView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: AnimationInfoViewModel
     @State private var starRating: Int = 0
- //   @State private var starRating: Double = 2.3
     @State private var selectedAnimationStatusTab: AnimationWatchStatus = .wantToWatch
     @State private var selectedInfoTab: AnimationInfoTab = .reviewInfo
     @State private var selectedSortOption: SortOption = .latest
@@ -128,6 +127,7 @@ struct AnimationInfo: View {
                 .padding(.horizontal, 20)
             }
         }
+        .navigationBarBackButtonHidden()
     }
         
     private func animationWatchState(title: AnimationWatchStatus) -> some View {
@@ -252,5 +252,5 @@ enum AnimationInfoTab: String, CaseIterable {
     var title: String { self.rawValue }
 }
 #Preview {
-    AnimationInfo(viewModel: AnimationInfoViewModel())
+    AppDIContainer.makeAnimeDetailView(animeId: 0)
 }

@@ -165,4 +165,50 @@ extension AppDIContainer {
         return LikePersonListView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
+    
+    // MARK: Ranking
+    static func makeRakingView() -> some View {
+        let viewModel = RankingViewModel(navigationManager: navigationManager)
+        return RankingView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    // MARK: Research
+    static func makeResearchView() -> some View {
+        let viewModel = ResearchViewModel(navigationManager: navigationManager)
+        return ResearchView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeReviewView() -> some View {
+        let viewModel = WriteReviewViewModel(navigationManager: navigationManager)
+        return WriteReviewView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeAnimeDetailView(animeId: Int) -> some View {
+        let viewModel = AnimationInfoViewModel(animeId: animeId, navigationManager: navigationManager)
+        return AnimationInfoView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeResetPassword() -> some View {
+        let apiService = AuthAPIService()
+        let repository = AuthRepository(apiService: apiService)
+        let usecase = AuthUsecase(authRepository: repository)
+        let viewModel = ForgetPasswordViewModel(
+            authUsecase: usecase,
+            navigationManager: navigationManager)
+        
+        return NewPasswordView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeContentView() -> some View {
+        let viewModel = ContentViewModel(navigationManager: navigationManager)
+        return ContentView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
 }
+
+

@@ -210,10 +210,7 @@ struct PreferenceSelectionView: View {
         
     }
     
-    enum FilterTab: String, CaseIterable {
-        case yearQuarter = "년도/분기"
-        case genre = "장르"
-    }
+
     
     private func filterSelectedHalfModalView() -> some View {
         return VStack(alignment: .leading, spacing: 0) {
@@ -407,9 +404,15 @@ struct PreferenceSelectionView: View {
                     .frame(maxWidth: .infinity)
             )
         }
+        
+        
     }
 }
 
+enum FilterTab: String, CaseIterable {
+    case yearQuarter = "년도/분기"
+    case genre = "장르"
+}
 #Preview {
     PreferenceSelectionView()
 }

@@ -5,6 +5,8 @@
 //  Created by cho on 6/17/25.
 //
 
+// HomeSearchResponse로 통일
+
 struct SearchPersonQueryResponse: Decodable {
     let code: Int
     let success: Bool?
@@ -19,8 +21,8 @@ struct SearchPersonResult: Decodable {
     let persons: [Person]
 }
 
-struct Person: Decodable {
-    let personId: Int
-    let name: String
-    let profileImage: String
-}
+//struct Person: Decodable {
+//    let personId: Int
+//    let name: String
+//    let profileImage: String
+//}

@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RankingView: View {
     @State private var selectedGenre: String = "미스터리"
-    
+    @StateObject var viewModel: RankingViewModel
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - 상단 로고 및 searchBar
@@ -188,5 +188,5 @@ struct RankingView: View {
 }
 
 #Preview {
-    RankingView()
+    AppDIContainer.makeRakingView()
 }

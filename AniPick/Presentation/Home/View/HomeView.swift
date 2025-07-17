@@ -17,9 +17,13 @@ struct HomeView: View {
         VStack(spacing: 0) {
             // MARK: - 상단 로고 및 searchBar
             HStack(spacing: 0) {
-                Image(.aniPickLogoGreen)
-                    .resizable()
-                    .frame(width: 110, height: 22)
+                Button {
+                    UserDefaultsManager.shared.setAccessToken(accessToken: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0dGVzdEB0ZXN0LmNvbSIsImlhdCI6MTc1Mjc1OTA1NiwiZXhwIjoxNzUyNzYyNjU2fQ.RfOACqPKox4B73rHPBGfWdYVU-BGNAKfzzUMsob0J5JGQM78u6xWdozl9isj1HORqSHSBT3nvFH86Z2xtkIBEA")
+                } label: {
+                    Image(.aniPickLogoGreen)
+                        .resizable()
+                        .frame(width: 110, height: 22)
+                }
                 
                 Spacer()
                 
@@ -52,6 +56,7 @@ struct HomeView: View {
                         Spacer()
                         
                         Button {
+                             // TODO: 실시간 인기 애니메이션 탭했을 때, 이동동선 확인
 //                            print("실시간 인기 애니메이션 탭탭")
 //                            Task {
 //                                await viewModel.getTrendingAnimes()
@@ -70,8 +75,11 @@ struct HomeView: View {
                         HStack(spacing: 0) {
                             let animes = viewModel.trendingAnimes
                             ForEach(animes, id: \.self) { item in
-                                self.animationCellWithRakingLabel(index: 1, anime: item)
-                                    .padding(.trailing, 12)
+                                self.animationCellWithRakingLabel(index: 1, anime: item) {
+                                    DLog("실시간 인기 애니메이션 탭했을 때 이동이동")
+                                    self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                                }
+                                .padding(.trailing, 12)
                             }
                         }
                         .padding(.horizontal, 20)
@@ -96,7 +104,7 @@ struct HomeView: View {
                         Spacer()
                         
                         Button {
-                            print("최근 리뷰 탭탭")
+                            DLog("최근 리뷰 탭탭")
                         } label: {
                             Image(.chevronLeftGray)
                                 .resizable()
@@ -109,15 +117,11 @@ struct HomeView: View {
                     
                     ScrollView(.horizontal) {
                         HStack(spacing: 0) {
-                            ForEach(0..<5) { _ in
-                                self.recentReviewCell()
-                                    .padding(.trailing, 12)
-                            }
+                            self.recentReviewCell()
+                                .padding(.trailing, 12)
                         }
                         .padding(.horizontal, 20)
                     }
-                    
-                    
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 32)
@@ -142,6 +146,7 @@ struct HomeView: View {
         .onAppear {
             DLog("accessToken - \(UserDefaultsManager.shared.getAccessToken())")
             DLog("refreshToken - \(UserDefaultsManager.shared.getRefreshToken())")
+            self.nickName = UserDefaultsManager.shared.getNickname()
             Task {
                 await viewModel.getTrendingAnimes()
                 await viewModel.getRecentsReviews()
@@ -175,8 +180,10 @@ struct HomeView: View {
             ScrollView(.horizontal) {
                 HStack(spacing: 0) {
                     ForEach(items, id: \.self) { item in
-                        self.animationCell(anime: item)
-                            .padding(.trailing, 12)
+                        self.animationCell(anime: item) {
+                            self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                        }
+                        .padding(.trailing, 12)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -203,11 +210,11 @@ struct HomeView: View {
         return ForEach(viewModel.recentReviews, id: \.self) { item in
             VStack(alignment: .leading, spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(item.animeTitle)
+                    Text(item.animeTitle ?? "--")
                         .font(.system(size: 12))
                         .padding(.bottom, 7)
                     
-                    Text(item.reviewContent)
+                    Text(item.reviewContent ?? "--")
                         .frame(width: 197, alignment: .leading)
                         .multilineTextAlignment(.leading)
                         .lineLimit(2)
@@ -215,7 +222,7 @@ struct HomeView: View {
                         .padding(.bottom, 17)
                     
                     HStack(spacing: 0) {
-                        Text(item.nickname)
+                        Text(item.nickname ?? "--")
                             .lineLimit(1)
                         
                         Rectangle()
@@ -223,7 +230,7 @@ struct HomeView: View {
                             .padding(.horizontal, 8)
                         
                         // TODO: 날짜 변환 필요
-                        Text(item.createdAt)
+                        Text(item.createdAt ?? "--")
                     }
                     .font(.system(size: 12))
                     
@@ -238,103 +245,112 @@ struct HomeView: View {
         }
     }
     
-    private func animationCellWithRakingLabel(index: Int, anime: TrendingAnimes) -> some View {
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                AsyncImage(url: URL(string: anime.coverImageUrl)) { phase in
-                    switch phase {
-                    case .empty:
-                        // 로딩 중 placeholder
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.2))
+    private func animationCellWithRakingLabel(index: Int, anime: TrendingAnimes, action: @escaping () -> Void) -> some View {
+        return Button {
+            action()
+        } label: {
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    if let url = anime.coverImageUrl {
+                        AsyncImage(url: URL(string: url)) { phase in
+                            switch phase {
+                            case .empty:
+                                // 로딩 중 placeholder
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.2))
+                                
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 174)
+                                    .clipped()
+                                
+                            case .failure:
+                                // 실패 시 fallback
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.4))
+                                    .overlay(
+                                        Image(systemName: "photo")
+                                            .foregroundColor(.white)
+                                    )
+                                
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                    
+                    // 초록색 배경의 숫자 뱃지
+                    ZStack {
+                        Rectangle()
+                            .foregroundColor(Color.green)
+                            .frame(width: 36, height: 36)
                         
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 128, height: 174)
-                            .clipped()
-                        
-                    case .failure:
-                        // 실패 시 fallback
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.4))
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .foregroundColor(.white)
-                            )
-                        
-                    @unknown default:
-                        EmptyView()
+                        Text("1")
+                            .foregroundColor(.white)
+                            .font(.system(size: 14, weight: .black))
                     }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
                 
-                // 초록색 배경의 숫자 뱃지
-                ZStack {
-                    Rectangle()
-                        .foregroundColor(Color.green)
-                        .frame(width: 36, height: 36)
-                    
-                    Text("1")
-                        .foregroundColor(.white)
-                        .font(.system(size: 14, weight: .black))
-                }
+                Text(anime.title ?? "")
+                    .foregroundStyle(.anipickBlack)
+                    .frame(width: 128, height: 45)
+                    .font(.system(size: 16))
+                    .lineLimit(2)
+                    .padding(.top, 6)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(anime.title)
-                .foregroundStyle(.anipickBlack)
-                .frame(width: 128, height: 45)
-                .font(.system(size: 16))
-                .lineLimit(2)
-                .padding(.top, 6)
         }
     }
     
-    private func animationCell(anime: Anime) -> some View {
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                AsyncImage(url: URL(string: anime.coverImageUrl)) { phase in
-                    switch phase {
-                    case .empty:
-                        // 로딩 중 placeholder
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.2))
+    private func animationCell(anime: Anime, action: @escaping () -> Void) -> some View {
+        return Button {
+            action()
+        } label: {
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    // 회색 배경 정사각형
+                    if let url = anime.coverImageUrl {
+                        AsyncImage(url: URL(string: url)) { phase in
+                            switch phase {
+                            case .empty:
+                                // 로딩 중 placeholder
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.2))
+                                
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 174)
+                                    .clipped()
+                                
+                            case .failure:
+                                // 실패 시 fallback
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.4))
+                                    .overlay(
+                                        Image(systemName: "photo")
+                                            .foregroundColor(.white)
+                                    )
+                                
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
                         
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .scaledToFill()
-                            .frame(width: 128, height: 174)
-                            .clipped()
-                        
-                    case .failure:
-                        // 실패 시 fallback
-                        RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.gray.opacity(0.4))
-                            .overlay(
-                                Image(systemName: "photo")
-                                    .foregroundColor(.white)
-                            )
-                        
-                    @unknown default:
-                        EmptyView()
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
                 }
-                //                RoundedRectangle(cornerRadius: 12)
-                //                    .foregroundColor(Color.gray.opacity(0.2))
-                //                    .frame(width: 128, height: 174)
                 
+                Text(anime.title ?? "-")
+                    .foregroundStyle(.anipickBlack)
+                    .frame(width: 128, height: 45)
+                    .font(.system(size: 16))
+                    .lineLimit(2)
+                    .padding(.top, 6)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(anime.title ?? "-")
-                .foregroundStyle(.anipickBlack)
-                .frame(width: 128, height: 45)
-                .font(.system(size: 16))
-                .lineLimit(2)
-                .padding(.top, 6)
         }
     }
 }

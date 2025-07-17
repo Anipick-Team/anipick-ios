@@ -19,8 +19,10 @@ struct MyInfoView: View {
                         .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
                         .padding(.trailing, 14)
                     
+                    
                     Button {
                         DLog("Tapped Setting Button")
+                        viewModel.tappedSettingButton()
                     } label: {
                         Image(systemName: "gearshape") // SF Symbol 사용
                             .resizable()
@@ -64,7 +66,8 @@ struct MyInfoView: View {
                     
                     Spacer()
                     
-                    Text("동당동당")
+                    let nickname = UserDefaultsManager.shared.getNickname()
+                    Text(nickname)
                         .foregroundColor(.anipickPrimary)
                         .font(.system(size: 18, weight: .bold))
                     
@@ -76,13 +79,13 @@ struct MyInfoView: View {
                 Spacer().frame(height: 32)
                 
                 HStack(alignment: .center, spacing: 0) {
-                    getAnimeWatchStatusButton(title: .wantToWatch, countText: 12) {
+                    getAnimeWatchStatusButton(title: .wantToWatch, countText: viewModel.watchListCount) {
                         self.viewModel.tappedToWatchList()
                     }
-                    getAnimeWatchStatusButton(title: .watching, countText: 2) {
+                    getAnimeWatchStatusButton(title: .watching, countText: viewModel.watchingCount) {
                         
                     }
-                    getAnimeWatchStatusButton(title: .finished, countText: 1) {
+                    getAnimeWatchStatusButton(title: .finished, countText: viewModel.finishedCount) {
                         
                     }
                 }
@@ -152,6 +155,9 @@ struct MyInfoView: View {
                 }
             }
             .padding(.horizontal, 20)
+            .onAppear {
+                viewModel.fetchMyInfo()
+            }
         }
     }
     

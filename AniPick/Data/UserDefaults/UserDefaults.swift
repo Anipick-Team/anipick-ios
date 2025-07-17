@@ -10,6 +10,7 @@ enum UserDefaultKey: String {
     case accessToken
     case refreshToken
     case homeRecentKeyword
+    case nickname
 }
 
 final class UserDefaultsManager {
@@ -45,13 +46,29 @@ extension UserDefaultsManager {
         return defaults.object(forKey: UserDefaultKey.homeRecentKeyword.rawValue) as? [String] ?? []
     }
     
-    func setHomeRecentKeyword(keyword: String) {
-        var keywords: [String] = defaults.object(forKey: UserDefaultKey.homeRecentKeyword.rawValue) as? [String] ?? []
-        keywords.append(keyword)
+    func setHomeRecentKeyword(_ keyword: String) {
+        var keywords = getHomeRecentKeyword()
+        keywords.removeAll(where: { $0 == keyword })
+        keywords.insert(keyword, at: 0)              
         defaults.set(keywords, forKey: UserDefaultKey.homeRecentKeyword.rawValue)
+    }
+    
+    func setHomeRecentKeywordList(_ keywordList: [String]) {
+        defaults.set(keywordList, forKey: UserDefaultKey.homeRecentKeyword.rawValue)
     }
     
     func clearHomeRecentKeyword() {
         defaults.removeObject(forKey: UserDefaultKey.homeRecentKeyword.rawValue)
+    }
+}
+
+
+extension UserDefaultsManager {
+    func getNickname() -> String {
+        return defaults.string(forKey: UserDefaultKey.nickname.rawValue) ?? "--"
+    }
+    
+    func setNickname(_ nickname: String) {
+        defaults.set(nickname, forKey: UserDefaultKey.nickname.rawValue)
     }
 }
