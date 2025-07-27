@@ -58,12 +58,15 @@ enum NetworkManager {
                 headers: headers
             )
             .validate()
-            .responseString { response in
-                if let data = response.data,
-                   let rawJson = String(data: data, encoding: .utf8) {
-                    DLog("📦 Raw Response JSON:\n\(rawJson)")
-                }
+            .cURLDescription { description in
+                DLog("\(description)")
             }
+//            .responseString { response in
+//                if let data = response.data,
+//                   let rawJson = String(data: data, encoding: .utf8) {
+//                    DLog("📦 Raw Response JSON:\n\(rawJson)")
+//                }
+//            }
             .responseDecodable(of: T.self) { response in
                 switch response.result {
                 case .success(let value):

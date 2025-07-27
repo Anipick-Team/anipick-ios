@@ -6,8 +6,9 @@
 //
 
 import Alamofire
+import Foundation
 
-enum ReviewAPI {
+enum ReviewAPI: URLRequestConvertible {
     case recentReview
     case likeReview(id: Int)
     case cancelReview(id: Int)
@@ -66,7 +67,36 @@ enum ReviewAPI {
         }
     }
     
-    var header: HTTPHeaders {
+    func asURLRequest() throws -> URLRequest {
+        let url = try NetworkManager.baseUrl.asURL()
+        var urlRequest = URLRequest(url: url.appendingPathComponent(self.path))
+        urlRequest.httpMethod = self.method.rawValue
+        
+        switch self {
+        case .recentReview:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .likeReview:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .cancelReview:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .deleteReview:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .reportReview:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .blockUser:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        }
+        
+        for key in headers.dictionary.keys {
+            if let value = headers[key] {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
+        return urlRequest
+    }
+    
+    var headers: HTTPHeaders {
         return ["Content-Type": "application/json",
                 "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }

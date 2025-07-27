@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Alamofire
 
 final class EditNicknameViewModel: ObservableObject {
     private let navigationManager: NavigationManager
@@ -22,5 +23,21 @@ final class EditNicknameViewModel: ObservableObject {
         // TODO: 닉네임 중복 확인 Api 통신
         
         self.isDuplicateNickname = true
+    }
+    
+    func editNickName() {
+        AF.request(SettingAPI.editNickname(nickname: self.newNickname))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("edit nickname success - \(value)")
+                    UserDefaultsManager.shared.setNickname(self.newNickname)
+                case .failure(let error):
+                    DLog("edit nickname error - \(error)")
+                }
+            }
     }
 }

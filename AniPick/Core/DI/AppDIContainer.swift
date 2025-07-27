@@ -54,11 +54,11 @@ struct AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeExploreView() -> some View {
+    static func makeExploreView(season: Int? = nil, year: Int? = nil) -> some View {
         let apiService = ExploreAPIService()
         let repository = ExploreRepository(apiService: apiService)
         let usecase = ExploreUsecase(exploreRepository: repository)
-        let viewModel = ExploreViewModel(usecase: usecase)
+        let viewModel = ExploreViewModel(usecase: usecase, navigationManager: navigationManager)
         
         return ExploreView(viewModel: viewModel)
             .environmentObject(navigationManager)
@@ -180,8 +180,8 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeReviewView() -> some View {
-        let viewModel = WriteReviewViewModel(navigationManager: navigationManager)
+    static func makeReviewView(starRating: Double, animeId: Int) -> some View {
+        let viewModel = WriteReviewViewModel(navigationManager: navigationManager, starRating: starRating, animeId: animeId)
         return WriteReviewView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
@@ -204,9 +204,33 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeContentView() -> some View {
-        let viewModel = ContentViewModel(navigationManager: navigationManager)
+    static func makeContentView(activeTab: Tab) -> some View {
+        let viewModel = ContentViewModel(activeTab: activeTab, navigationManager: navigationManager)
         return ContentView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makePreferenceSelectionView() -> some View {
+        let viewModel = PreferenceSelectionViewModel(navigationManager: navigationManager)
+        return PreferenceSelectionView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeCommingSoonView() -> some View {
+        let viewModel = CommingSoonViewModel(navigationManager: navigationManager)
+        return CommingSoonView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeRecentReviewView() -> some View {
+        let viewModel = RecentReviewViewModel(navigationManager: navigationManager)
+        return RecentReviewView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeRecommendationView(animeId: Int?) -> some View {
+        let viewModel = RecommendedAnimeViewModel(navigationManager: navigationManager, animeId: animeId)
+        return RecommendedAnimeView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
 }

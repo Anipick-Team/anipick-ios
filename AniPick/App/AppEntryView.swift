@@ -10,17 +10,22 @@ import SwiftUI
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @AppStorage("isLoggedIn") var isLoggedIn: Bool = false
+    @StateObject var viewModel = AppEntryViewModel()
     
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
-                AppDIContainer.makeContentView()
-//                if isLoggedIn == false {
-//                    AppDIContainer.makeContentView()
-//                    //AppDIContainer.makeHomeView()
-//                } else {
-//                    AppDIContainer.makeLoginView()
-//                }
+                //    AppDIContainer.makeLoginView()
+                AppDIContainer.makeContentView(activeTab: .home)
+                //                if isLoggedIn == false {
+                //                    AppDIContainer.makeContentView()
+                //                    //AppDIContainer.makeHomeView()
+                //                } else {
+                //                    AppDIContainer.makeLoginView()
+                //                }  
+            }
+            .onAppear {
+                viewModel.fetchMataData()
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -62,18 +67,30 @@ struct AppEntryView: View {
                     AppDIContainer.makeRakingView()
                 case .research:
                     AppDIContainer.makeResearchView()
-                case .review:
-                    AppDIContainer.makeReviewView()
-                case .explore:
-                    AppDIContainer.makeExploreView()
+                case .review(let starRating, let animeId):
+                    AppDIContainer.makeReviewView(starRating: starRating, animeId: animeId)
+                case .explore(let season, let seaseonYear):
+                    AppDIContainer.makeExploreView(season: season, year: seaseonYear)
                 case .animeDetail(let animeId):
                     AppDIContainer.makeAnimeDetailView(animeId: animeId)
                 case .resetPassword:
                     AppDIContainer.makeResetPassword()
-                case .content:
-                    AppDIContainer.makeContentView()
+                case .content(let activeTab):
+                    AppDIContainer.makeContentView(activeTab: activeTab)
                 case .setting:
                     AppDIContainer.makeSettingView()
+                case .inquiry:
+                    InquiryView()
+                case .preferenceSelection:
+                    AppDIContainer.makePreferenceSelectionView()
+                case .commingSoonDetail:
+                    AppDIContainer.makeCommingSoonView()
+                case .mainLoginView:
+                    AppDIContainer.makeLoginView()
+                case .recentReview:
+                    AppDIContainer.makeRecentReviewView()
+                case .recommendView(let animeId):
+                    AppDIContainer.makeRecommendationView(animeId: animeId)
                 default:
                     Text("asdfasdf")
                 }

@@ -9,12 +9,12 @@ import Alamofire
 import Foundation
 
 enum RankingAPI: URLRequestConvertible {
-    case realtime(genre: String, lastId: Int, size: Int)
+    case realtime(genre: String?, lastId: Int?, size: Int?)
     case yearAndSeason(year: Int, season: Int, genre: String, lastId: Int, size: Int)
     case allTime(genre: String, lastId: Int, size: Int)
     
     init(realtime genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
-        self = .realtime(genre: genre ?? "", lastId: lastId ?? 0, size: size ?? 20)
+        self = .realtime(genre: genre ?? "", lastId: lastId, size: size ?? 20)
     }
     
     init(year: Int, season: Int, genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
@@ -27,7 +27,7 @@ enum RankingAPI: URLRequestConvertible {
     
     var path: String {
         switch self {
-        case let .realtime(genre, lastId, size):
+        case .realtime:
             return "api/rankings/real-time"
         case let .yearAndSeason(year, season, genre, lastId, size):
             return "api/rankgins/\(year)/\(season)?genre=\(genre)&lastId=\(lastId)&size=\(size)"
@@ -49,12 +49,15 @@ enum RankingAPI: URLRequestConvertible {
     
     var parameters: Parameters? {
         switch self {
-        case .realtime(let genre, let lastId, let size):
-            return [
-                "genre": genre,
-                "lastId": lastId,
-                "size": size
-            ]
+        case let .realtime(genre, lastId, size):
+//            let rawParams: [String: Any?]  = [
+//                "genre": genre,
+//                "lastId": lastId,
+//                "size": size
+//           ]
+//            return rawParams.compactMapValues { $0 }
+            return nil
+            
         case .yearAndSeason(let year, let season, let genre, let lastId, let size):
             return nil
         case .allTime(let genre, let lastId, let size):
@@ -68,18 +71,25 @@ enum RankingAPI: URLRequestConvertible {
         urlRequest.httpMethod = self.method.rawValue
         
         switch self {
-        case .realtime(let genre, let lastId, let size):
+        case .realtime:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-        case .yearAndSeason(let year, let season, let genre, let lastId, let size):
+        case .yearAndSeason:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-        case .allTime(let genre, let lastId, let size):
+        case .allTime:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
+        
+        for key in headers.dictionary.keys {
+            if let value = headers[key] {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
         
         return urlRequest
         
     }
-    var header: HTTPHeaders {
+    var headers: HTTPHeaders {
         return ["Content-Type": "application/json",
                 "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }

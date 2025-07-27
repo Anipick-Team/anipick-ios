@@ -8,13 +8,13 @@
 struct ExploreResponse: Decodable {
     let code: Int
     let value: String
-    let result: ExploreResult
+    let result: ExploreResult?
 }
 
 struct ExploreResult: Decodable {
-    let count: Int
-    let cursor: Cursor
-    let animes: [Anime]
+    let count: Int?
+    let cursor: Cursor?
+    let animes: [Anime]?
     
 }
 

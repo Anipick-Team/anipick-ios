@@ -103,6 +103,9 @@ struct RankingView: View {
             }
             
         }
+        .onAppear {
+            self.viewModel.fetchRankingDataList()
+        }
     }
     
     private func rankingAnimationCell() -> some View {

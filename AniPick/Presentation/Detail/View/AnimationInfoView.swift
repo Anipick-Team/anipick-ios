@@ -12,120 +12,197 @@ struct AnimationInfoView: View {
     @StateObject var viewModel: AnimationInfoViewModel
     @State private var starRating: Int = 0
     @State private var selectedAnimationStatusTab: AnimationWatchStatus = .wantToWatch
-    @State private var selectedInfoTab: AnimationInfoTab = .reviewInfo
+    @State private var selectedInfoTab: AnimationInfoTab = .animationInfo
     @State private var selectedSortOption: SortOption = .latest
-    
-    @State private var isActiveLike: Bool = false
-    
+      
     var body: some View {
         ScrollView {
-            // TODO: 애니메이션 이미지 넣어야함
             VStack(spacing: 0) {
                 ZStack(alignment: .topTrailing) {
-                    Rectangle()
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 220)
-                        .foregroundColor(.gray7)
+                    if let bannerUrl = viewModel.animeDetailInfo?.bannerImageUrl {
+                        ZStack {
+                            AsyncImage(url: URL(string: bannerUrl)) { phase in
+                                switch phase {
+                                case .empty:
+                                    Image(.animeThumbnail)
+                                        .resizable()
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 220)
+                                case .success(let image):
+                                    image
+                                        .resizable()
+                                        .scaledToFill()
+                                        .frame(width: UIScreen.main.bounds.width, height: 220)
+                                        .clipped()
+                                case .failure:
+                                    Image(.animeThumbnail)
+                                        .resizable()
+                                        .frame(width: 133, height: 154)
+                                        .padding(.bottom, 23)
+                                        .padding(.trailing, 20)
+                                        .cornerRadius(8)
+                                @unknown default:
+                                    EmptyView()
+                                }
+                            }
+                            Color.black.opacity(0.4)
+                                .frame(width: UIScreen.main.bounds.width, height: 220)
+                        }
+                        
+                    } else {
+                        ZStack {
+                            Rectangle()
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 220)
+                                .foregroundColor(.gray7)
+                            
+                            Color.black.opacity(0.4)
+                                .frame(width: UIScreen.main.bounds.width, height: 220)
+                        }
+                        
+                    }
                     
                     HStack(alignment: .top, spacing: 0) {
                         NavigationBackButtonView(title: "") {
                             dismiss()
                         }
+                        .zIndex(2)
                         .padding(.top, 54)
                                                 
                         VStack(alignment: .leading, spacing: 0) {
                             Spacer()
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .frame(width: 133, height: 154)
-                                .padding(.bottom, 23)
-                                .padding(.trailing, 20)
+                            
+                            if let url = viewModel.animeDetailInfo?.coverImageUrl {
+                                AsyncImage(url: URL(string: url)) { phase in
+                                    switch phase {
+                                    case .empty:
+                                        Image(.animeThumbnail)
+                                            .resizable()
+                                            .frame(width: 133, height: 154)
+                                            .padding(.bottom, 23)
+                                            .padding(.trailing, 20)
+                                            .cornerRadius(8)
+                                    case .success(let image):
+                                        image
+                                            .resizable()
+                                            .scaledToFill()
+                                            .frame(width: 133, height: 154)
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                            .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                            .padding(.bottom, 23)
+                                            .padding(.trailing, 20)
+                                            
+                                    case .failure:
+                                        Image(.animeThumbnail)
+                                            .resizable()
+                                            .frame(width: 133, height: 154)
+                                            .padding(.bottom, 23)
+                                            .padding(.trailing, 20)
+                                            .cornerRadius(8)
+                                    @unknown default:
+                                        EmptyView()
+                                    }
+                                }
+                            }
                         }
                     }
                 }
+                .ignoresSafeArea(edges: .top)
                 .padding(.bottom, 25)
                 
-                
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text("록은 숙녀의 소양이기에")
-                            .customFontStyle(size: 20, color: .anipickBlack, weight: .semibold)
-                            .padding(.trailing, 12)
+                if let detailInfo = viewModel.animeDetailInfo {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(alignment: .center, spacing: 0) {
+                            Text(detailInfo.title ?? "--")
+                                .customFontStyle(size: 20, color: .anipickBlack, weight: .semibold)
+                                .padding(.trailing, 12)
+                            
+                            // TODO: 눌렀을 때 좋아요 처리해야함
+                            Button {
+                                if self.viewModel.isActiveLike { // 이미 좋아요한 상태
+                                    self.viewModel.tappedAnimeDislike()
+                                } else {
+                                    self.viewModel.tappedAnimeLike()
+                                }
+                            } label: {
+                                Image(self.viewModel.isActiveLike ? .fillHeartGreen : .unfilledHeart)
+                                    .resizable()
+                                    .frame(width: 19, height: 19)
+                            }
+                            
+                            Spacer()
+                            
+                            Button {
+                                DLog("공유버튼 탭탭")
+                            } label: {
+                                Image(.shareButton)
+                            }
+                        }
+                        .padding(.bottom, 8)
                         
-                        // TODO: 눌렀을 때 좋아요 처리해야함
-                        Button {
-                            DLog("누르면 좋아요 처리")
-                            self.isActiveLike.toggle()
-                        } label: {
-                            Image(self.isActiveLike ? .fillHeartGreen : .unfilledHeart)
+                        HStack(alignment: .center, spacing: 0) {
+                            
+                            Image(.fillPickStar)
                                 .resizable()
-                                .frame(width: 19, height: 19)
+                                .frame(width: 18, height: 18)
+                            
+                            Text(viewModel.averageRating)
+                                .customFontStyle(size: 14, color: .point, weight: .semibold)
+                                .padding(.leading, 8)
+                                .lineLimit(1)
+                                .fixedSize()
                         }
                         
-                        Spacer()
+                        Spacer().frame(height: 32)
                         
-                        Button {
-                            DLog("공유버튼 탭탭")
-                        } label: {
-                            Image(.shareButton)
+                        HStack(alignment: .center, spacing: 0) {
+                            animationWatchState(title: .wantToWatch)
+                            animationWatchState(title: .watching)
+                            animationWatchState(title: .finished)
                         }
-                    }
-                    .padding(.bottom, 8)
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        
-                        Image(.fillPickStar)
-                            .resizable()
-                            .frame(width: 18, height: 18)
-                        
-                        Text("\(self.starRating, specifier: "%.1f")")
-                            .customFontStyle(size: 14, color: .point, weight: .semibold)
-                            .padding(.leading, 8)
-                            .lineLimit(1)
-                            .fixedSize()
-                    }
-                    
-                    Spacer().frame(height: 32)
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        animationWatchState(title: .wantToWatch)
-                        animationWatchState(title: .watching)
-                        animationWatchState(title: .finished)
-                    }
-                    .frame(maxWidth: .infinity)
-                    
-                    Spacer().frame(height: 23)
-                    
-                    Rectangle()
-                        .frame(height: 3)
                         .frame(maxWidth: .infinity)
-                        .padding(.horizontal, -40)
-                        .foregroundStyle(.gray5)
-                    
-                    Spacer().frame(height: 20)
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        selectedTab(title: .animationInfo)
-                        selectedTab(title: .reviewInfo, animationCount: 3128)
+                        
+                        Spacer().frame(height: 23)
+                        
+                        Rectangle()
+                            .frame(height: 3)
+                            .frame(maxWidth: .infinity)
+                            .padding(.horizontal, -40)
+                            .foregroundStyle(.gray5)
+                        
+                        Spacer().frame(height: 20)
+                        
+                        HStack(alignment: .center, spacing: 0) {
+                            selectedTab(title: .animationInfo)
+                            selectedTab(title: .reviewInfo, animationCount: viewModel.reviewCount)
+                        }
+                        .padding(.bottom, 13)
+                        
+                        
+                        if self.selectedInfoTab == .animationInfo {
+                            AnimationDetailInfoView(
+                                detailInfo: detailInfo,
+                                seriesInfo: viewModel.seriesAnimeInfo,
+                                recommendationInfo: viewModel.recommendationInfo
+                            )
+                        } else if self.selectedInfoTab == .reviewInfo {
+                            ReviewDetailInfoView(
+                                viewModel: viewModel,
+                                selectedSortOption: self.$selectedSortOption,
+                                isShowOnlyReview: self.$viewModel.isShowOnlyReview,
+                                isShowSortOptionView: self.$viewModel.isShowSortOptionView,
+                                starRating: self.$starRating
+                            )
+                        }
+                        Spacer().frame(height: 30)
+                        
                     }
-                    .padding(.bottom, 13)
-                    
-                    
-                    if self.selectedInfoTab == .animationInfo {
-                        AnimationDetailInfoView()
-                    } else if self.selectedInfoTab == .reviewInfo {
-                        ReviewDetailInfoView(
-                            selectedSortOption: self.$selectedSortOption,
-                            isShowOnlyReview: self.$viewModel.isShowOnlyReview,
-                            isShowSortOptionView: self.$viewModel.isShowSortOptionView,
-                            starRating: self.$starRating
-                        )
-                    }
-                    Spacer().frame(height: 30)
-                    
+                    .padding(.horizontal, 20)
                 }
-                .padding(.horizontal, 20)
             }
+        }
+        .onAppear {
+            viewModel.setLastVisitedAnimeId()
         }
         .navigationBarBackButtonHidden()
     }

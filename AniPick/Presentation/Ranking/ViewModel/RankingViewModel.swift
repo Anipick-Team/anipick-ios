@@ -14,14 +14,14 @@ final class RankingViewModel: ObservableObject {
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
-        self.fetchRankingDataList()
+    //    self.fetchRankingDataList()
     }
     
 }
 
 extension RankingViewModel {
     func fetchRankingDataList() {
-        AF.request(RankingAPI.init(realtime: nil))
+        AF.request(RankingAPI.realtime(genre: nil, lastId: nil, size: nil))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -33,19 +33,19 @@ extension RankingViewModel {
                     print("📭 응답 본문이 없음")
                 }
             }
-//            .responseDecodable(of: RankingRealTimeResponse.self) { response in
-//                DLog("response - \(response)")
-//                if let data = response.data,
-//                   let rawJson = String(data: data, encoding: .utf8) {
-//                    DLog("📦 Raw Response JSON:\n\(rawJson)")
-//                }
-//                switch response.result {
-//                case .success:
-//                    DLog("랭킹 성공성공 - \(response)")
-//                case let .failure(error):
-//                    DLog("error\(error)")
-//                }
-//            }
+            .responseDecodable(of: RankingRealTimeResponse.self) { response in
+                DLog("response - \(response)")
+                if let data = response.data,
+                   let rawJson = String(data: data, encoding: .utf8) {
+                    DLog("📦 Raw Response JSON:\n\(rawJson)")
+                }
+                switch response.result {
+                case .success:
+                    DLog("랭킹 성공성공 - \(response)")
+                case let .failure(error):
+                    DLog("error\(error)")
+                }
+            }
     }
     
 }

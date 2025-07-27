@@ -190,7 +190,7 @@ struct HomeSearchView: View {
                 
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(0..<20) { _ in
-                        let anime = Anime(animeId: 1, title: "asdfasdfasdf", coverImageUrl: "sdfsdf")
+                        let anime = Anime(animeId: 1, title: "asdfasdfasdf", coverImageUrl: "sdfsdf", releaseDate: "asdfaf")
                         animationCell(anime: anime) {
                                 DLog("인기 작품 cell 탭탭")
                                 viewModel.moveToAnimeDetailView(animeId: anime.animeId ?? 0)

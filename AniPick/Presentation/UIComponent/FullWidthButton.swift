@@ -9,8 +9,8 @@ import SwiftUI
 
 struct FullWidthButton: View {
     @Binding var isEnable: Bool
-    @State var buttonText: String
-    @State var complectionHandler: () -> Void
+    let buttonText: String
+    let complectionHandler: () -> Void
     
     var body: some View {
         Button {

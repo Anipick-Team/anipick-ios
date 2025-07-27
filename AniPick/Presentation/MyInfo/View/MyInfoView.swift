@@ -107,16 +107,17 @@ struct MyInfoView: View {
                 }
                 .padding(.bottom, 14)
                 
-                if viewModel.isEmptyLikeAnime {
+                if viewModel.likedAnimeList.isEmpty {
                     Image(.emptyLikeAnime)
                         .resizable()
                         .frame(height: 140)
                 } else {
-                    HStack(alignment: .center, spacing: 8) {
-                        // TODO: anime data 받아와서 처리
-                        animationCell()
-                        animationCell()
-                        animationCell()
+                    ScrollView {
+                        HStack(alignment: .center, spacing: 8) {
+                            ForEach(viewModel.likedAnimeList, id: \.self) { item in
+                                animationCell(item: item)
+                            }
+                        }
                     }
                 }
                 
@@ -130,16 +131,17 @@ struct MyInfoView: View {
                 }
                 .padding(.bottom, 14)
                 
-                if viewModel.isEmptyLikePerson {
+                if viewModel.likedPersonList.isEmpty {
                     Image(.emptyLikePerson)
                         .resizable()
                         .frame(height: 140)
                 } else {
-                    HStack(alignment: .center, spacing: 8) {
-                        // TODO: person data 받아와서 처리
-                        personCell()
-                        personCell()
-                        personCell()
+                    ScrollView {
+                        HStack(alignment: .center, spacing: 8) {
+                            ForEach(viewModel.likedPersonList, id: \.self) { item in
+                                personCell(item: item)
+                            }
+                        }
                     }
                 }
             }
@@ -161,38 +163,74 @@ struct MyInfoView: View {
         }
     }
     
-    private func personCell() -> some View {
+    private func personCell(item: LikedPerson) -> some View {
         return VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
                 // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 105)
+                if let url = item.profileImageUrl {
+                    AsyncImage(url: URL(string: url)) { phase in
+                        switch phase {
+                        case .empty:
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.2))
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 105)
+                                .clipped()
+                        case .failure:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 105)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
 
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
-            Text("착각하는 공방주 영풍파티의 전 잡어쩌구어쩌구")
-               // .frame(width: 128, height: 45)
-                .font(.system(size: 14))
+            Text(item.name ?? "--")
+                .customFontStyle(size: 14, color: .anipickBlack)
                 .lineLimit(2)
                 .padding(.top, 6)
         }
     }
     
-    private func animationCell() -> some View {
+    private func animationCell(item: LikedAnime) -> some View {
         return VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 162)
-
+                if let url = item.coverImageUrl {
+                    AsyncImage(url: URL(string: url)) { phase in
+                        switch phase {
+                        case .empty:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .clipped()
+                        case .failure:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
-            Text("착각하는 공방주 영풍파티의 전 잡어쩌구어쩌구")
-               // .frame(width: 128, height: 45)
+            Text(item.title ?? "--")
                 .font(.system(size: 14))
                 .lineLimit(2)
                 .padding(.top, 6)

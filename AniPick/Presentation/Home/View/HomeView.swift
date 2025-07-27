@@ -8,9 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    @State private var nickName: String = "띵똥띵똥"
-    @State private var recentAnimationName: String = "던전밥"
-    
+    @State private var nickname: String = ""
     @StateObject var viewModel: HomeViewModel
     
     var body: some View {
@@ -91,8 +89,10 @@ struct HomeView: View {
                 
                 sectionDivider()
                 
-                
-                self.sectionView(title: "오늘의 추천작, \(nickName)님의\n취향에 맞춰 준비했어요!", items: [])
+                self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommendationAnimesWithAnimeId) {
+                    viewModel.moveToRecommendationView()
+                    DLog("추천작 탭탭")
+                }
                     .padding(.bottom, 24)
                 
                 VStack(alignment: .leading, spacing: 0) {
@@ -105,6 +105,7 @@ struct HomeView: View {
                         
                         Button {
                             DLog("최근 리뷰 탭탭")
+                            viewModel.moveToRecentReviewView()
                         } label: {
                             Image(.chevronLeftGray)
                                 .resizable()
@@ -130,25 +131,34 @@ struct HomeView: View {
                 Spacer().frame(height: 28)
                 
                 // TODO: 얘가 기본 default값 UI
-                self.sectionView(title: "25년도 3분기 방영예정", items: viewModel.upcomingAnimes?.animes ?? [])
+                self.sectionView(title: "\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기 방영예정", items: viewModel.upcomingAnimes) {
+                    self.viewModel.moveToExploreView()
+                }
                 
                 sectionDivider()
                 
                 // TODO: 닉네임 글자수가 너무 길 때, 닉네임을 말줄임 하는 것으로 viewModel에서 작업
-                self.sectionView(title: "최근 찾아보신 \(recentAnimationName)과\n비슷한 작품이에요!", items: [])
+                self.sectionView(title: "최근 찾아보신 \(viewModel.recommedationTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
+                    viewModel.moveToSimilarRecommendationView()
+                }
                 
                 sectionDivider()
                 
-                self.sectionView(title: "공개 예정", items: viewModel.commingSoonAnimes)
+                self.sectionView(title: "공개 예정", items: viewModel.commingSoonAnimes) {
+                    DLog("공개 예정 탭탭")
+                    self.viewModel.moveToCommingSoonView()
+                }
             }
         }
         .navigationBarBackButtonHidden(true)
         .onAppear {
             DLog("accessToken - \(UserDefaultsManager.shared.getAccessToken())")
             DLog("refreshToken - \(UserDefaultsManager.shared.getRefreshToken())")
-            self.nickName = UserDefaultsManager.shared.getNickname()
+            self.nickname = UserDefaultsManager.shared.getNickname()
+            viewModel.getTrendingAnimes()
+            viewModel.fetchRecommendationAnimeWithAnimeId()
+            viewModel.fetchSimilarAnime()
             Task {
-                await viewModel.getTrendingAnimes()
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
@@ -157,7 +167,7 @@ struct HomeView: View {
         }
     }
     
-    private func sectionView(title: String, items: [Anime]) -> some View {
+    private func sectionView(title: String, items: [Anime], action: @escaping () -> Void) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Text(title)
@@ -167,7 +177,7 @@ struct HomeView: View {
                 Spacer()
                 
                 Button {
-                    print("\(title) 탭탭")
+                    action()
                 } label: {
                     Image(.chevronLeftGray)
                         .resizable()

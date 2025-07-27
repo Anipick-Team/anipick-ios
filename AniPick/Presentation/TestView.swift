@@ -20,13 +20,7 @@ struct TestView: View {
                     }
                 }
                 
-                Button("탐색 - 년도 분기") {
-                    Task {
-                        let response = try await ExploreAPIService.shared.getExploreList(category: .popularity)
-                        DLog("탐색 - 인기순 - \(response)")
-                    }
-                
-                }
+    
                 
                 Button("검색 search query") {
                     Task {

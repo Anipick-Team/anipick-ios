@@ -71,10 +71,17 @@ enum SettingAPI: URLRequestConvertible {
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         }
         
+        for key in headers.dictionary.keys {
+            if let value = headers[key] {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
+        
         return urlRequest
     }
     
-    var header: HTTPHeaders {
+    var headers: HTTPHeaders {
         return ["Content-Type": "application/json",
                 "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }

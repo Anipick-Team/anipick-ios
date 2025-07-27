@@ -5,6 +5,7 @@
 //  Created by cho on 6/8/25.
 //
 import Alamofire
+import SwiftUI
 
 final class AuthAPIService {
     static let shared = AuthAPIService()
@@ -34,7 +35,7 @@ extension AuthAPIService {
     
     func postRefreshToken(
           refreshToken: String,
-          completion: @escaping (Result<LoginResponse, Error>) -> Void
+          completion: @escaping (Result<RefreshResponse, Error>) -> Void
       ) {
           let api = AuthAPI.refreshToken(refreshToken: refreshToken)
           
@@ -46,12 +47,17 @@ extension AuthAPIService {
               headers: api.header
           )
           .validate()
-          .responseDecodable(of: LoginResponse.self) { response in
+          .cURLDescription { description in
+              DLog("\(description)")
+          }
+          .responseDecodable(of: RefreshResponse.self) { response in
               switch response.result {
               case .success(let value):
                   completion(.success(value))
+                  DLog("refreshToken에서 성공적으로 받아옴 - \(value)")
               case .failure(let error):
                   completion(.failure(error))
+                  DLog("refreshToken 만료 실패 - \(error)")
               }
           }
       }

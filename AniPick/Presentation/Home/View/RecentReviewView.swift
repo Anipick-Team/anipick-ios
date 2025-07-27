@@ -11,6 +11,7 @@ struct RecentReviewView: View {
     @Environment(\.dismiss) private var dismiss
     @State private var menuFrame: CGRect = .zero
     @State private var isShowBlockMenu: Bool = false
+    @StateObject var viewModel: RecentReviewViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -50,8 +51,8 @@ struct RecentReviewView: View {
                             }
                     }
                     .frame(height: 0)
-                    ForEach(0..<5, id: \.self) { idx in
-                        RecentReviewCell(id: idx) { id, buttonFrame in
+                    ForEach(viewModel.recentReviewList, id: \.self) { item in
+                        RecentReviewCell(item: item) { id , buttonFrame in
                             self.isShowBlockMenu.toggle()
                             self.menuFrame = buttonFrame
                         }
@@ -71,9 +72,13 @@ struct RecentReviewView: View {
         
             
         }
+        .navigationBarBackButtonHidden(true)
     }
+    
+
+    
 }
 
 #Preview {
-    RecentReviewView()
+    AppDIContainer.makeRecentReviewView()
 }

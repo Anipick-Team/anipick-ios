@@ -70,24 +70,24 @@ struct RatedAnimeListView: View {
                         
                         
                         // TODO: 데이터 받아와서 처리 -> ForEach로 변경
-                        RecentReviewCell(id: 3) { id, buttonFrame in
-                            DLog("button tapped")
-                        }
-                        .padding(.bottom, 12)
-                        
-                        RecentReviewCell(id: 3) { id, buttonFrame in
-                            DLog("button tapped")
-                        }
-                        .padding(.bottom, 12)
-                        
-                        RecentReviewCell(id: 3) { id, buttonFrame in
-                            DLog("button tapped")
-                        }
-                        .padding(.bottom, 12)
-                        
-                        RecentReviewCell(id: 3) { id, buttonFrame in
-                            DLog("button tapped")
-                        }
+//                        RecentReviewCell(id: 3) { id, buttonFrame in
+//                            DLog("button tapped")
+//                        }
+//                        .padding(.bottom, 12)
+//                        
+//                        RecentReviewCell(id: 3) { id, buttonFrame in
+//                            DLog("button tapped")
+//                        }
+//                        .padding(.bottom, 12)
+//                        
+//                        RecentReviewCell(id: 3) { id, buttonFrame in
+//                            DLog("button tapped")
+//                        }
+//                        .padding(.bottom, 12)
+//                        
+//                        RecentReviewCell(id: 3) { id, buttonFrame in
+//                            DLog("button tapped")
+//                        }
                         .padding(.bottom, 12)
                         
                         Spacer()

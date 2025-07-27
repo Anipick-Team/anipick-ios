@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Alamofire
 
 final class LikeAnimeListViewModel: ObservableObject {
     private let navigationManager: NavigationManager
@@ -16,4 +17,8 @@ final class LikeAnimeListViewModel: ObservableObject {
     
     @Published var isEmptyLikeAnime: Bool = true
     @Published var isEmptyLikePerson: Bool = true
+}
+
+extension LikeAnimeListViewModel {
+    
 }

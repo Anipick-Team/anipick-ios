@@ -83,14 +83,15 @@ final class TokenInterceptor: RequestInterceptor {
         AuthAPIService.shared.postRefreshToken(refreshToken: refreshToken) { result in
             switch result {
             case .success(let response):
-                guard let accessToken = response.result?.token?.accessToken,
-                      let refreshToken = response.result?.token?.refreshToken else {
+                guard let accessToken = response.result?.accessToken,
+                      let refreshToken = response.result?.refreshToken else {
                     self.requestsToRetry.forEach { $0(.doNotRetry) }
                     self.requestsToRetry.removeAll()
-                    //      self.isRefreshing = false
+                    DLog("refreshToken 실패실패")
                     return
                 }
                 
+                DLog("refreshToken 성공 - accessToken: \(accessToken) / refreshToken: \(refreshToken)")
                 UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
                 UserDefaultsManager.shared.setRefreshToken(refreshToken: refreshToken)
                 
@@ -99,6 +100,10 @@ final class TokenInterceptor: RequestInterceptor {
                 
             case .failure(let error):
                 DLog("토큰 갱신 실패: \(error)")
+                DispatchQueue.main.async {
+                    NavigationManager.shared.popToRoot()
+                    NavigationManager.shared.push(route: .mainLoginView)
+                }
                 self.requestsToRetry.forEach { $0(.doNotRetry) }
             }
             

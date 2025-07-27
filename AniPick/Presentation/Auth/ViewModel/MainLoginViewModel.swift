@@ -42,7 +42,8 @@ class MainLoginViewModel: ObservableObject {
 extension MainLoginViewModel {
     
     func testtest() {
-        self.navigationManager.push(route: .content)
+        self.navigationManager.push(route: .content(activeTab: .home))
+        // self.navigationManager.push(route: .preferenceSelection)
     }
     func tappedEmailSignup() {
         navigationManager.push(route: AppRoute.emailSignup)

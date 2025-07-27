@@ -11,6 +11,15 @@ enum UserDefaultKey: String {
     case refreshToken
     case homeRecentKeyword
     case nickname
+    case email
+    
+    case seasonYear
+    case seasonQuater
+    case animeGenres
+    case animeType
+    
+    case lastVisitedAnime
+    
 }
 
 final class UserDefaultsManager {
@@ -68,7 +77,72 @@ extension UserDefaultsManager {
         return defaults.string(forKey: UserDefaultKey.nickname.rawValue) ?? "--"
     }
     
+    func getEmail() -> String {
+        return defaults.string(forKey: UserDefaultKey.email.rawValue) ?? "--"
+    }
+    
     func setNickname(_ nickname: String) {
         defaults.set(nickname, forKey: UserDefaultKey.nickname.rawValue)
     }
+    
+    func setEmail(_ email: String) {
+        defaults.set(email, forKey: UserDefaultKey.email.rawValue)
+    }
 }
+
+
+extension UserDefaultsManager {
+    func setMetaDataForSeasonYear(_ seasonYear: [Int]) {
+        defaults.set(seasonYear, forKey: UserDefaultKey.seasonYear.rawValue)
+    }
+    
+    func setMetaDataForType(_ type: [String]) {
+        defaults.set(type, forKey: UserDefaultKey.animeType.rawValue)
+    }
+    
+    func setMetaDataForGenres(_ genres: [Genre]) {
+        if let genreData = try? JSONEncoder().encode(genres) {
+            defaults.set(genreData, forKey: UserDefaultKey.animeGenres.rawValue)
+        }
+    }
+    
+    func setMetaDataForSeason(_ season: [Season]) {
+        if let seasonData = try? JSONEncoder().encode(season) {
+            defaults.set(seasonData, forKey: UserDefaultKey.seasonQuater.rawValue)
+        }
+    }
+    
+    func getMetaDataForSeasonYear() -> [Int] {
+        return defaults.object(forKey: UserDefaultKey.seasonYear.rawValue) as? [Int] ?? []
+    }
+    
+    func getMetaDataForType() -> [String] {
+        return defaults.object(forKey: UserDefaultKey.animeType.rawValue) as? [String] ?? []
+    }
+    
+    func getMetaDataForGenres() -> [Genre] {
+        if let data = defaults.data(forKey: UserDefaultKey.animeGenres.rawValue),
+           let genres = try? JSONDecoder().decode([Genre].self, from: data) {
+            return genres
+        }
+        return []
+    }
+    
+    func getMetaDataForSeason() -> [Season] {
+        if let data = defaults.data(forKey: UserDefaultKey.seasonQuater.rawValue),
+           let seasonQuater = try? JSONDecoder().decode([Season].self, from: data) {
+            return seasonQuater
+        }
+        
+        return []
+    }
+    
+    func setLastVisitedAnimeId(animeId: Int) {
+        defaults.set(animeId, forKey: UserDefaultKey.lastVisitedAnime.rawValue)
+    }
+    
+    func getLastVisitedAnimeId() -> Int {
+        return defaults.integer(forKey: UserDefaultKey.lastVisitedAnime.rawValue)
+    }
+}
+

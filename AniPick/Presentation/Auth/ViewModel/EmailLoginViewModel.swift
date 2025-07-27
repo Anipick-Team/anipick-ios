@@ -50,8 +50,9 @@ extension EmailLoginViewModel {
                     DLog("\(UserDefaultsManager.shared.getAccessToken())")
                     UserDefaultsManager.shared.setRefreshToken(refreshToken: result.token?.refreshToken ?? "")
                     UserDefaultsManager.shared.setNickname(result.nickname ?? "123123")
+                    UserDefaultsManager.shared.setEmail(self.emailString)
                     DLog("\(UserDefaultsManager.shared.getNickname())")
-                    self.navigationManager.push(route: AppRoute.content)
+                    self.navigationManager.push(route: AppRoute.content(activeTab: .home))
                 }
             }
             
@@ -61,8 +62,9 @@ extension EmailLoginViewModel {
     }
 
     private func moveToHomeView() {
-        self.navigationManager.push(route: AppRoute.content)
+        self.navigationManager.push(route: AppRoute.content(activeTab: .home))
     }
+    
     func validateInputs()  {
         print("validateInputs 호출호출!")
         self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty

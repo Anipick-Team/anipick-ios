@@ -9,6 +9,7 @@ import SwiftUI
 
 struct RecommendedAnimeView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject var viewModel: RecommendedAnimeViewModel
     
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     var body: some View {
@@ -54,7 +55,8 @@ struct RecommendedAnimeView: View {
                 
                 VStack {
                     HStack {
-                        Text("최근 찾아보신 던전밥과\n비슷한 작품이에요")
+                        // TODO: 이름 변겨 ㅇ필요
+                        Text("최근 찾아보신 \(viewModel.recommedationTitle)과\n비슷한 작품이에요")
                             .customFontStyle(size: 20, color: .gray5, weight: .bold)
                             .padding(.top, 12)
                             .padding(.leading, 24)
@@ -78,36 +80,60 @@ struct RecommendedAnimeView: View {
 
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<12) { _ in
-                        animationCell()
+                    ForEach(viewModel.recommedationAnimes, id: \.self) { item in
+                        animationCell(item: item)
                     }
                 }
             }
             .scrollIndicators(.hidden)
             .padding(.horizontal, 20)
         }
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            viewModel.fetchRecommedationAnime()
+        }
     }
     
-    private func animationCell() -> some View {
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 162)
-
+    private func animationCell(item: Anime) -> some View {
+        return Button {
+            self.viewModel.tappedAnimeDetail(animeId: item.animeId ?? 0)
+        } label: {
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    if let url = item.coverImageUrl {
+                        AsyncImage(url: URL(string: url)) { phase in
+                            switch phase {
+                            case .empty:
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.2))
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 162)
+                                    .clipped()
+                            case .failure:
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(item.title ?? "----")
+                    .customFontStyle(size: 14, color: .anipickBlack)
+                    .lineLimit(2)
+                    .padding(.top, 6)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text("착각하는 공방주 영풍파티의 전 잡어쩌구어쩌구")
-               // .frame(width: 128, height: 45)
-                .font(.system(size: 14))
-                .lineLimit(2)
-                .padding(.top, 6)
         }
     }
 }
 
 #Preview {
-    RecommendedAnimeView()
+    AppDIContainer.makeRecommendationView(animeId: 11111)
 }

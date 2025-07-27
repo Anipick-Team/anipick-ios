@@ -6,13 +6,21 @@
 //
 
 import SwiftUI
+import Alamofire
 
 @MainActor
 final class HomeViewModel: ObservableObject {
     @Published var trendingAnimes: [TrendingAnimes] = []
     @Published var recentReviews: [Review] = []
-    @Published var upcomingAnimes: AnimeSeasonResult?
+    @Published var upcomingAnimes: [Anime] = []
     @Published var commingSoonAnimes: [Anime] = []
+    @Published var recommedationAnimes: [Anime] = []
+    @Published var recommendationAnimesWithAnimeId: [Anime] = []
+    @Published var recommendationSimilarAnimes: [Anime] = []
+    @Published var recommedationTitle: String = ""
+    @Published var seasonString: Int = 0
+    @Published var seasonYearString: Int = 0
+    
     
     private let usecase: HomeUsecaseProtocol
     private let navigationManager: NavigationManager
@@ -25,18 +33,45 @@ final class HomeViewModel: ObservableObject {
 }
 
 extension HomeViewModel {
-    func getTrendingAnimes() async {
-        do {
-            let response = try await usecase.getTrendingAnimes()
-            guard let anime = response.result else {
-                return
+    
+    func getTrendingAnimes() {
+        AF.request(HomeAPI.trending)
+            .cURLDescription { description in
+                DLog("\(description)")
             }
-            self.trendingAnimes = anime
-            DLog("trending Animes - \(self.trendingAnimes)")
-        } catch {
-            DLog("trending Animes fail - \(error.localizedDescription)")
-        }
+            .responseDecodable(of: TrendingAnimesResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("fetch trending success \(value)")
+                    if let animeList = value.result {
+                        self.trendingAnimes = animeList
+                    }
+                case .failure(let error):
+                    DLog("fetch trending error \(error)")
+                }
+            }
     }
+    
+    func fetchRecommendationAnime() {
+        AF.request(AnimeRecommendationAPI.recommendation)
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: RecommendationResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("fetch home recommedation success \(value)")
+                    if let animeList = value.result,
+                       let recommend = animeList.animes {
+                        self.recommedationAnimes = recommend
+                    }
+                case .failure(let error):
+                    DLog("fetch home recommedation error \(error)")
+                }
+            }
+    }
+    
+    
     
     func getRecentsReviews() async {
         do {
@@ -51,8 +86,11 @@ extension HomeViewModel {
     func getUpComingSeason() async {
         do {
             let response = try await usecase.getUpcomingAnimes()
-            self.upcomingAnimes = response.result
-            DLog("upcoming Animes - \(self.upcomingAnimes)")
+            self.upcomingAnimes = response.result.animes
+            self.seasonString = response.result.season
+            self.seasonYearString = response.result.seasonYear
+            DLog("방영 예정 잘 받아와짐")
+           // DLog("upcoming Animes - \(self.upcomingAnimes)")
         } catch {
             DLog("upcoming Animes - \(error.localizedDescription)")
         }
@@ -62,17 +100,90 @@ extension HomeViewModel {
         do {
             let response = try await usecase.getComingSoonAnimes()
             self.commingSoonAnimes = response.result
-            DLog("coming Soon - \(self.upcomingAnimes)")
+            DLog("공개 예정 잘 받아와짐")
         } catch {
             DLog("coming Soon - \(error.localizedDescription)")
         }
     }
     
+    // TODO: 작업 필요 -> 유저디폴트로 마지막에 들어간 애니메이션 저장해두고 반환하는 것 필요
+    func fetchRecommendationAnimeWithAnimeId() {
+        let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
+        DLog("lastvisitedAnimeId - \(animeId)")
+        AF.request(HomeAPI.animeRecommendation(animeId: animeId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: RecommendationResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("fetch home recommedation with animeid success \(value)")
+                    if let animeList = value.result,
+                       let recommend = animeList.animes {
+                        self.recommendationAnimesWithAnimeId = recommend
+                        self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
+                    }
+                case .failure(let error):
+                    DLog("fetch home recommedation with animeid error \(error)")
+                }
+            }
+    }
+    
+    
+    // TODO: 최근 찾아보신 작품과 비슷한 작품 -> 가장 최근에 들어간 작품 userdefaults로 정리해두어야함
+    func fetchSimilarAnime() {
+        AF.request(HomeAPI.animeRecommendation(animeId: 16498))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: RecommendationResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("fetch home recommedation with animeid success \(value)")
+                    if let animeList = value.result,
+                       let recommend = animeList.animes {
+                        self.recommendationSimilarAnimes = recommend
+                    }
+                case .failure(let error):
+                    DLog("fetch home recommedation with animeid error \(error)")
+                }
+            }
+    }
+    
+    
+    
+    
+    
+    
+    
     func moveToSearchView() {
         self.navigationManager.push(route: AppRoute.homeSearch)
     }
     
+    func moveToExploreView() {
+        self.navigationManager.push(route: .content(activeTab: .research))
+        DLog("화악인 - \(self.seasonString) \(self.seasonYearString)")
+        SeasonNotificationManager.post(season: self.seasonString, seasonYear: self.seasonYearString)
+    }
     func moveToAnimeDetailView(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
+    
+    func moveToCommingSoonView() {
+        self.navigationManager.push(route: .commingSoonDetail)
+    }
+    
+    func moveToRecentReviewView() {
+        self.navigationManager.push(route: .recentReview)
+    }
+    
+    func moveToRecommendationView() {
+        // TODO: animeID 저장된 것 보내는 것으로 교체 필요
+        self.navigationManager.push(route: .recommendView(animeId: 16498))
+    }
+    
+    func moveToSimilarRecommendationView() {
+        // TODO: animeID 저장된 것 보내는 것으로 교체 필요
+        self.navigationManager.push(route: .recommendView(animeId: 16498))
     }
 }

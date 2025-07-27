@@ -26,17 +26,18 @@ struct SettingView: View {
                     SettingInfoData(
                         title: SettingCategory.editNickname,
                         titleColor: nil,
-                        subtitle: "동당동당",
+                        subtitle: UserDefaultsManager.shared.getNickname(),
                         subtitleColor: nil,
                         isShowChevron: true
                     ),
                     SettingInfoData(
                         title: SettingCategory.editEmail,
                         titleColor: nil,
-                        subtitle: "example@examople.com",
+                        subtitle: UserDefaultsManager.shared.getEmail(),
                         subtitleColor: nil,
                         isShowChevron: true
                     ),
+                    // TODO: SNS 간편 가입된 계정인지 확인 필요
                     SettingInfoData(
                         title: SettingCategory.editPassword,
                         titleColor: nil,
@@ -59,7 +60,7 @@ struct SettingView: View {
                     SettingInfoData(
                         title: SettingCategory.appVersion,
                         titleColor: nil,
-                        subtitle: "1.0",
+                        subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
                         subtitleColor: nil,
                         isShowChevron: false
                     ),

@@ -8,9 +8,13 @@
 import SwiftUI
 
 struct AnimationDetailInfoView: View {
+    let detailInfo: AnimeDetail
+    let seriesInfo: [SeriesAnime]
+    let recommendationInfo: [Anime]
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("다솜 산들림 달볓 비나리 예그리나 아름드리 별빛 도담도담 소록소록 가온해 책방 감사합니다 함초롱하다 비나리 소록소록 사과 도르레 곰다시 아련 아련 감사합니다 미쁘다 미쁘다 우리는 비나리 안녕 컴퓨터 아련 이플 함초롱하다 나비잠 바나나 함초롱하다 달볓 산들림 산들림 컴퓨터 달볓 다솜 여우별 옅구름 바나나 소솜 바나나 별하 로운 옅구름 늘품 가온누리 바람꽃.")
+            Text(detailInfo.description ?? "--")
                 .customFontStyle(size: 14, color: .anipickBlack)
                 .lineLimit(3)
                 .padding(.bottom, 16)
@@ -50,7 +54,7 @@ struct AnimationDetailInfoView: View {
                     
                     Spacer()
                     
-                    infoView(value: value)
+                    infoView(value: value, detailInfo: detailInfo)
                 }
             }
             
@@ -73,10 +77,11 @@ struct AnimationDetailInfoView: View {
             }
             .padding(.bottom, 20)
             
-            HStack(alignment: .center, spacing: 8) {
-                self.animationCell(title: "내가 인기가 없는 건 아무리 생각해도 나아아아아앙", subtitle: "2025년 4분기")
-                self.animationCell(title: "내가 인기가 없는 건 아무리 생각해도 나아아아아앙", subtitle: "2025년 4분기")
-                self.animationCell(title: "내가 인기가 없는 건 아무리 생각해도 나아아아아앙", subtitle: "2025년 4분기")
+            
+            ForEach(seriesInfo, id: \.self) { item in
+                HStack(alignment: .center, spacing: 8) {
+                    self.animationCell(title: item.title ?? "--", subtitle: item.airDate ?? "--")
+                }
             }
             
             
@@ -88,43 +93,56 @@ struct AnimationDetailInfoView: View {
             }
             .padding(.bottom, 20)
             
-            HStack(alignment: .center, spacing: 8) {
-                self.animationCell(title: "애니메이션 제목 제목 제목", subtitle: "")
-                self.animationCell(title: "애니메이션 제목 제목 제목", subtitle: "")
-                self.animationCell(title: "애니메이션 제목 제목 제목", subtitle: "")
+            
+            ForEach(recommendationInfo, id: \.self) { item in
+                HStack(alignment: .center, spacing: 8) {
+                    self.animationCell(title: item.title ?? "--", subtitle: "")
+                }
             }
         }
     }
     
     @ViewBuilder
-    private func infoView(value: AnimationDetailInfo) -> some View {
+    private func infoView(value: AnimationDetailInfo, detailInfo: AnimeDetail) -> some View {
         switch value {
         case .type:
-            infoTextView(string: "TVA")
+            infoTextView(string: detailInfo.type ?? "-")
         case .gerne:
             HStack(alignment: .center, spacing: 0) {
-                GerneTagComponents(title: "로맨스")
-                GerneTagComponents(title: "액션")
-                GerneTagComponents(title: "SF")
+                let genres = detailInfo.genres ?? []
+                ForEach(genres) { genre in
+                    GerneTagComponents(title: genre.name)
+                }
             }
         case .release:
             HStack(alignment: .center, spacing: 0) {
-                animationFinishedTag()
+                animationFinishedTag(title: detailInfo.status ?? "-")
                     .padding(.trailing, 12)
-                infoTextView(string: "2024년 1분기")
+                infoTextView(string: detailInfo.airDate ?? "-")
             }
         case .episode:
-            infoTextView(string: "14회차")
-        case .ageRating:
-            infoTextView(string: "15세 이상 시청")
-        case .productionCompany:
-            Button {
-                DLog("제작사 탭탭")
-            } label: {
-                Text("ufotable")
-                    .customFontStyle(size: 14, color: .anipickSecondary)
-                    .underline(true, color: .anipickSecondary)
+            if let episode = detailInfo.episode {
+                infoTextView(string: "\(episode)회차")
+            } else {
+                Text("-")
             }
+        case .ageRating:
+            infoTextView(string: "\(detailInfo.age ?? "-") 이상 시청")
+        case .productionCompany:
+            if let studios = detailInfo.studios {
+                HStack(spacing: 4) {
+                    ForEach(studios, id: \.self) { studio in
+                        Button {
+                            DLog("제작사 탭탭 - \(studio.name)")
+                        } label: {
+                            Text(studio.name)
+                                .customFontStyle(size: 14, color: .anipickSecondary)
+                                .underline(true, color: .anipickSecondary)
+                        }
+                    }
+                }
+            }
+
         }
     }
     
@@ -133,8 +151,8 @@ struct AnimationDetailInfoView: View {
             .customFontStyle(size: 14, color: .gray8)
     }
     
-    private func animationFinishedTag() -> some View {
-        Text("방영 종료")
+    private func animationFinishedTag(title: String) -> some View {
+        Text(title)
             .customFontStyle(size: 14, color: .anipickBlack)
             .padding(.vertical, 7)
             .padding(.horizontal, 16)

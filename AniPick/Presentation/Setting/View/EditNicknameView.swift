@@ -9,8 +9,6 @@ import SwiftUI
 
 struct EditNicknameView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var editVersionNickname: String = ""
-    
     @StateObject var viewModel: EditNicknameViewModel
     
     var body: some View {
@@ -34,7 +32,8 @@ struct EditNicknameView: View {
                 .padding(.bottom, 12)
                 
             // TODO: Userdefaults에서 닉네임 가져오기
-            Text("동당동당")
+            let nickname = UserDefaultsManager.shared.getNickname()
+            Text(nickname)
                 .customFontStyle(size: 16, color: .anipickBlack)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(height: 20)
@@ -48,7 +47,7 @@ struct EditNicknameView: View {
             TextFieldComponents(
                 titleText: "새 닉네임",
                 placeholderText: "새 닉네임 입력",
-                textFieldString: $editVersionNickname
+                textFieldString: $viewModel.newNickname
             )
             .padding(.bottom, 12)
             
@@ -73,6 +72,7 @@ struct EditNicknameView: View {
                 isEnable: .constant(true),
                 buttonText: "저장") {
                     DLog("닉네임 변경 저장 액션")
+                    viewModel.editNickName()
                 }
         }
         .padding(.horizontal, 20)

@@ -8,6 +8,10 @@
 import SwiftUI
 
 final class NavigationManager: ObservableObject {
+    
+    static let shared = NavigationManager() // ✅ 싱글톤
+    
+
     @Published var path = NavigationPath()
     
     func push(route: AppRoute) {
@@ -36,11 +40,17 @@ enum AppRoute: Hashable {
     case homeSearch
     case ranking
     case research
-    case review
-    case explore
+    case review(starRating: Double, animeId: Int)
+    case explore(season: Int?, seasonYear: Int?)
     case animeDetail(animeId: Int)
     case resetPassword
-    case content
+    case preferenceSelection
+    case content(activeTab: Tab)
+    case commingSoonDetail
+    case mainLoginView
+    case recentReview
+    case recommendView(animeId: Int?)
+    
     // Setting
     case setting
     case editNickname
@@ -63,7 +73,5 @@ enum AppRoute: Hashable {
     case likeAnimeList
     case likePersonList
     case ratedAnimeList
-    
-    
     
 }

@@ -91,7 +91,7 @@ class ForgetPasswordViewModel: ObservableObject {
             let request = VerifyVerificationCodeRequest(email: self.emailString, code: self.verificationCode)
             let response = try await authUsecase.verifyEmailVerificationCode(request: request)
             if response.code == 200 {
-                self.navigationManager.push(route: .content)
+                self.navigationManager.push(route: .content(activeTab: .home))
             }
         } catch {
             DLog("eerrorororor")
@@ -107,7 +107,7 @@ class ForgetPasswordViewModel: ObservableObject {
             )
             let response = try await authUsecase.resetPassword(request: request)
             if response.code == 200 {
-                self.navigationManager.push(route: .content)
+                self.navigationManager.push(route: .content(activeTab: .home))
             } else {
                 DLog("비밀번호 변경 실패")
             }

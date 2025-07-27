@@ -9,10 +9,8 @@ import SwiftUI
 
 struct WriteReviewView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var starRating: Int = 3
     @StateObject var viewModel: WriteReviewViewModel
     
-    @State private var reviewTextString: String = ""
     var placeholder: String = "리뷰 내용을 입력해주세요."
     
     var body: some View {
@@ -38,10 +36,10 @@ struct WriteReviewView: View {
                 
                 
                 VStack(alignment: .center, spacing: 0) {
-                    self.starView(starRating: 3)
+                    self.starView(starRating: $viewModel.starRating)
                         .padding(.bottom, 16)
                     
-                    Text("(\(self.starRating)/5.0)")
+                    Text(String(format: "%.1f", self.viewModel.starRating))
                         .customFontStyle(size: 20, color: .gray6, weight: .bold)
                 }
             }
@@ -64,14 +62,14 @@ struct WriteReviewView: View {
                     .frame(height: 215)
                     .foregroundColor(.gray5)
                 
-                ClearTextEditor(text: $reviewTextString)
+                ClearTextEditor(text: $viewModel.reviewTextContent)
                     .frame(height: 140)
                     .customFontStyle(size: 16, color: .gray8)
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .background(Color.clear)
                 
-                if reviewTextString.isEmpty {
+                if viewModel.reviewTextContent.isEmpty {
                     Text(placeholder)
                         .customFontStyle(size: 16, color: .gray8)
                         .padding(.horizontal, 22)
@@ -83,7 +81,7 @@ struct WriteReviewView: View {
                     Spacer()
                     HStack {
                         Spacer()
-                        Text("\(reviewTextString.count)/200")
+                        Text("\(viewModel.reviewTextContent.count)/200")
                             .customFontStyle(size: 14, color: .gray8)
                             .padding([.trailing, .bottom], 12)
                     }
@@ -139,6 +137,7 @@ struct WriteReviewView: View {
             
             FullWidthButton(isEnable: .constant(true), buttonText: "리뷰 작성하기") {
                 DLog("리뷰 작성 탭탭")
+                viewModel.patchReview()
             }
             .padding(.bottom, 20)
             
@@ -148,17 +147,18 @@ struct WriteReviewView: View {
             
             
         }
+        .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
     }
     
     // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기
-    private func starView(starRating: Int) -> some View {
+    private func starView(starRating: Binding<Double>) -> some View {
         return HStack(spacing: 0) {
             ForEach(1...5, id: \.self) { starIdx in
                 Button {
-                    self.starRating = starIdx
+                    starRating.wrappedValue = Double(starIdx)
                 } label: {
-                    Image(starIdx <= self.starRating ? .fillPickStar : .unfillStar)
+                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
                         .resizable()
                         .frame(width: 32, height: 32)
                 }
@@ -180,5 +180,5 @@ struct WriteReviewView: View {
 }
 
 #Preview {
-    AppDIContainer.makeReviewView()
+    AppDIContainer.makeReviewView(starRating: 3.7, animeId: 123)
 }

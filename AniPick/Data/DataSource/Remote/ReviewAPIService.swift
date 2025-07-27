@@ -13,7 +13,7 @@ final class ReviewAPIService {
             path: api.path,
             method: api.method,
             parameters: api.parameters,
-            headers: api.header
+            headers: api.headers
         )
     }
 }

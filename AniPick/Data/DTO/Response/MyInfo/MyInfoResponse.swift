@@ -14,7 +14,6 @@ struct MyInfoResponse: Decodable {
     let value: String
     let result: UserProfile?
 }
-
 struct UserProfile: Decodable {
     let nickname: String?
     let profileImageUrl: String?
@@ -29,14 +28,14 @@ struct WatchCounts: Decodable {
     let finished: Int?
 }
 
-struct LikedAnime: Decodable { // 최대 10개
+struct LikedAnime: Decodable, Hashable { // 최대 10개
     let animeId: Int?
     let animeLikeId: Int?
     let title: String?
     let coverImageUrl: String?
 }
 
-struct LikedPerson: Decodable { //최대 10개
+struct LikedPerson: Decodable, Hashable { //최대 10개
     let personId: Int?
     let userLikedVoiceActorId: Int?
     let name: String?

@@ -15,43 +15,46 @@ enum Tab {
 }
 
 struct ContentView: View {
-    @State private var selectedTab: Tab = .home
+    
     @StateObject var viewModel: ContentViewModel
+    
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: $viewModel.activeTab) {
             AppDIContainer.makeHomeView()
                 .tabItem {
-                    Image(selectedTab == .home ? .homeFilled : .homeUnfilled)
+                    Image(viewModel.activeTab == .home ? .homeFilled : .homeUnfilled)
                     Text("홈")
                         
                 }
-                .foregroundStyle(selectedTab == .home ? Color.primaryColor: Color.textGrayColor)
+                .foregroundStyle(viewModel.activeTab == .home ? Color.primaryColor: Color.textGrayColor)
                 .tag(Tab.home)
             
             AppDIContainer.makeRakingView()
                 .tabItem {
-                    Image(selectedTab == .ranking ? .rankingFilled : .rankingUnfilled)
+                    Image(viewModel.activeTab == .ranking ? .rankingFilled : .rankingUnfilled)
                     Text("랭킹")
                 }
                 .tag(Tab.ranking)
             
             AppDIContainer.makeExploreView()
                 .tabItem {
-                    Image(selectedTab == .research ? .reseachFilled : .researchUnfilled)
+                    Image(viewModel.activeTab == .research ? .reseachFilled : .researchUnfilled)
                     Text("탐색")
                 }
                 .tag(Tab.research)
             
             AppDIContainer.makeMyInfoView()
                 .tabItem {
-                    Image(selectedTab == .myInfo ? .myInfoFilled : .myInfoUnfilled)
+                    Image(viewModel.activeTab == .myInfo ? .myInfoFilled : .myInfoUnfilled)
                     Text("마이")
                 }
                 .tag(Tab.myInfo)
         }
+        .navigationBarBackButtonHidden()
+        
     }
 }
 
 #Preview {
-    AppDIContainer.makeContentView()
+    AppDIContainer.makeContentView(activeTab: .home)
 }

@@ -16,3 +16,9 @@ final class AppState: ObservableObject {
     
     @Published var authState: AuthState = .checking
 }
+
+enum AuthStatus {
+    case checking
+    case loggedIn
+    case notLoggedIn
+}

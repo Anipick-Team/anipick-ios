@@ -12,22 +12,47 @@ struct RecentReviewCell: View {
     @State private var starRating: Double = 0
     @State private var isShowBlockMenu: Bool = false
     
-    let id: Int
+    let item: ReviewItem
+    let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
+    
+    private let starCount = 5
+    private let starSize: CGFloat = 20
+    private let spacing: CGFloat = 0
+    private var totalWidth: CGFloat {
+        CGFloat(starCount) * starSize + CGFloat(starCount - 1) * spacing
+    }
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0 ) {
-                Rectangle()
-                    .frame(width: 80, height: 64)
-                    .foregroundStyle(Color.gray)
-                    .cornerRadius(8)
-                    .padding(.trailing, 16)
+                if let url = item.profileImageUrl {
+                    AsyncImage(url: URL(string: url)) { phase in
+                        switch phase {
+                        case .empty:
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.2))
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 64)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 80, height: 64)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
                 
                 // TODO: animation name
-                Text("던전밥")
-                    .font(.system(size: 16))
-                    .foregroundStyle(.anipickBlack)
+                Text(item.animeTitle ?? "--")
+                    .customFontStyle(size: 16, color: .anipickBlack)
+                    .padding(.leading, 8)
                 
                 Spacer()
             }
@@ -39,7 +64,8 @@ struct RecentReviewCell: View {
                 .padding(.vertical, 19)
             
             HStack(alignment: .center, spacing: 0) {
-                StarRatingComponentView(starRating: self.starRating)
+              //  StarRatingComponentView(starRating: item.rating ?? 0.0)
+                self.starRatingView(starRating: item.rating ?? 0.0)
                 
                 Spacer()
                 
@@ -49,14 +75,14 @@ struct RecentReviewCell: View {
                     .padding(.trailing, 8)
                 
                 // TODO: 닉네임 넣어야함!
-                Text("차라투스투라")
+                Text(item.nickname ?? "--")
                     .foregroundStyle(.anipickBlack)
                     .font(.system(size: 12))
                 
             }
             
             // TODO: 리뷰 쓴 날짜 넣어야함
-            Text("2025.04.12")
+            Text(item.createdAt ?? "--")
                 .foregroundStyle(.gray6)
                 .font(.system(size: 12))
             
@@ -64,7 +90,7 @@ struct RecentReviewCell: View {
             
             Spacer().frame(height: 16)
             
-            Text("비아징잔걸삽에 경느삼븐을 아되거비고검에 해가각섬을 미허윤젼이 인논덜더훝고 흑지해다. 지앻개누언 뉘우는 빠디헤지조차, 저뮤라에서 리그한석, 란눨링자를 즈카는. 찬컨옽등이다 고졑뎌졀으로, 숻납모할에 개잔 유짙서다 온근도 여레엡니다 요러주인다 아운은 시재. 긴에우존 논베너까로 기닽아당을 민릈좌명 구잉아를과 사셜엎지에 업워리의. 슳귰크서 버느개어동아 닉오고 아더어 둥뵤이려 춀버를 예슁오송카이어 임븝지엠 운자익이 앤아")
+            Text(item.reviewContent ?? "--")
                 .lineLimit(2)
                 .font(.system(size: 16))
                 .foregroundStyle(.anipickBlack)
@@ -94,7 +120,7 @@ struct RecentReviewCell: View {
                 }
                 
                 // TODO: 좋아요 갯수 넣어야함
-                Text("1")
+                Text("\(item.likeCount ?? 0)")
                     .foregroundStyle(.gray6)
                     .font(.system(size: 14))
                 
@@ -120,8 +146,46 @@ struct RecentReviewCell: View {
         .cornerRadius(8)
     }
     
+    
+    private func starRatingView(starRating: Double) -> some View {
+        return HStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ForEach(1...5, id: \.self) { starIdx in
+                    imageName(starRaing: starRating, starIdx: starIdx)
+                        .resizable()
+                        .frame(width: 20, height: 20)
+                }
+            }
+            .gesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { value in
+                        if item.isMine ?? false {
+                            updateRating(with: value.location.x)
+                        }
+                    }
+            )
+            Text("\(starRating, specifier: "%.1f")")
+                .padding(.leading, 8)
+                .customFontStyle(size: 14, color: .gray8)
+        }
+    }
+    
+    private func imageName(starRaing: Double, starIdx: Int) -> Image {
+        if starRaing >= Double(starIdx) {
+            return Image(.fillPickStar)
+        } else if starRaing >= Double(starIdx) - 0.5 {
+            return Image(.halfStar)
+        } else {
+            return Image(.unfillStar)
+        }
+    }
+    
+    private func updateRating(with xPosition: CGFloat) {
+        let clampedX = min(max(0, xPosition), totalWidth)
+        let rawRating = Double(clampedX / (starSize + spacing))
+        let roundedRating = (rawRating * 2).rounded(.toNearestOrEven) / 2.0
+        starRating = roundedRating
+        print("🐳 \(starRating)")
+    }
+    
 }
-
-//#Preview {
-//    RecentReviewCell()
-//}

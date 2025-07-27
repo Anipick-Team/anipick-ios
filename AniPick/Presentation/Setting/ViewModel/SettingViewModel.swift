@@ -6,9 +6,11 @@
 //
 
 import SwiftUI
+import Alamofire
 
 final class SettingViewModel: ObservableObject {
     private let navigationManager: NavigationManager
+    @Published var newNickname: String = ""
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
@@ -17,4 +19,7 @@ final class SettingViewModel: ObservableObject {
     func moveToDetailSettingView(route: AppRoute) {
         navigationManager.push(route: route)
     }
+    
+    
+ 
 }

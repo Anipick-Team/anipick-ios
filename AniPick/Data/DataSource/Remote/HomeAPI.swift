@@ -4,14 +4,16 @@
 //
 //  Created by cho on 6/12/25.
 //
-
+import Foundation
 import Alamofire
 
-enum HomeAPI {
+enum HomeAPI: URLRequestConvertible {
     case trending
     case recentReviews
     case upcomingSeason
     case comingSoonAnimes
+    case animeRecommendation(animeId: Int)
+    
     
     var path: String {
         switch self {
@@ -23,6 +25,8 @@ enum HomeAPI {
             return "api/animes/upcoming-season"
         case .comingSoonAnimes:
             return "api/home/animes/coming-soon"
+        case .animeRecommendation(let animeId):
+            return "api/home/recommendation/animes/\(animeId)/recent"
         }
     }
     
@@ -36,14 +40,44 @@ enum HomeAPI {
             return .get
         case .comingSoonAnimes:
             return .get
+        case .animeRecommendation:
+            return .get
         }
     }
     
     var parameters: Parameters? {
         switch self {
-        case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes:
+        case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes, .animeRecommendation:
             return nil
         }
+    }
+    
+    func asURLRequest() throws -> URLRequest {
+        let url = try NetworkManager.baseUrl.asURL()
+        var urlRequest = URLRequest(url: url.appendingPathComponent(self.path))
+        urlRequest.httpMethod = self.method.rawValue
+        
+        switch self {
+        case .trending:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .recentReviews:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .upcomingSeason:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .comingSoonAnimes:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .animeRecommendation:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        }
+        
+        
+        for key in header.dictionary.keys {
+            if let value = header[key] {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
+        return urlRequest
     }
     
     var header: HTTPHeaders {

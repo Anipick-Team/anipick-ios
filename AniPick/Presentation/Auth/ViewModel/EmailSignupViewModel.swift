@@ -55,7 +55,8 @@ extension EmailSignupViewModel {
             )
             let response = try await authUsecase.postEmailSignup(request: request)
             if response.code == 200 {
-                self.navigationManager.push(route: .content)
+                self.navigationManager.push(route: .preferenceSelection)
+                // self.navigationManager.push(route: .content)
             }
             // TODO: UserName, id, accessToken, refreshToken -  UserDefaults에 저장 - Email 회원가입 정리
         } catch {

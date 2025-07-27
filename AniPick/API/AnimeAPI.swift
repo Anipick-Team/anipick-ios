@@ -15,7 +15,7 @@ enum AnimeAPI: URLRequestConvertible {
     case animeDetailRecommendation(animeId: Int) //AnimeSeriesListResponse
     
     // 리뷰 관련
-    case reviewList(animeId: Int, sort: String, isSpoiler: Bool, lastValue: String, lastId: Int, size: Int)
+    case reviewList(animeId: Int, sort: String, isSpoiler: Bool, lastValue: String?, lastId: Int?, size: Int?)
     case registerRating(animeId: Int, rating: Double)
     case editRating(reviewId: Int, rating: Double)
     case deleteRating(reviewId: Int)
@@ -35,11 +35,19 @@ enum AnimeAPI: URLRequestConvertible {
     case likePerson(personId: Int)
     case cancelLikePerson(personId: Int)
     
-    case recommendationAnime(animeId: Int, lastId: Int, size: Int)
+    case recommendationAnime(animeId: Int, lastId: Int?, size: Int?)
     
     
     case writeAndEditReview(animeId: Int, content: String, rating: Double, isSpoiler: Bool)
-    case seriesAnimeList(animeId: Int, lastId: Int, size: Int)
+    case seriesAnimeList(animeId: Int, lastId: Int?, size: Int)
+    
+    // 회원가입 시 사용하는 애니평가
+    case preference(query: String?, year: Int?, season: Int?, genre: Int?, lastId: Int?)
+    case storedPreference
+    
+    
+    // 홈화면의 공개예정
+    case commingSoonInfo(sort: String, lastId: Int?, includeAdult: Bool, lastValue: String?)
     
     var path: String {
         switch self {
@@ -53,8 +61,8 @@ enum AnimeAPI: URLRequestConvertible {
             return "api/animes/\(animeId)/detail/recommendation"
         
             
-        case let .reviewList(animeId, sort, isSpoiler, lastValue, lastId, size):
-            return "api/animes/\(animeId)/reviews?sort={}"
+        case let .reviewList(animeId, _, _, _, _, _):
+            return "api/animes/\(animeId)/reviews"
         case let .registerRating(animeId, _):
             return "api/rating/\(animeId)/reviews"
         case let .editRating(reviewId, _):
@@ -63,19 +71,19 @@ enum AnimeAPI: URLRequestConvertible {
             return "api/rating/\(reviewId)/animes"
             
         case .likeAnime(let animeId):
-            return "api/animes/{animeId}/like"
+            return "api/animes/\(animeId)/like"
         case .cancelLikeAnime(let animeId):
-            return "api/animes/{animeId}/like"
+            return "api/animes/\(animeId)/like"
             
         case let .animeWatchingStatus(animeId, _):
             return "api/users/\(animeId)/status"
         case let .deleteAnimeWatchingStatus(animeId):
             return "api/users/\(animeId)/status"
             
-        case .studioDetailInfo(let studioId, let lastId, let lastValue, let size):
+        case let .studioDetailInfo(studioId, _, _, _):
             return "api/studios/\(studioId)/animes"
             
-        case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
+        case let .charactersDetailInfo(animeId, _, _, _):
             return "api/animes/\(animeId)/characters"
         case .voiceActorDetailInfo(let personId, let lastId, let size):
             return "api/person/\(personId)"
@@ -89,12 +97,18 @@ enum AnimeAPI: URLRequestConvertible {
             
             
             
-        case .recommendationAnime(let animeId, let lastId, let size):
+        case let .recommendationAnime(animeId, _, _):
            return "api/animes/\(animeId)/recommendations"
-        case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
+        case let .writeAndEditReview(animeId, _, _, _):
             return "api/reviews/\(animeId)/animes"
-        case .seriesAnimeList(let animeId, let lastId, let size):
+        case let .seriesAnimeList(animeId, lastId, size):
             return "api/animes/\(animeId)/series"
+        case .preference:
+            return "api/explore-search"
+        case .storedPreference:
+            return "api/reivews/bulk"
+        case .commingSoonInfo:
+            return "api/animes/coming-soon"
         }
     }
     
@@ -133,7 +147,7 @@ enum AnimeAPI: URLRequestConvertible {
             
         case .studioDetailInfo:
             return .get
-        case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
+        case .charactersDetailInfo:
             return .get
         case .voiceActorDetailInfo:
             return .get
@@ -142,11 +156,17 @@ enum AnimeAPI: URLRequestConvertible {
         case .cancelLikePerson:
             return .delete
  
-        case .recommendationAnime(let animeId, let lastId, let size):
+        case .recommendationAnime:
             return .get
-        case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
+        case .writeAndEditReview:
             return .patch
-        case .seriesAnimeList(let animeId, let lastId, let size):
+        case .seriesAnimeList:
+            return .get
+        case .preference:
+            return .get
+        case .storedPreference:
+            return .post
+        case .commingSoonInfo:
             return .get
         }
 
@@ -163,14 +183,17 @@ enum AnimeAPI: URLRequestConvertible {
         case .animeDetailRecommendation:
             return nil
             
-        case let .reviewList(_, sort, isSpoiler, lastValue, lastId, size):
-            return [
-                "sort": sort,        //정렬 기준 (latest, likes, ratingDesc, ratingAsc)
-                "isSpoiler": isSpoiler,      // Bool 타입
+        case let .reviewList(_, sort, isSpoiler, lastValue, lastId, _):
+            let isSpoilerString = isSpoiler ? "true" : "false"
+            let rawParams: [String : Any?] = [
+                "sort": sort,//정렬 기준 (latest, likes, ratingDesc, ratingAsc)
+                "isSpoiler": isSpoilerString,      // Bool 타입
                 "lastValue": lastValue,      // String 또는 Double (서버 요구에 따라)
                 "lastId": lastId,
-                "size": size
+                "size": 10
             ]
+            
+            return rawParams.compactMapValues { $0 }
         case let .registerRating(_, rating):
             return [
                 "rating": rating
@@ -186,8 +209,10 @@ enum AnimeAPI: URLRequestConvertible {
             
             
             
-        case .likeAnime:
-            return nil
+        case .likeAnime(let animeId):
+            return [
+                "animeId": animeId
+            ]
         case .cancelLikeAnime:
             return nil
             
@@ -225,22 +250,59 @@ enum AnimeAPI: URLRequestConvertible {
             
             
             
-        case .recommendationAnime(let animeId, let lastId, let size):
-            return [
+        case let .recommendationAnime(_, lastId, _):
+            let rawParams = [
                 "lastId": lastId,
-                "size": size
+                "size": 10
             ]
-        case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
+            return rawParams.compactMapValues { $0 }
+        case let .writeAndEditReview(_, content, rating, isSpoiler):
             return [
-                "content": content,
                 "rating": rating,
-                "isSpoiler": isSpoiler
+                "isSpoiler": isSpoiler,
+                "content": content
             ]
-        case .seriesAnimeList(let animeId, let lastId, let size):
-            return [
+            
+        case let .seriesAnimeList(_, lastId, size):
+            let rawParams = [
                 "lastId": lastId,
-                "size": size
+                "size": 10
             ]
+            return rawParams.compactMapValues { $0 }
+            
+        case let .preference(query, year, season, genre, lastId):
+           return [
+            "query": query,
+            "year": year,
+            "season": season, // 예: "spring", "summer", "fall", "winter"
+            "genres": genre,
+            "lastId": lastId
+           ]
+        case .storedPreference:
+            // TODO: 배열로 선택한 값 넣는 것 필요함~~
+            /*
+             let ratedAnimes: [[String: Any]] = [
+                 ["animeId": 12345, "rating": 4.5],
+                 ["animeId": 54321, "rating": 5.0]
+             ]
+
+             let parameters: [String: Any] = [
+                 "ratedAnimes": ratedAnimes
+             ]
+
+             */
+            return nil
+            
+        case let .commingSoonInfo(sort, lastId, includeAdult, lastValue):
+            let adult = includeAdult ? "true" : "false"
+            let rawParams: [String: Any?] = [
+                    "sort": sort,
+                    "lastId": lastId,
+                    "size": 18,
+                    "includeAdult": adult,
+                    "lastValue": lastValue
+                ]
+                return rawParams.compactMapValues { $0 }
         }
 
     }
@@ -264,9 +326,9 @@ enum AnimeAPI: URLRequestConvertible {
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
             
         case .reviewList:
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .registerRating:
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .editRating:
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .deleteRating:
@@ -274,7 +336,7 @@ enum AnimeAPI: URLRequestConvertible {
             
             
         case .likeAnime:
-            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .cancelLikeAnime:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
             
@@ -299,19 +361,34 @@ enum AnimeAPI: URLRequestConvertible {
             
             
             
-        case .recommendationAnime(let animeId, let lastId, let size):
+        case .recommendationAnime:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .writeAndEditReview:
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
-        case .writeAndEditReview(let animeId, let content, let rating, let isSpoiler):
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
-        case .seriesAnimeList(let animeId, let lastId, let size):
+        case .seriesAnimeList:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+        case .preference:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .storedPreference:
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
             
-            
+        case .commingSoonInfo:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
+   
+        
+        
+        for key in headers.dictionary.keys {
+            if let value = headers[key] {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
         return urlRequest
     }
     
-    var header: HTTPHeaders {
+    var headers: HTTPHeaders {
         return ["Content-Type": "application/json",
                 "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }

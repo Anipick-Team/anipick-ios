@@ -104,7 +104,7 @@ enum MyInfoAPI: URLRequestConvertible {
         
         switch self {
         case .myInfo:
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .toWatchAnimeList:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .watchingAnimeList:
@@ -119,10 +119,16 @@ enum MyInfoAPI: URLRequestConvertible {
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         
+        for key in headers.dictionary.keys {
+            if let value = headers[key] {
+                urlRequest.setValue(value, forHTTPHeaderField: key)
+            }
+        }
+        
         return urlRequest
     }
     
-    var header: HTTPHeaders {
+    var headers: HTTPHeaders {
         return ["Content-Type": "application/json",
                 "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }
