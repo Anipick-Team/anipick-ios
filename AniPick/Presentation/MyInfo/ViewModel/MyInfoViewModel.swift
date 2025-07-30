@@ -17,6 +17,7 @@ final class MyInfoViewModel: ObservableObject {
     @Published var likedAnimeList: [LikedAnime] = []
     @Published var likedPersonList: [LikedPerson] = []
     
+    let sessiopn = Session(interceptor: TokenInterceptor.shared)
     private let navigationManager: NavigationManager
     
     init(navigationManager: NavigationManager) {
@@ -39,18 +40,18 @@ extension MyInfoViewModel {
 
 extension MyInfoViewModel {
     func fetchMyInfo() {
-        AF.request(MyInfoAPI.myInfo)
+        sessiopn.request(MyInfoAPI.myInfo)
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .response { response in
-                print("응답 상태 코드: \(response.response?.statusCode ?? 0)")
-                if let data = response.data, !data.isEmpty {
-                    print("응답 내용: \(String(data: data, encoding: .utf8) ?? "디코딩 실패")")
-                } else {
-                    print("📭 응답 본문이 없음")
-                }
-            }
+//            .response { response in
+//                print("응답 상태 코드: \(response.response?.statusCode ?? 0)")
+//                if let data = response.data, !data.isEmpty {
+//                    print("응답 내용: \(String(data: data, encoding: .utf8) ?? "디코딩 실패")")
+//                } else {
+//                    print("📭 응답 본문이 없음")
+//                }
+//            }
             .responseDecodable(of: MyInfoResponse.self) { response in
                 switch response.result {
                 case .success(let value):
@@ -62,10 +63,19 @@ extension MyInfoViewModel {
                             self.likedAnimeList = data.likedAnimes ?? []
                         }
                 }
-                    print("✅ 성공: \(value)")
+                    DLog("✅ 성공: \(value)")
                 case .failure(let error):
-                    print("❌ 실패: \(error)")
+                    DLog("❌ 실패: \(error)")
                 }
             }
+    }
+    
+    
+    func moveToLikedAnimeListView() {
+        self.navigationManager.push(route: .likeAnimeList)
+    }
+    
+    func moveToRatedAnimeListView() {
+        self.navigationManager.push(route: .ratedAnimeList)
     }
 }

@@ -135,7 +135,7 @@ struct AnimationDetailInfoView: View {
                         Button {
                             DLog("제작사 탭탭 - \(studio.name)")
                         } label: {
-                            Text(studio.name)
+                            Text(studio.name ?? "--")
                                 .customFontStyle(size: 14, color: .anipickSecondary)
                                 .underline(true, color: .anipickSecondary)
                         }

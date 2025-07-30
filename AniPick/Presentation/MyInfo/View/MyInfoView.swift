@@ -94,6 +94,7 @@ struct MyInfoView: View {
                 
                 self.sectionCategoryButton(title: "평가한 작품", isShownChevron: true) {
                     DLog("평가한 작품 탭으로 이동")
+                    self.viewModel.moveToRatedAnimeListView()
                 }
                 
                 Spacer().frame(height: 32)
@@ -104,6 +105,7 @@ struct MyInfoView: View {
                     isShownChevron: viewModel.isEmptyLikeAnime
                 ) {
                     DLog("좋아요한 작품 탭으로 이동")
+                    self.viewModel.moveToLikedAnimeListView()
                 }
                 .padding(.bottom, 14)
                 

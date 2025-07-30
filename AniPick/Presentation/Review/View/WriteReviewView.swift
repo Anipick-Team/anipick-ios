@@ -46,14 +46,17 @@ struct WriteReviewView: View {
             .padding(.bottom, 12)
             
             // TODO: 스포일러 토글 값 필요
-            HStack(spacing: 0) {
-                Spacer()
-                Text("스포일러")
-                    .customFontStyle(size: 16, color: .anipickSecondary, weight: .bold)
-                
-                Image(.toggleEnable)
+            Button {
+                viewModel.toggleSpoiler()
+            } label: {
+                HStack(spacing: 0) {
+                    Spacer()
+                    Text("스포일러")
+                        .customFontStyle(size: 16, color: .anipickSecondary, weight: .bold)
+                    Image(viewModel.isSpoiler ? .toggleEnable : .toggleDisable)
+                }
+                .padding(.bottom, 18)
             }
-            .padding(.bottom, 18)
         
             ZStack(alignment: .topLeading) {
                 Rectangle()
@@ -138,6 +141,7 @@ struct WriteReviewView: View {
             FullWidthButton(isEnable: .constant(true), buttonText: "리뷰 작성하기") {
                 DLog("리뷰 작성 탭탭")
                 viewModel.patchReview()
+                viewModel.pop()
             }
             .padding(.bottom, 20)
             

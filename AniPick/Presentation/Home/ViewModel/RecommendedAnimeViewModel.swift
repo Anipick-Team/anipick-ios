@@ -14,7 +14,7 @@ final class RecommendedAnimeViewModel: ObservableObject {
     
     @Published var recommedationAnimes: [Anime] = []
     @Published var recommedationTitle: String = ""
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     init(navigationManager: NavigationManager, animeId: Int? = nil) {
         self.navigationManager = navigationManager
         self.animeId = animeId
@@ -25,7 +25,7 @@ final class RecommendedAnimeViewModel: ObservableObject {
 extension RecommendedAnimeViewModel {
     func fetchRecommedationAnime() {
         if let animeId = self.animeId {
-            AF.request(RecommendationAPI.recommedationWithAnimeId(animeId: animeId))
+            session.request(RecommendationAPI.recommedationWithAnimeId(animeId: animeId))
                 .cURLDescription { description in
                     DLog("\(description)")
                 }
@@ -43,7 +43,7 @@ extension RecommendedAnimeViewModel {
                     }
                 }
         } else {
-            AF.request(RecommendationAPI.recommedation)
+            session.request(RecommendationAPI.recommedation)
                 .cURLDescription { description in
                     DLog("\(description)")
                 }

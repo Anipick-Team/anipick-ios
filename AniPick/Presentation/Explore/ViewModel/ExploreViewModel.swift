@@ -25,7 +25,7 @@ final class ExploreViewModel: ObservableObject {
     
     @Published var exploreRequestItem : ExploreReqeustItem? = nil
     @Published var selectedCategory: ExploreSortCategory = .popularity
-
+    let session = Session(interceptor: TokenInterceptor.shared)
     
     private let usecase: ExploreUsecase
     private let navigationManager: NavigationManager
@@ -38,7 +38,7 @@ final class ExploreViewModel: ObservableObject {
 
 extension ExploreViewModel {
     func getExploreItems(category: ExploreSortCategory) {
-        AF.request(ExploreAPI.exploreAnime(sort: category, item: self.exploreRequestItem))
+        session.request(ExploreAPI.exploreAnime(sort: category, item: self.exploreRequestItem))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -59,7 +59,7 @@ extension ExploreViewModel {
     
     // 무한 스크롤 시 불러오는 값
     func fetchMoreExploreItem(category: ExploreSortCategory) {
-        AF.request(ExploreAPI.exploreAnime(sort: category, item: self.exploreRequestItem))
+        session.request(ExploreAPI.exploreAnime(sort: category, item: self.exploreRequestItem))
             .cURLDescription { description in
                 DLog("\(description)")
             }

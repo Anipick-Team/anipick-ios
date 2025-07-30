@@ -21,7 +21,7 @@ final class HomeViewModel: ObservableObject {
     @Published var seasonString: Int = 0
     @Published var seasonYearString: Int = 0
     
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     private let usecase: HomeUsecaseProtocol
     private let navigationManager: NavigationManager
     
@@ -35,7 +35,7 @@ final class HomeViewModel: ObservableObject {
 extension HomeViewModel {
     
     func getTrendingAnimes() {
-        AF.request(HomeAPI.trending)
+        session.request(HomeAPI.trending)
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -53,7 +53,7 @@ extension HomeViewModel {
     }
     
     func fetchRecommendationAnime() {
-        AF.request(AnimeRecommendationAPI.recommendation)
+        session.request(AnimeRecommendationAPI.recommendation)
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -110,7 +110,7 @@ extension HomeViewModel {
     func fetchRecommendationAnimeWithAnimeId() {
         let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
         DLog("lastvisitedAnimeId - \(animeId)")
-        AF.request(HomeAPI.animeRecommendation(animeId: animeId))
+        session.request(HomeAPI.animeRecommendation(animeId: animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -132,7 +132,7 @@ extension HomeViewModel {
     
     // TODO: 최근 찾아보신 작품과 비슷한 작품 -> 가장 최근에 들어간 작품 userdefaults로 정리해두어야함
     func fetchSimilarAnime() {
-        AF.request(HomeAPI.animeRecommendation(animeId: 16498))
+        session.request(HomeAPI.animeRecommendation(animeId: 16498))
             .cURLDescription { description in
                 DLog("\(description)")
             }

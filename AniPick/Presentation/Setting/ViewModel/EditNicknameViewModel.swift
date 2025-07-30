@@ -17,7 +17,7 @@ final class EditNicknameViewModel: ObservableObject {
     @Published var newNickname: String = ""
     @Published var isDuplicateNickname: Bool = true
     
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     
     func checkDuplicateNickname() {
         // TODO: 닉네임 중복 확인 Api 통신
@@ -26,7 +26,7 @@ final class EditNicknameViewModel: ObservableObject {
     }
     
     func editNickName() {
-        AF.request(SettingAPI.editNickname(nickname: self.newNickname))
+        session.request(SettingAPI.editNickname(nickname: self.newNickname))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -39,5 +39,9 @@ final class EditNicknameViewModel: ObservableObject {
                     DLog("edit nickname error - \(error)")
                 }
             }
+    }
+    
+    func pop() {
+        self.navigationManager.pop()
     }
 }

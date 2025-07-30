@@ -22,9 +22,10 @@ struct AppEntryView: View {
                 //                    //AppDIContainer.makeHomeView()
                 //                } else {
                 //                    AppDIContainer.makeLoginView()
-                //                }  
+                //                }
             }
             .onAppear {
+                TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
             }
             .navigationDestination(for: AppRoute.self) { route in

@@ -11,7 +11,10 @@ struct RatedAnimeListView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: RatedAnimeListViewModel
     
-    @State private var selectedSortOption: SortOption = .latest
+    @State private var selectedSortOption: RatedSortOption = .latest
+    let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    
+    @State private var sortButtonFrame: CGRect = .zero
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -19,16 +22,19 @@ struct RatedAnimeListView: View {
                 NavigationBackButtonView(title: "평가한 작품") {
                     dismiss()
                 }
-                .padding(.horizontal, -20)
+                .padding(.horizontal, 20)
                 
                 Spacer().frame(height: 30)
                 
-                ScrollView {
+                ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: 0) {
+                        
+
+                        
                         Spacer().frame(height: 32)
                         
                         HStack(alignment: .center, spacing: 0) {
-                            Text("총 11개")
+                            Text("총 \(viewModel.lastLikeCount ?? 0)개")
                             Spacer()
                             
                             // TODO: 최신순, 좋아요 순, 평가 순 등 팝업 필요
@@ -37,13 +43,24 @@ struct RatedAnimeListView: View {
                                 self.viewModel.isShowSortOptionView.toggle()
                             } label: {
                                 HStack(alignment: .center, spacing: 0) {
-                                    Text(selectedSortOption.rawValue)
+                                    Text(viewModel.sortCategory.title)
                                         .padding(.trailing, 4)
                                     Image(systemName: self.viewModel.isShowSortOptionView ? "chevron.up" : "chevron.down")
                                         .resizable()
                                         .frame(width: 9, height: 6)
                                 }
                             }
+                            .background(
+                                GeometryReader { proxy in
+                                    Color.clear
+                                        .onAppear {
+                                            self.sortButtonFrame = proxy.frame(in: .named("SortOverlayArea"))
+                                        }
+                                        .onChange(of: viewModel.isShowSortOptionView) { _ in
+                                            self.sortButtonFrame = proxy.frame(in: .named("SortOverlayArea"))
+                                        }
+                                }
+                            )
                             
                         }
                         .customFontStyle(size: 14, color: .gray8)
@@ -67,27 +84,17 @@ struct RatedAnimeListView: View {
                         .customFontStyle(size: 14, color: viewModel.isShowOnlyReview ? Color.anipickSecondary : Color.gray8)
                         
                         Spacer().frame(height: 20)
-                        
-                        
-                        // TODO: 데이터 받아와서 처리 -> ForEach로 변경
-//                        RecentReviewCell(id: 3) { id, buttonFrame in
-//                            DLog("button tapped")
-//                        }
-//                        .padding(.bottom, 12)
-//                        
-//                        RecentReviewCell(id: 3) { id, buttonFrame in
-//                            DLog("button tapped")
-//                        }
-//                        .padding(.bottom, 12)
-//                        
-//                        RecentReviewCell(id: 3) { id, buttonFrame in
-//                            DLog("button tapped")
-//                        }
-//                        .padding(.bottom, 12)
-//                        
-//                        RecentReviewCell(id: 3) { id, buttonFrame in
-//                            DLog("button tapped")
-//                        }
+
+                        ForEach(viewModel.ratedReviewList, id: \.self) { item in
+                            RecentReviewCell(item: item) { id, buttonFrame in
+                                DLog("button tapped")
+                            }
+                            .onAppear {
+                                if item == viewModel.ratedReviewList.last {
+                                    viewModel.fetchRatedAnimeList()
+                                }
+                            }
+                        }
                         .padding(.bottom, 12)
                         
                         Spacer()
@@ -96,36 +103,78 @@ struct RatedAnimeListView: View {
                     }
                     .padding(.horizontal, 20)
                     .background(Color.gray7)
-                }
-            }
-
-            if viewModel.isShowSortOptionView {
-                SortDropdownView(
-                    selectedOption: self.$selectedSortOption) { option in
-                        self.selectedSortOption = option
-                        self.viewModel.isShowSortOptionView.toggle()
+                    
+                    GeometryReader { proxy in
+                        Color.clear
+                            .frame(height: 1)
+                            .preference(
+                                key: ScrollOffsetPreferenceKey.self,
+                                value: proxy.frame(in: .named("SortOverlayArea")).minY
+                            )
                     }
-                    .padding(.top, 110)
-                    .padding(.trailing, 20)
-            }
-            
-            
-        }
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(.chevronLeft)
-                        .foregroundColor(.black)
+
+                }
+                .coordinateSpace(name: "SortOverlayArea")
+                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
+                    DLog("offset - \(offset)")
+                    if viewModel.isShowSortOptionView {
+                        viewModel.isShowSortOptionView = false
+                    }
                 }
             }
+        }
+
+        .overlay(alignment: .topLeading) {
+            if viewModel.isShowSortOptionView {
+                SortDropdownView(selectedOption: $viewModel.sortCategory) { option in
+                    self.viewModel.sortCategory = option
+                    self.viewModel.isShowSortOptionView = false
+                    self.viewModel.fetchRatedAnimeList()
+                }
+                .frame(width: 120)
+                .position(x: sortButtonFrame.minX , y: sortButtonFrame.maxY + 140)
+            }
+        }
+        .background(Color.gray7)
+        .navigationBarBackButtonHidden(true)
+        .onAppear {
+            viewModel.fetchRatedAnimeList()
         }
     }
 }
 
 struct SortDropdownView: View {
+    @Binding var selectedOption: RatedSortOption
+    var onSelect: (RatedSortOption) -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            ForEach(RatedSortOption.allCases, id: \.self) { option in
+                Button {
+                    onSelect(option)
+                } label: {
+                    Text(option.title)
+                        .customFontStyle(size: 14, color: .anipickBlack)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .background(Color.white)
+                        .padding(.vertical, 13)
+                }
+                Rectangle()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 1)
+                    .foregroundColor(.gray7)
+                    .padding(.horizontal, 15)
+            }
+        }
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 4)
+        .frame(width: 91)
+    }
+}
+
+
+struct SortDropdownView2: View {
     @Binding var selectedOption: SortOption
     var onSelect: (SortOption) -> Void
 
@@ -155,12 +204,31 @@ struct SortDropdownView: View {
     }
 }
 
-
 enum SortOption: String, CaseIterable {
     case latest = "최신순"
     case like = "좋아요 순"
     case highRating = "평가 높은 순"
     case lowRating = "평가 낮은 순"
+}
+
+enum RatedSortOption: String, CaseIterable {
+    case latest
+    case likes
+    case ratingDesc
+    case ratingAcs
+    
+    var title: String {
+        switch self {
+        case .latest:
+            "최신순"
+        case .likes:
+            "좋아요 순"
+        case .ratingDesc:
+            "평가 낮은 순"
+        case .ratingAcs:
+            "평가 높은 순"
+        }
+    }
 }
 
 #Preview {

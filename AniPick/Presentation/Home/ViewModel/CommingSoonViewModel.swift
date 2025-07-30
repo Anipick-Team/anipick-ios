@@ -17,7 +17,7 @@ final class CommingSoonViewModel: ObservableObject {
     // 최신순, 인긴순, 방영 예정 순 확인 필요
     @Published var isShowSortCategoryOptionView: Bool = false
     @Published var isIncludeAdult: Bool = false
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     var lastId: Int?
     
     init(navigationManager: NavigationManager) {
@@ -28,7 +28,7 @@ final class CommingSoonViewModel: ObservableObject {
 extension CommingSoonViewModel {
     func fetchCommingSoonInfo() {
         // 정렬 (latest/popularity /startDate )
-        AF.request(
+        session.request(
             AnimeAPI.commingSoonInfo(
                 sort: self.selectedCategory.rawValue,
                 lastId: nil,
@@ -60,7 +60,7 @@ extension CommingSoonViewModel {
     func loadMoreCommingSoonInfo() {
         guard let lastId = lastId else { return }
 
-        AF.request(
+        session.request(
             AnimeAPI.commingSoonInfo(
                 sort: self.selectedCategory.rawValue,
                 lastId: lastId,

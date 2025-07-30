@@ -27,20 +27,20 @@ struct HomeSearchResult: Decodable, Hashable, Identifiable {
 }
 
 struct Studio: Decodable, Hashable {
-    let studioId: Int
-    let name: String
+    let studioId: Int?
+    let name: String?
 }
 
 struct Person: Decodable, Hashable  {
-    let personId: Int
-    let name: String
-    let profileImage: String
+    let personId: Int?
+    let name: String?
+    let profileImage: String?
 }
 
 struct AnimeWithClickLog: Decodable, Hashable  {
-    let animeId: Int
-    let title: String
-    let coverImageUrl: String
-    let clickLog: String
+    let animeId: Int?
+    let title: String?
+    let coverImageUrl: String?
+    let clickLog: String?
     let impressionLogs: String?
 }

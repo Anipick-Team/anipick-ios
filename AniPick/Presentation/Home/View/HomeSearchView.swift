@@ -42,12 +42,18 @@ struct HomeSearchView: View {
                         .submitLabel(.done)
                         .onSubmit {
                             // TODO: 검색어 완료 시, 작품, 인물, 제작사에 데이터 불러오는 api 여기서 불러야함
+                            viewModel.clearAllList()
                             if !viewModel.searchText.isEmpty {
                                 self.viewModel.saveRecentKeyword(self.viewModel.searchText)
                                 if self.viewModel.isShowRecentKeyword == false {
                                     self.viewModel.isShowRecentKeyword = true
                                 }
                                 self.selectedTab = .animation
+                                Task {
+                                    await viewModel.fetchAnimeSearchList()
+                                    await viewModel.fetchPersonSearchList()
+                                    await viewModel.fetchStudioSearchList()
+                                }
                             }
                         }
                         .onChange(of: viewModel.searchText) { newValue in
@@ -75,11 +81,11 @@ struct HomeSearchView: View {
             
                 switch selectedTab {
                 case .animation:
-                    self.selectAnimationView(animeList: self.viewModel.initAnimeList)
+                    self.selectAnimationView(animeList: self.viewModel.animeListWithQuery)
                 case .person:
-                    self.selectPersonView(info: dummy?.result?.persons ?? [])
+                    self.selectPersonView(info: viewModel.personListWithQuery)
                 case .producer:
-                    self.selectProducerView(studioInfo: dummy?.result?.studios ?? [])
+                    self.selectProducerView(studioInfo: viewModel.studioListWithQuery)
                 case .initSearch:
                     self.initSearchView(animeList: self.viewModel.initAnimeList)
                 }
@@ -94,16 +100,16 @@ struct HomeSearchView: View {
         }
     }
     
-    private func getCountString(info: HomeSearchResult?, tab: SearchTab) -> Int? {
+    private func getCountString(info: HomeSearchResult?, tab: SearchTab) -> Int {
         switch tab {
         case .animation:
-            return info?.count
+            return viewModel.animeListCount
         case .person:
-            return info?.personCount
+            return viewModel.personListCount
         case .producer:
-            return info?.studioCount
+            return viewModel.studioListCount
         case .initSearch:
-            return nil
+            return 0
         }
     }
     
@@ -189,11 +195,10 @@ struct HomeSearchView: View {
                 .frame(maxWidth: .infinity)
                 
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<20) { _ in
-                        let anime = Anime(animeId: 1, title: "asdfasdfasdf", coverImageUrl: "sdfsdf", releaseDate: "asdfaf")
-                        animationCell(anime: anime) {
-                                DLog("인기 작품 cell 탭탭")
-                                viewModel.moveToAnimeDetailView(animeId: anime.animeId ?? 0)
+                    ForEach(animeList, id: \.self) { item in
+                        animationCell(anime: item) {
+                            DLog("인기 작품 cell 탭탭")
+                            viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
                         }
                     }
                 }
@@ -227,7 +232,7 @@ struct HomeSearchView: View {
     // SearchStudioQueryResponse
     private func producerCell(studio: Studio) -> some View {
         return HStack(spacing: 0) {
-            Text(studio.name)
+            Text(studio.name ?? "--")
                 .font(.system(size: 14))
                 .foregroundStyle(.anipickBlack)
             
@@ -244,12 +249,12 @@ struct HomeSearchView: View {
         }
     }
     
-    private func selectAnimationView(animeList: [Anime]) -> some View {
+    private func selectAnimationView(animeList: [AnimeWithClickLog]) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             self.subTabView()
 
             // TODO: 몇명 인지 정확하게 추출
-            Text("총 19개")
+            Text("총 \(viewModel.animeListCount)개")
                 .font(.system(size: 14))
                 .foregroundStyle(.gray8)
                 .padding(.bottom, 20)
@@ -257,8 +262,15 @@ struct HomeSearchView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(animeList, id: \.self) { anime in
-                        animationCell(anime: anime) {
-                            DLog("애니메 작어어업")
+                        animationCellWithQeury(anime: anime) {
+                            self.viewModel.moveToAnimeDetailView(animeId: anime.animeId ?? 0)
+                        }
+                        .onAppear {
+                            if anime == viewModel.animeListWithQuery.last {
+                                Task {
+                                    await viewModel.fetchAnimeSearchList()
+                                }
+                            }
                         }
                     }
                 }
@@ -291,7 +303,6 @@ struct HomeSearchView: View {
     }
     
     private func searchingView() -> some View {
-        let recentSearchList = UserDefaultsManager.shared.getHomeRecentKeyword()
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Text("최근 검색어")
@@ -331,6 +342,51 @@ struct HomeSearchView: View {
             
         }
     }
+    
+    private func animationCellWithQeury(anime: AnimeWithClickLog, action: @escaping () -> Void) -> some View {
+        return Button {
+            action()
+        } label: {
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    // 회색 배경 정사각형
+                    if let url = anime.coverImageUrl {
+                        AsyncImage(url: URL(string: url)) { phase in
+                            switch phase {
+                            case .empty:
+                                // 로딩 중 placeholder
+                                RoundedRectangle(cornerRadius: 12)
+                                    .fill(Color.gray.opacity(0.2))
+                                
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
+                                
+                            case .failure:
+                                Image(systemName: "photo")
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(anime.title ?? "-")
+                    .font(.system(size: 14))
+                    .lineLimit(2)
+                    .padding(.top, 6)
+            }
+        }
+    }
+
     
     private func animationCell(anime: Anime, action: @escaping () -> Void) -> some View {
         return Button {
@@ -398,10 +454,25 @@ struct HomeSearchView: View {
     private func recentSearchKeyword(keyword: String) -> some View {
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
-                Text(keyword)
-                    .foregroundColor(.anipickBlack)
-                    .font(.system(size: 14, weight: .medium))
-                    .padding(.trailing, 8)
+                Button {
+                    viewModel.clearAllList()
+                    viewModel.searchText = keyword
+                    if self.viewModel.isShowRecentKeyword == false {
+                        self.viewModel.isShowRecentKeyword = true
+                    }
+                    self.selectedTab = .animation
+                    Task {
+                        await viewModel.fetchAnimeSearchList()
+                        await viewModel.fetchPersonSearchList()
+                        await viewModel.fetchStudioSearchList()
+                    }
+                } label: {
+                    Text(keyword)
+                        .foregroundColor(.anipickBlack)
+                        .font(.system(size: 14, weight: .medium))
+                        .padding(.trailing, 8)
+                }
+                    
                 
                 Button {
                     self.viewModel.removeSpecificKeyword(keyword)

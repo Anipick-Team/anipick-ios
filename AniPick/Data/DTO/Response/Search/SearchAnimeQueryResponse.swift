@@ -14,14 +14,14 @@ struct SearchAnimeQueryResponse: Decodable {
 }
 
 struct AnimeResult: Decodable {
-    let count: Int
-    let personCount: Int
-    let studioCount: Int
-    let cursor: CursorId
-    let animes: [AnimeWithClickLog]
+    let count: Int?
+    let personCount: Int?
+    let studioCount: Int?
+    let cursor: CursorId?
+    let animes: [AnimeWithClickLog]?
 }
 
 struct CursorId: Decodable, Hashable {
-    let lastId: Int
+    let lastId: Int?
 }
 

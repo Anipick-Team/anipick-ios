@@ -56,6 +56,9 @@ struct RecentReviewView: View {
                             self.isShowBlockMenu.toggle()
                             self.menuFrame = buttonFrame
                         }
+                        .onTapGesture {
+                            self.viewModel.moveToDetailAnimation(animeId: item.animeId ?? 0)
+                        }
                         .padding(.vertical, 16)
                         .padding(.horizontal, 20)
                     }
@@ -64,7 +67,7 @@ struct RecentReviewView: View {
             }
             if isShowBlockMenu {
                 ReportBlockMenuPopup(isShowBlockMenu: self.$isShowBlockMenu)
-                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY + 20)
+                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY - 40)
                     .zIndex(1000)
             }
         }

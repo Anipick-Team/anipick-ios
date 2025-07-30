@@ -49,6 +49,8 @@ enum AnimeAPI: URLRequestConvertible {
     // 홈화면의 공개예정
     case commingSoonInfo(sort: String, lastId: Int?, includeAdult: Bool, lastValue: String?)
     
+    case myReview(animeId: Int)
+    
     var path: String {
         switch self {
         case .animeDetailInfo(let animeId):
@@ -64,7 +66,7 @@ enum AnimeAPI: URLRequestConvertible {
         case let .reviewList(animeId, _, _, _, _, _):
             return "api/animes/\(animeId)/reviews"
         case let .registerRating(animeId, _):
-            return "api/rating/\(animeId)/reviews"
+            return "api/rating/\(animeId)/animes"
         case let .editRating(reviewId, _):
             return "api/rating/\(reviewId)/animes"
         case .deleteRating(let reviewId):
@@ -109,6 +111,10 @@ enum AnimeAPI: URLRequestConvertible {
             return "api/reivews/bulk"
         case .commingSoonInfo:
             return "api/animes/coming-soon"
+            
+        case .myReview(let animeId):
+            return "api/animes/\(animeId)/my-review"
+            
         }
     }
     
@@ -167,6 +173,9 @@ enum AnimeAPI: URLRequestConvertible {
         case .storedPreference:
             return .post
         case .commingSoonInfo:
+            return .get
+            
+        case .myReview:
             return .get
         }
 
@@ -303,6 +312,9 @@ enum AnimeAPI: URLRequestConvertible {
                     "lastValue": lastValue
                 ]
                 return rawParams.compactMapValues { $0 }
+            
+        case .myReview:
+            return nil
         }
 
     }
@@ -328,7 +340,7 @@ enum AnimeAPI: URLRequestConvertible {
         case .reviewList:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .registerRating:
-            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .editRating:
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .deleteRating:
@@ -375,6 +387,12 @@ enum AnimeAPI: URLRequestConvertible {
             
         case .commingSoonInfo:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+        case .myReview:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            
+            
+            
         }
    
         

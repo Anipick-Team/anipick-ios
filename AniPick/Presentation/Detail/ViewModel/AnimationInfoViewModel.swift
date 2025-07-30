@@ -26,7 +26,9 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var myReviewCount: Double = 0.0
     @Published var averageRating: String = ""
     @Published var reviewCount: Int = 0
+    @Published var MyReview: MyReviewItem? = nil
     
+    let session = Session(interceptor: TokenInterceptor.shared)
     
     
     
@@ -44,7 +46,7 @@ final class AnimationInfoViewModel: ObservableObject {
 
 extension AnimationInfoViewModel {
     func fetchAnimationInfo(animeId: Int) {
-        AF.request(AnimeAPI.animeDetailInfo(animeId: self.animeId))
+        session.request(AnimeAPI.animeDetailInfo(animeId: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -59,7 +61,7 @@ extension AnimationInfoViewModel {
                     DLog("anime Detail - \(response)")
                     self.animeDetailInfo = value.result
                     self.hasMyReview = value.result.isLiked ?? false
-                    self.averageRating = value.result.averageRating ?? ""
+                    self.averageRating = value.result.averageRating ?? "nil"
                     self.reviewCount = value.result.reviewCount ?? 0
                     self.reviewContent = value.result.description ?? ""
                     self.isActiveLike = value.result.isLiked ?? false
@@ -70,7 +72,7 @@ extension AnimationInfoViewModel {
     }
     
     func fetchSeriesAnimeInfo() {
-        AF.request(AnimeAPI.seriesAnimeList(animeId: self.animeId, lastId: nil, size: 10))
+        session.request(AnimeAPI.seriesAnimeList(animeId: self.animeId, lastId: nil, size: 10))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -94,7 +96,7 @@ extension AnimationInfoViewModel {
     }
     
     func fetchRecommendationAnimeInfo() {
-        AF.request(AnimeAPI.recommendationAnime(animeId: self.animeId, lastId: nil, size: nil))
+        session.request(AnimeAPI.recommendationAnime(animeId: self.animeId, lastId: nil, size: nil))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -120,11 +122,11 @@ extension AnimationInfoViewModel {
     
     
     func fetchReview() {
-        AF.request(
+        session.request(
             AnimeAPI.reviewList(
                 animeId: self.animeId,
                 sort: "latest",
-                isSpoiler: false,
+                isSpoiler: true,
                 lastValue: nil,
                 lastId: nil,
                 size: 10
@@ -148,8 +150,28 @@ extension AnimationInfoViewModel {
         
     }
     
+    
+    func getMyReview() {
+        AF.request(AnimeAPI.myReview(animeId: self.animeId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: ReviewResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("리뷰리뷰 최신 리뷰 - \(value)")
+//                    if let result = value.result,
+//                       let reviewList = result.reviews {
+//                        self.reviewList = reviewList
+//                    }
+                case .failure(let error):
+                    DLog("에러 발생 - \(error)")
+                }
+            }
+    }
+    
     func registerStarRating() {
-        AF.request(AnimeAPI.registerRating(animeId: self.animeId, rating: self.myReviewCount))
+        session.request(AnimeAPI.registerRating(animeId: self.animeId, rating: self.myReviewCount))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -164,7 +186,7 @@ extension AnimationInfoViewModel {
     }
     
     func tappedAnimeLike() {
-        AF.request(AnimeAPI.likeAnime(animeId: self.animeId))
+        session.request(AnimeAPI.likeAnime(animeId: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -180,7 +202,7 @@ extension AnimationInfoViewModel {
     }
     
     func tappedAnimeDislike() {
-        AF.request(ReviewAPI.cancelReview(id: self.animeId))
+        session.request(ReviewAPI.cancelReview(id: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -201,5 +223,10 @@ extension AnimationInfoViewModel {
     
     func setLastVisitedAnimeId() {
         UserDefaultsManager.shared.setLastVisitedAnimeId(animeId: self.animeId)
+    }
+    
+    
+    func moveToRewriteReview(starRating: Double) {
+        self.navigationManager.push(route: .review(starRating: starRating, animeId: self.animeId))
     }
 }

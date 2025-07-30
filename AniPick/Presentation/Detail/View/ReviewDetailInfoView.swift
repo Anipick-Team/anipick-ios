@@ -20,7 +20,7 @@ struct ReviewDetailInfoView: View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
                 // TODO: main body가 너무 길어짐. 따로 함수뷰로 분리 필요
-                if viewModel.hasMyReview == false {
+                if viewModel.reviewContent.isEmpty {
                     ZStack {
                         Rectangle()
                             .frame(height: 123)
@@ -161,15 +161,16 @@ struct ReviewDetailInfoView: View {
                     .padding(.bottom, 13)
                     .padding(.horizontal, 20)
                     
-                    
                     Spacer().frame(height: 20)
-                    
-                    
-                    // TODO: 데이터 받아와서 처리 -> ForEach로 변경
                     
                     ForEach(viewModel.reviewList, id: \.self) { item in
                         RecentReviewCell(item: item) { id, buttonFrame in
                             DLog("button tapped")
+                        }
+                        .onTapGesture {
+                            if item.isMine! {
+                                viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
+                            }
                         }
                         .padding(.bottom, 12)
                         .padding(.horizontal, 20)
@@ -187,7 +188,7 @@ struct ReviewDetailInfoView: View {
             }
             
             if self.isShowSortOptionView {
-                SortDropdownView(
+                SortDropdownView2(
                     selectedOption: self.$selectedSortOption) { option in
                         self.selectedSortOption = option
                         self.isShowSortOptionView.toggle()

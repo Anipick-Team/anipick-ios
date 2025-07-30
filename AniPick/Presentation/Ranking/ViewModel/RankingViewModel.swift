@@ -16,12 +16,12 @@ final class RankingViewModel: ObservableObject {
         self.navigationManager = navigationManager
     //    self.fetchRankingDataList()
     }
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
 }
 
 extension RankingViewModel {
     func fetchRankingDataList() {
-        AF.request(RankingAPI.realtime(genre: nil, lastId: nil, size: nil))
+        session.request(RankingAPI.realtime(genre: nil, lastId: nil, size: nil))
             .cURLDescription { description in
                 DLog("\(description)")
             }

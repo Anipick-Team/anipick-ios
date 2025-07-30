@@ -6,10 +6,10 @@
 //
 
 protocol SearchRepositoryProtocol {
-    func getSearchResult() async throws -> SearchInitResponse
-    func getAnimeQueryResult(query: String) async throws -> SearchAnimeQueryResponse
-    func getPersonQueryResult(query: String) async throws -> SearchPersonQueryResponse
-    func getStudioQueryResult(query: String) async throws -> SearchStudioQueryResponse
+    func getSearchResult(lastId: Int?) async throws -> SearchInitResponse
+    func getAnimeQueryResult(query: String, lastId: Int?) async throws -> SearchAnimeQueryResponse
+    func getPersonQueryResult(query: String, lastId: Int?) async throws -> SearchPersonQueryResponse
+    func getStudioQueryResult(query: String, lastId: Int?) async throws -> SearchStudioQueryResponse
 }
 
 struct SearchRepository: SearchRepositoryProtocol {
@@ -21,19 +21,19 @@ struct SearchRepository: SearchRepositoryProtocol {
 }
 
 extension SearchRepository {
-    func getSearchResult() async throws -> SearchInitResponse {
-        try await apiService.getSearchResult()
+    func getSearchResult(lastId: Int? = nil) async throws -> SearchInitResponse {
+        try await apiService.getSearchResult(lastId: lastId)
     }
     
-    func getAnimeQueryResult(query: String) async throws -> SearchAnimeQueryResponse {
-        try await apiService.getAnimeQueryResult(query: query)
+    func getAnimeQueryResult(query: String, lastId: Int? = nil) async throws -> SearchAnimeQueryResponse {
+        try await apiService.getAnimeQueryResult(query: query, lastId: lastId)
     }
     
-    func getPersonQueryResult(query: String) async throws -> SearchPersonQueryResponse {
-        try await apiService.getPersonQueryResult(query: query)
+    func getPersonQueryResult(query: String, lastId: Int? = nil) async throws -> SearchPersonQueryResponse {
+        try await apiService.getPersonQueryResult(query: query, lastId: lastId)
     }
     
-    func getStudioQueryResult(query: String) async throws -> SearchStudioQueryResponse {
-        try await apiService.getStudioQueryResult(query: query)
+    func getStudioQueryResult(query: String, lastId: Int? = nil) async throws -> SearchStudioQueryResponse {
+        try await apiService.getStudioQueryResult(query: query, lastId: lastId)
     }
 }

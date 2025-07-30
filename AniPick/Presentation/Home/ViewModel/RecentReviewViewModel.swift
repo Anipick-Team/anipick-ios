@@ -12,7 +12,7 @@ final class RecentReviewViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager
     @Published var recentReviewList: [ReviewItem] = []
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
         self.fetchRecentReview()
@@ -22,7 +22,7 @@ final class RecentReviewViewModel: ObservableObject {
 
 extension RecentReviewViewModel {
     func fetchRecentReview() {
-        AF.request(ReviewAPI.recentReview)
+        session.request(ReviewAPI.recentReview)
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -38,5 +38,9 @@ extension RecentReviewViewModel {
                     DLog("최근 리뷰 뷰 - \(error)")
                 }
             }
+    }
+    
+    func moveToDetailAnimation(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
 }

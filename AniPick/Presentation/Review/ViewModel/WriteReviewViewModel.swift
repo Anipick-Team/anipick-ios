@@ -12,9 +12,9 @@ final class WriteReviewViewModel: ObservableObject {
     
     @Published var reviewTextContent: String = ""
     @Published var starRating: Double = 0
-    @Published var isSpoiler: Bool = false
+    @Published var isSpoiler: Bool = true
     @Published var animeId: Int = 0
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     private let navigationManager: NavigationManager
     
     init(navigationManager: NavigationManager, starRating: Double, animeId: Int) {
@@ -28,7 +28,7 @@ final class WriteReviewViewModel: ObservableObject {
 
 extension WriteReviewViewModel {
     func patchReview() {
-        AF.request(
+        session.request(
                 AnimeAPI.writeAndEditReview(
                     animeId: self.animeId,
                     content: self.reviewTextContent,
@@ -49,5 +49,17 @@ extension WriteReviewViewModel {
             }
             
         }
+    }
+    
+    func pop() {
+        self.navigationManager.pop()
+    }
+    
+    func toggleSpoiler() {
+        self.isSpoiler.toggle()
+    }
+    
+    func moveToWriteReview(starRating: Double) {
+        self.navigationManager.push(route: .review(starRating: starRating, animeId: self.animeId))
     }
 }

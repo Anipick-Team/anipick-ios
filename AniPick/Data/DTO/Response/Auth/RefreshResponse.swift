@@ -9,6 +9,7 @@ struct RefreshResponse: Decodable {
     let code: Int
     let value: String
     let result: Tokens?
+    let errorReason: String?
 }
 
 struct Tokens: Decodable {

@@ -21,19 +21,19 @@ final class SearchAPIService {
 }
 
 extension SearchAPIService {
-    func getSearchResult() async throws -> SearchInitResponse {
-        try await requestAPI(.searchInit)
+    func getSearchResult(lastId: Int? = nil) async throws -> SearchInitResponse {
+        try await requestAPI(.searchInit(lastId: lastId))
     }
     
-    func getAnimeQueryResult(query: String) async throws -> SearchAnimeQueryResponse {
-        try await requestAPI(.searchAnimeQuery(query: query))
+    func getAnimeQueryResult(query: String, lastId: Int? = nil) async throws -> SearchAnimeQueryResponse {
+        try await requestAPI(.searchAnimeQuery(query: query, lastId: lastId))
     }
     
-    func getPersonQueryResult(query: String) async throws -> SearchPersonQueryResponse {
-        try await requestAPI(.searchPersonQuery(query: query))
+    func getPersonQueryResult(query: String, lastId: Int? = nil) async throws -> SearchPersonQueryResponse {
+        try await requestAPI(.searchPersonQuery(query: query, lastId: lastId))
     }
     
-    func getStudioQueryResult(query: String) async throws -> SearchStudioQueryResponse {
-        try await requestAPI(.searchStudioQuery(query: query))
+    func getStudioQueryResult(query: String, lastId: Int? = nil) async throws -> SearchStudioQueryResponse {
+        try await requestAPI(.searchStudioQuery(query: query, lastId: lastId))
     }
 }

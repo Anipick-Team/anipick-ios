@@ -108,6 +108,7 @@ struct MainLoginView: View {
                 
                 
             }
+            .navigationBarBackButtonHidden(true)
             .background(.white)
     }
     

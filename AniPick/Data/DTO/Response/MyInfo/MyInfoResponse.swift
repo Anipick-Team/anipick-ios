@@ -42,3 +42,15 @@ struct LikedPerson: Decodable, Hashable { //최대 10개
     let profileImageUrl: String?
 }
 
+
+struct MyInfoLikedAnimeResposne: Decodable {
+    let code: Int
+    let value: String
+    let result: MyInfoLikedAnimeResult?
+}
+
+struct MyInfoLikedAnimeResult: Decodable {
+    let count: Int
+    let cursor: Cursor? // lastId만 존재
+    let animes: [LikedAnime]?
+}

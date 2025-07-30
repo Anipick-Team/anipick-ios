@@ -20,6 +20,7 @@ struct ReviewResult: Decodable {
 struct ReviewCursor: Decodable {
     let sort: String?
     let lastId: Int?
+    let lastValue: String?
 }
 
 struct ReviewItem: Decodable, Hashable {
@@ -35,5 +36,6 @@ struct ReviewItem: Decodable, Hashable {
     let likeCount: Int?
     let likedByCurrentUser: Bool?
     let isMine: Bool?
+    let content: String?
 }
 

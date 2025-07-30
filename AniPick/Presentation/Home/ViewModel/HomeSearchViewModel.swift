@@ -6,14 +6,28 @@
 //
 
 import SwiftUI
+import Alamofire
 
 @MainActor
 final class HomeSearchViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var initAnimeList: [Anime] = []
+    @Published var animeListWithQuery: [AnimeWithClickLog] = []
+    @Published var personListWithQuery: [Person] = []
+    @Published var studioListWithQuery: [Studio] = []
     @Published var recentKeywordList: [String] = []
     @Published var isShowRecentKeyword: Bool = false
     @Published var selectedTab: SearchTab = .initSearch
+    @Published var animeListCount: Int = 0
+    @Published var personListCount: Int = 0
+    @Published var studioListCount: Int = 0
+    @Published var homeSearchResult: HomeSearchResult? = nil
+    
+    @Published var initLastId: Int? = nil
+    @Published var animeLastId: Int? = nil
+    @Published var personLastId: Int? = nil
+    @Published var studioLastId: Int? = nil
+
     
     private let usecase: SearchUsecaseProtocol
     private let navigationManager: NavigationManager
@@ -26,14 +40,75 @@ final class HomeSearchViewModel: ObservableObject {
     
     func getInitSearchList() async {
         do {
-            let response = try await usecase.getSearchResult()
+            let response = try await usecase.getSearchResult(lastId: initLastId)
             if let result = response.result {
                 self.initAnimeList = result.popularAnimes
+                DLog("home searchView - \(result)")
             } else {
                 self.initAnimeList = []
             }
         } catch {
             DLog("searchView에서 init anime data error - \(error.localizedDescription)")
+        }
+    }
+    
+    func fetchAnimeSearchListWithQuery() {
+        AF.request(SearchAPI.searchAnimeQuery(query: self.searchText, lastId: animeLastId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: HomeSearchResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("home search with query success - \(value)")
+                case .failure(let error):
+                    DLog("home search with query error - \(error)")
+                }
+                
+            }
+    }
+    
+    func fetchAnimeSearchList() async {
+        do {
+            let response = try await usecase.getAnimeQueryResult(query: self.searchText, lastId: animeLastId)
+            if let result = response.result {
+                DLog("home searchView anime with query- \(result)")
+                self.animeListWithQuery += result.animes ?? []
+                self.animeListCount = result.count ?? 0
+                self.animeLastId = result.cursor?.lastId ?? nil
+            } else {
+                self.initAnimeList = []
+            }
+        } catch {
+            
+        }
+    }
+    
+    func fetchPersonSearchList() async {
+        do {
+            let response = try await usecase.getPersonQueryResult(query: self.searchText, lastId: personLastId)
+            if let result = response.result {
+                DLog("home searchview personwith query- \(result)")
+                self.personListWithQuery += result.persons ?? []
+                self.personListCount = result.count ?? 0
+                self.personLastId = result.cursor?.lastId ?? nil
+            }
+        } catch {
+            
+        }
+    }
+    
+    func fetchStudioSearchList() async {
+        do {
+            let response = try await usecase.getStudioQueryResult(query: self.searchText, lastId: studioLastId)
+            if let result = response.result {
+                DLog("home searchview studio query- \(result)")
+                self.studioListWithQuery += result.studios ?? []
+                self.studioListCount = result.count ?? 0
+                self.studioLastId = result.cursor?.lastId ?? nil
+            }
+        } catch {
+            
         }
     }
     
@@ -46,6 +121,12 @@ final class HomeSearchViewModel: ObservableObject {
         UserDefaultsManager.shared.clearHomeRecentKeyword()
         self.recentKeywordList.removeAll()
         self.isShowRecentKeyword = false
+    }
+    
+    func clearAllList() {
+        self.animeListWithQuery.removeAll()
+        self.personListWithQuery.removeAll()
+        self.studioListWithQuery.removeAll()
     }
     
     func removeSpecificKeyword(_ keyword: String) {

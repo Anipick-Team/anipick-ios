@@ -19,7 +19,7 @@ final class PreferenceSelectionViewModel: ObservableObject {
     @Published var searchBarString: String = ""
     
     @Published var isPresentModelView: Bool = false
-        
+    let session = Session(interceptor: TokenInterceptor.shared)
     
     private let navigationManager: NavigationManager
     
@@ -30,7 +30,7 @@ final class PreferenceSelectionViewModel: ObservableObject {
 
 extension PreferenceSelectionViewModel {
     func fetchMataData() {
-        AF.request(MetaDataAPI.metaData)
+        session.request(MetaDataAPI.metaData)
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -62,7 +62,7 @@ extension PreferenceSelectionViewModel {
             return
         }
         
-        AF.request(
+        session.request(
             AnimeAPI.preference(
                 query: self.searchBarString,
                 year: Int(self.selectedYear),

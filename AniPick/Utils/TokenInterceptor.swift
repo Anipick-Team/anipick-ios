@@ -10,9 +10,11 @@ import Alamofire
 
 final class TokenInterceptor: RequestInterceptor {
     static let shared = TokenInterceptor()
-    
+    private var isRefreshing = false
     private var requestsToRetry: [(RetryResult) -> Void] = []
     let excludedPaths = ["/login", "/users", "/auth"]
+    weak var navigationManager: NavigationManager?
+    
     // accessToken 붙이기
     func adapt(
         _ urlRequest: URLRequest,
@@ -25,14 +27,6 @@ final class TokenInterceptor: RequestInterceptor {
 //        // TODO: accessToken이 필요없는 곳에 대해서는 제외처리 해야함
         var modifiedRequest = urlRequest
         let urlString = modifiedRequest.url!.absoluteString
-
-//        if !modifiedRequest.url!.absoluteString.contains("/login") {
-//            modifiedRequest.setValue("Bearer \(UserDefaultsManager.shared.getAccessToken())", forHTTPHeaderField: "Authorization")
-//        } else {
-//            DLog("포함 안하고 있음")
-//            completion(.success(modifiedRequest))
-//            return
-//        }
         
         // 제외할 경로가 포함되어 있다면 토큰 없이 요청
         if excludedPaths.contains(where: { urlString.contains($0) }) {
@@ -44,21 +38,22 @@ final class TokenInterceptor: RequestInterceptor {
         // 그 외엔 토큰 추가
         let token = UserDefaultsManager.shared.getAccessToken()
         modifiedRequest.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        completion(.success(modifiedRequest))
-        
         //      self.isRefreshing = false
         DLog("토큰 재발급 성공해서 modifiedRequest 요청")
         completion(.success(modifiedRequest))
         
     }
     
-    // 401 오류 감지 및 토큰 갱신
+
+    
     func retry(
         _ request: Request,
         for session: Session,
         dueTo error: Error,
         completion: @escaping (RetryResult) -> Void
     ) {
+
+
         
         if let urlError = error as? URLError, urlError.code == .timedOut {
             DLog("⏰ 요청 타임아웃 발생")
@@ -66,50 +61,85 @@ final class TokenInterceptor: RequestInterceptor {
             return
         }
         
-        
-        guard let response = request.task?.response as? HTTPURLResponse,
-              response.statusCode == 401 else {
-            DLog("401 아님 - doNotRetry 보냄")
+        guard let response = request.task?.response as? HTTPURLResponse else {
+            DLog("응답 없음 - doNotRetry")
             completion(.doNotRetry)
             return
         }
         
-        requestsToRetry.append(completion)
-        
-        let refreshToken = UserDefaultsManager.shared.getRefreshToken()
-        
-        DLog("토큰 갱신 요청 시작")
-        
-        AuthAPIService.shared.postRefreshToken(refreshToken: refreshToken) { result in
-            switch result {
-            case .success(let response):
-                guard let accessToken = response.result?.accessToken,
-                      let refreshToken = response.result?.refreshToken else {
-                    self.requestsToRetry.forEach { $0(.doNotRetry) }
-                    self.requestsToRetry.removeAll()
-                    DLog("refreshToken 실패실패")
-                    return
-                }
-                
-                DLog("refreshToken 성공 - accessToken: \(accessToken) / refreshToken: \(refreshToken)")
-                UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
-                UserDefaultsManager.shared.setRefreshToken(refreshToken: refreshToken)
-                
-                DLog("토큰 갱신 성공 - 대기 중인 요청 재시도")
-                self.requestsToRetry.forEach { $0(.retry) }
-                
-            case .failure(let error):
-                DLog("토큰 갱신 실패: \(error)")
-                DispatchQueue.main.async {
-                    NavigationManager.shared.popToRoot()
-                    NavigationManager.shared.push(route: .mainLoginView)
-                }
-                self.requestsToRetry.forEach { $0(.doNotRetry) }
-            }
+        // ✅ 응답 데이터에서 code 파싱
+        if let dataRequest = request as? DataRequest,
+           let data = dataRequest.data,
+           let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+           let code = json["code"] as? Int {
             
-            self.requestsToRetry.removeAll()
-            //      self.isRefreshing = false
+            DLog("응답 코드: \(code)")
+            
+            if code == 119 {
+                DLog("🚫 code 119 - 로그인 이동")
+
+                
+                let refreshToken = UserDefaultsManager.shared.getRefreshToken()
+                AuthAPIService.shared.postRefreshToken(refreshToken: refreshToken) { result in
+                    self.isRefreshing = false
+                    DLog("postRefreshToken - \(result)")
+                    switch result {
+                    case .success(let response):
+                        if response.code == 119 {
+                            DLog("postRefresh 실패")
+                            DispatchQueue.main.async {
+                                DLog("Login 화면으로 이동이동")
+                                self.navigationManager?.popToRoot()
+                                self.navigationManager?.push(route: .mainLoginView)
+                            }
+                            completion(.doNotRetry)
+                            return
+                        }
+                        
+                        guard let accessToken = response.result?.accessToken,
+                              let refreshToken = response.result?.refreshToken else {
+                            self.requestsToRetry.forEach { $0(.doNotRetry) }
+                            self.requestsToRetry.removeAll()
+                            DLog("refreshToken 실패실패 - 토큰 없음, 로그인 인동")
+                            DispatchQueue.main.async {
+                                DLog("Login 화면으로 이동이동")
+                                self.navigationManager?.popToRoot()
+                                self.navigationManager?.push(route: .mainLoginView)
+                            }
+                            completion(.doNotRetry)
+                            return
+                        }
+                        
+                        if response.code == 200 {
+                            DLog("refreshToken 성공 - accessToken: \(accessToken) / refreshToken: \(refreshToken)")
+                            UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
+                            UserDefaultsManager.shared.setRefreshToken(refreshToken: refreshToken)
+                            completion(.retry)
+                        } else {
+                            DispatchQueue.main.async {
+                                DLog("token 갱신 실패 - Login 화면으로 이동이동")
+                                self.navigationManager?.popToRoot()
+                                self.navigationManager?.push(route: .mainLoginView)
+                            }
+                            completion(.doNotRetry)
+                        }
+
+                    case .failure(let error):
+                        DLog("토큰 갱신 실패: \(error)")
+                        DispatchQueue.main.async {
+                            DLog("Login 화면으로 이동이동")
+                            self.navigationManager?.popToRoot()
+                            self.navigationManager?.push(route: .mainLoginView)
+                        }
+                        completion(.doNotRetry)
+                    }
+                }
+                
+                return
+                
+            }
         }
+        
+        completion(.doNotRetry)
     }
-    
 }

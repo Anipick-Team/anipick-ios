@@ -73,6 +73,7 @@ struct EditNicknameView: View {
                 buttonText: "저장") {
                     DLog("닉네임 변경 저장 액션")
                     viewModel.editNickName()
+                    viewModel.pop()
                 }
         }
         .padding(.horizontal, 20)

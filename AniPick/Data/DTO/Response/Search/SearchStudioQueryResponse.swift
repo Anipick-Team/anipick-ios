@@ -16,11 +16,11 @@ struct SearchStudioQueryResponse: Decodable {
 struct SearchStudioResult: Decodable, Hashable, Identifiable {
     let id = UUID()
     
-    let count: Int
-    let animeCount: Int
-    let personCount: Int
-    let cursor: CursorId
-    let studios: [Studio]
+    let count: Int?
+    let animeCount: Int?
+    let personCount: Int?
+    let cursor: CursorId?
+    let studios: [Studio]?
 }
 
 //struct Studio: Decodable, Hashable {

@@ -10,15 +10,15 @@
 struct SearchPersonQueryResponse: Decodable {
     let code: Int
     let success: Bool?
-    let result: SearchPersonResult
+    let result: SearchPersonResult?
 }
 
 struct SearchPersonResult: Decodable {
-    let count: Int
-    let animeCount: Int
-    let studioCount: Int
-    let cursor: CursorId
-    let persons: [Person]
+    let count: Int?
+    let animeCount: Int?
+    let studioCount: Int?
+    let cursor: CursorId?
+    let persons: [Person]?
 }
 
 //struct Person: Decodable {

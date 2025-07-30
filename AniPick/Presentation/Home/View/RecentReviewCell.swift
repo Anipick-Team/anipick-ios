@@ -11,6 +11,7 @@ struct RecentReviewCell: View {
     
     @State private var starRating: Double = 0
     @State private var isShowBlockMenu: Bool = false
+    @State private var reviewContentLimit: Int? = 2
     
     let item: ReviewItem
     let id: Int = 0
@@ -26,7 +27,7 @@ struct RecentReviewCell: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0 ) {
-                if let url = item.profileImageUrl {
+                if let url = item.animeCoverImageUrl {
                     AsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
@@ -36,7 +37,7 @@ struct RecentReviewCell: View {
                             image
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 80, height: 64)
+                                .frame(height: 72)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         case .failure:
                             Image(systemName: "photo")
@@ -52,7 +53,7 @@ struct RecentReviewCell: View {
                 // TODO: animation name
                 Text(item.animeTitle ?? "--")
                     .customFontStyle(size: 16, color: .anipickBlack)
-                    .padding(.leading, 8)
+                    .padding(.leading, 16)
                 
                 Spacer()
             }
@@ -90,14 +91,19 @@ struct RecentReviewCell: View {
             
             Spacer().frame(height: 16)
             
-            Text(item.reviewContent ?? "--")
-                .lineLimit(2)
+            Text(item.content ?? item.reviewContent ?? "--")
+                .lineLimit(self.reviewContentLimit)
                 .font(.system(size: 16))
                 .foregroundStyle(.anipickBlack)
                 .padding(.bottom, 4)
             
             Button {
                 DLog("더보기 버튼 탭탭")
+                if reviewContentLimit != nil {
+                    reviewContentLimit = nil // 전체 보기
+                } else {
+                    reviewContentLimit = 2 // 다시 2줄 제한
+                }
             } label: {
                 HStack(alignment: .center, spacing: 0) {
                     Text("더보기")
@@ -105,6 +111,7 @@ struct RecentReviewCell: View {
                         .foregroundStyle(.anipickPrimary)
                         .padding(.trailing, 4)
                     
+                    //Image(reviewContentLimit == nil ? .chevronUpPrimary : .chevronDownPrimary)
                     Image(.chevronDownPrimary)
                 }
             }

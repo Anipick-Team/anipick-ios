@@ -10,14 +10,14 @@ import Alamofire
 
 final class AppEntryViewModel: ObservableObject {
     @Published var authStatus: AuthStatus = .notLoggedIn
-    
+    let session = Session(interceptor: TokenInterceptor.shared)
     func checkAuthentication() {
         
     }
     
     
     func fetchMataData() {
-        AF.request(MetaDataAPI.metaData)
+        session.request(MetaDataAPI.metaData)
             .cURLDescription { description in
                 DLog("\(description)")
             }
