@@ -144,5 +144,12 @@ extension UserDefaultsManager {
     func getLastVisitedAnimeId() -> Int {
         return defaults.integer(forKey: UserDefaultKey.lastVisitedAnime.rawValue)
     }
+    
+    func logoutAllClearInfo() {
+        self.setAccessToken(accessToken: "")
+        self.setRefreshToken(refreshToken: "")
+        self.setNickname("")
+        self.setEmail("")
+    }
 }
 

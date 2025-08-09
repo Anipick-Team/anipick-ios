@@ -15,17 +15,23 @@ final class NavigationManager: ObservableObject {
     @Published var path = NavigationPath()
     
     func push(route: AppRoute) {
-        print("🔥 pushing route: \(route)")
-           path.append(route)
-        print("📦 current path: \(path)")
+        Task { @MainActor in
+            print("🔥 pushing route: \(route)")
+            path.append(route)
+            print("📦 current path: \(path)")
+        }
     }
     
     func pop() {
-        path.removeLast()
+        Task { @MainActor in
+            path.removeLast()
+        }
     }
     
     func popToRoot() {
-        path.removeLast(path.count)
+        Task { @MainActor in
+            path.removeLast(path.count)
+        }
     }
 }
 

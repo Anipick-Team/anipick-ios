@@ -22,15 +22,11 @@ struct RatedAnimeListView: View {
                 NavigationBackButtonView(title: "평가한 작품") {
                     dismiss()
                 }
-                .padding(.horizontal, 20)
                 
                 Spacer().frame(height: 30)
                 
                 ScrollView(.vertical) {
                     VStack(alignment: .leading, spacing: 0) {
-                        
-
-                        
                         Spacer().frame(height: 32)
                         
                         HStack(alignment: .center, spacing: 0) {
@@ -70,6 +66,7 @@ struct RatedAnimeListView: View {
                         
                         Button {
                             viewModel.isShowOnlyReview.toggle()
+                            self.viewModel.fetchRatedAnimeList()
                         } label: {
                             HStack(alignment: .center, spacing: 0) {
                                 Text("리뷰만 보기")
@@ -91,7 +88,7 @@ struct RatedAnimeListView: View {
                             }
                             .onAppear {
                                 if item == viewModel.ratedReviewList.last {
-                                    viewModel.fetchRatedAnimeList()
+                                    viewModel.loadMoreAnimeList()
                                 }
                             }
                         }
@@ -215,7 +212,7 @@ enum RatedSortOption: String, CaseIterable {
     case latest
     case likes
     case ratingDesc
-    case ratingAcs
+    case ratingAsc
     
     var title: String {
         switch self {
@@ -225,7 +222,7 @@ enum RatedSortOption: String, CaseIterable {
             "좋아요 순"
         case .ratingDesc:
             "평가 낮은 순"
-        case .ratingAcs:
+        case .ratingAsc:
             "평가 높은 순"
         }
     }

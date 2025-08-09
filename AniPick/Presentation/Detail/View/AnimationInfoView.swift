@@ -11,7 +11,7 @@ struct AnimationInfoView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: AnimationInfoViewModel
     @State private var starRating: Int = 0
-    @State private var selectedAnimationStatusTab: AnimationWatchStatus = .wantToWatch
+    @State private var selectedAnimationStatusTab: AnimationWatchStatus = .empty
     @State private var selectedInfoTab: AnimationInfoTab = .animationInfo
     @State private var selectedSortOption: SortOption = .latest
       
@@ -156,9 +156,9 @@ struct AnimationInfoView: View {
                         Spacer().frame(height: 32)
                         
                         HStack(alignment: .center, spacing: 0) {
-                            animationWatchState(title: .wantToWatch)
-                            animationWatchState(title: .watching)
-                            animationWatchState(title: .finished)
+                            animationWatchState(animeId: detailInfo.animeId, title: .wantToWatch)
+                            animationWatchState(animeId: detailInfo.animeId, title: .watching)
+                            animationWatchState(animeId: detailInfo.animeId, title: .finished)
                         }
                         .frame(maxWidth: .infinity)
                         
@@ -207,10 +207,11 @@ struct AnimationInfoView: View {
         .navigationBarBackButtonHidden()
     }
         
-    private func animationWatchState(title: AnimationWatchStatus) -> some View {
+    private func animationWatchState(animeId: Int, title: AnimationWatchStatus) -> some View {
         Button {
             DLog("\(title.title) 탭탭")
             self.selectedAnimationStatusTab = title
+            self.viewModel.postAnimeWatchingStatus(animeId: animeId, status: title.status)
         } label: {
             Text(title.title)
                 .customFontStyle(size: 14, color: title == self.selectedAnimationStatusTab ? .white : .anipickBlack)
@@ -318,8 +319,22 @@ enum AnimationWatchStatus: String, CaseIterable {
     case wantToWatch = "볼 애니"
     case watching = "보는 중"
     case finished = "다 본 애니"
+    case empty = ""
     
     var title: String { self.rawValue }
+    
+    var status: String {
+        switch self {
+        case .wantToWatch:
+            "WATCHLIST"
+        case .watching:
+            "WATCHING"
+        case .finished:
+            "FINISHED"
+        case .empty:
+            ""
+        }
+    }
 }
 
 enum AnimationInfoTab: String, CaseIterable {

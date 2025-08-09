@@ -20,12 +20,12 @@ final class LikeAnimeListViewModel: ObservableObject {
     @Published var lastId: Int? = nil
     @Published var animeList: [LikedAnime] = []
     @Published var count: Int = 0
+    let session = Session(interceptor: TokenInterceptor.shared)
 }
 
 extension LikeAnimeListViewModel {
     func fetchLikeAnimeList() {
-        let sessiopn = Session(interceptor: TokenInterceptor.shared)
-        sessiopn.request(MyInfoAPI.likedAnimeList(lastId: self.lastId, size: 20))
+        session.request(MyInfoAPI.likedAnimeList(lastId: self.lastId, size: 20))
             .cURLDescription { description in
                 DLog("\(description)")
             }

@@ -12,6 +12,7 @@ struct PreferenceSelectionView: View {
     
     let quarterList = ["전체", "1분기", "2분기", "3분기", "4분기"]
     @State private var selectedList: [String] = []
+    @State private var isShowStarRatingView: Bool = false
     
     var currentList: [String] {
         switch selectedTab {
@@ -165,9 +166,18 @@ struct PreferenceSelectionView: View {
             
             ScrollView {
                 ForEach(viewModel.animeList, id: \.self) { value in
-                    animationCell(anime: value, showStarRating: true)
+                    // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
+                    let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
+                    animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
+                        self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+                    }
                     // TODO: 각 애니메이션 별 star 표시하도록 적용
-                    StarRatingView()
+                    if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
+                        StarRatingView() { rating in
+                            // 평가하기 눌렀을 때의 action
+                            self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
+                        }
+                    }
                 }
                 
             }
@@ -182,7 +192,8 @@ struct PreferenceSelectionView: View {
             // 항상 활성화
             FullWidthButton(isEnable: .constant(true), buttonText: "완료") {
                 DLog("완료 버튼 탭탭")
-                self.viewModel.isPresentModelView.toggle()
+                self.viewModel.tappedDoneRatedAnime()
+                self.viewModel.moveToMainView()
             }
             
         }
@@ -197,11 +208,12 @@ struct PreferenceSelectionView: View {
         }
         .onAppear {
             self.viewModel.fetchMataData()
-            self.viewModel.fetchRecommendAnime()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                   viewModel.fetchRecommendAnime()
+               }
         }
         
     }
-    
     
     
     private func filterSelectedHalfModalView() -> some View {
@@ -334,74 +346,112 @@ struct PreferenceSelectionView: View {
         .padding(.vertical, 20)
     }
     
-    private func animationCell(anime: AnimePreference, showStarRating: Bool) -> some View {
+    private func animationCell(anime: AnimePreference, showStarRating: Bool, action: @escaping () -> Void) -> some View {
+        var eachStarRating: Double = 0.0
+        
         return VStack(spacing: 0) {
             Button {
-                print("취향 애니메이션 탭탭")
+                DLog("취향 애니메이션 탭탭")
+                action()
             } label: {
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(spacing: 0) {
-                        Rectangle()
-                            .foregroundStyle(Color.green)
-                            .frame(width: 133, height: 89)
-                            .cornerRadius(8)
-                            .padding(.trailing, 16)
-                        
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(anime.title ?? "--")
-                                .font(.system(size: 14))
-                                .foregroundStyle(.textBlack)
-                                .padding(.bottom, 4)
-                                .padding(.top, 4)
-                            
-                            if let genres = anime.genres {
-                                Text(genres.joined(separator: ", "))
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.textGray)
+                VStack(spacing: 0) {
+                    VStack(alignment: .leading, spacing: 0) {
+                        HStack(spacing: 0) {
+                            ZStack(alignment: .topLeading) {
+                                // 회색 배경 정사각형
+                                if let url = anime.coverImageUrl {
+                                    AsyncImage(url: URL(string: url)) { phase in
+                                        switch phase {
+                                        case .empty:
+                                            // 로딩 중 placeholder
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.gray.opacity(0.2))
+                                                .frame(width: 133, height: 89)
+                                            
+                                        case .success(let image):
+                                            image
+                                                .resizable()
+                                                .scaledToFill()
+                                                .frame(width: 133, height: 89)
+                                                .clipped()
+                                            
+                                        case .failure:
+                                            // 실패 시 fallback
+                                            RoundedRectangle(cornerRadius: 12)
+                                                .fill(Color.gray.opacity(0.4))
+                                                .overlay(
+                                                    Image(systemName: "photo")
+                                                        .foregroundColor(.white)
+                                                )
+                                                .frame(width: 133, height: 89)
+                                            
+                                        @unknown default:
+                                            EmptyView()
+                                        }
+                                    }
+                                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                                }
                             }
+                            .padding(.trailing, 20)
+                            
+                            VStack(alignment: .leading, spacing: 0) {
+                                Text(anime.title ?? "--")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.textBlack)
+                                    .padding(.bottom, 4)
+                                    .padding(.top, 4)
+                                
+                                if let genres = anime.genres {
+                                    Text(genres.joined(separator: ", "))
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(.textGray)
+                                }
+                                
+                                Spacer()
+                                
+                                if viewModel.isRatedAnime(animeId: anime.animeId ?? 0) {
+                                    HStack(spacing: 0) {
+                                        ForEach(1...5, id: \.self) { starIdx in
+                                            Button {
+                                                DLog("별 탭탭 - \(starIdx)")
+                                                eachStarRating = Double(starIdx)
+                                                self.viewModel.tappedEachRatedAnime(animeId: anime.animeId ?? 0, rating: Double(starIdx))
+                                            } label: {
+                                                Image(starIdx <= Int(eachStarRating) ? .fillPickStar : .unfillStar)
+                                                    .resizable()
+                                                    .frame(width: 20, height: 20)
+                                            }
+                                            .padding(.trailing, 4)
+                                            
+                                        }
+                                        
+                                        Text("(\(eachStarRating).0)")
+                                            .padding(.leading, 8)
+                                            .font(.system(size: 14))
+                                            .foregroundStyle(.point)
+                                    }
+                                    .padding(.bottom, 4)
+                                }
+                                
+                            }
+                            
                             
                             Spacer()
                             
-                            if showStarRating {
-                                HStack(spacing: 0) {
-                                    ForEach(1...5, id: \.self) { starIdx in
-                                        Button {
-                                            self.starRating = starIdx
-                                        } label: {
-                                            Image(starIdx <= starRating ? .fillPickStar : .unfillStar)
-                                                .resizable()
-                                                .frame(width: 20, height: 20)
-                                        }
-                                        .padding(.trailing, 4)
-                                        
-                                    }
-                                    
-                                    Text("(\(self.starRating).0)")
-                                        .padding(.leading, 8)
-                                        .font(.system(size: 14))
-                                        .foregroundStyle(.point)
-                                }
-                                .padding(.bottom, 4)
-                            }
-                            
                         }
-                        
-                        
-                        Spacer()
-                        
                     }
+                    .padding(12)
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(.gray7, lineWidth: 1)
+                            .background(Color.white.cornerRadius(8))
+                            .frame(maxWidth: .infinity)
+                    )
                 }
-                .padding(12)
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .stroke(.gray7, lineWidth: 1)
-                        .background(Color.white.cornerRadius(8))
-                        .frame(maxWidth: .infinity)
-                )
             }
+            
         }
-        
     }
 }
 

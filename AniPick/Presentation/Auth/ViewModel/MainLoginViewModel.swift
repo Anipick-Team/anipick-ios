@@ -67,7 +67,7 @@ extension MainLoginViewModel {
             DLog("Kakao 로그인 값 받아오는 로직 실패-")
             UserApi.shared.loginWithKakaoAccount { (oauthToken, error) in
                // handleLogin(oauthToken, error)
-                DLog("Kakao 로그인 값 받아오는 로직 실패------")
+                DLog("Kakao 로그인 값 받아오는 로직 실패----- \(error)")
             }
         }
     }

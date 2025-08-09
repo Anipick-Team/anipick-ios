@@ -13,111 +13,122 @@ struct SettingView: View {
     @StateObject var viewModel: SettingViewModel
     
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                Spacer().frame(height: 20)
-                
-                NavigationBackButtonView(title: "설정") {
-                    dismiss()
-                }
+        ZStack {
+            ScrollView {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: 20)
                     
-                // MARK: - 계정 Section
-                let firstSectionItem = [
-                    SettingInfoData(
-                        title: SettingCategory.editNickname,
-                        titleColor: nil,
-                        subtitle: UserDefaultsManager.shared.getNickname(),
-                        subtitleColor: nil,
-                        isShowChevron: true
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.editEmail,
-                        titleColor: nil,
-                        subtitle: UserDefaultsManager.shared.getEmail(),
-                        subtitleColor: nil,
-                        isShowChevron: true
-                    ),
-                    // TODO: SNS 간편 가입된 계정인지 확인 필요
-                    SettingInfoData(
-                        title: SettingCategory.editPassword,
-                        titleColor: nil,
-                        subtitle: "sns 간편가입된 계정입니다.",
-                        subtitleColor: .gray6,
-                        isShowChevron: true
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.linkedSNS,
-                        titleColor: .anipickPrimary,
-                        subtitle: "카카오톡",
-                        subtitleColor: .anipickPrimary,
-                        isShowChevron: false
-                    )
-                ]
-                
-                section(title: "계정", items: firstSectionItem)
-                // MARK: - 앱 설정 Section
-                let secondSectionItem = [
-                    SettingInfoData(
-                        title: SettingCategory.appVersion,
-                        titleColor: nil,
-                        subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
-                        subtitleColor: nil,
-                        isShowChevron: false
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.inquiry,
-                        titleColor: nil,
-                        subtitle: nil,
-                        subtitleColor: nil,
-                        isShowChevron: true
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.termsOfService,
-                        titleColor: nil,
-                        subtitle: nil,
-                        subtitleColor: nil,
-                        isShowChevron: true
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.privacyPolicy,
-                        titleColor: nil,
-                        subtitle: nil,
-                        subtitleColor: nil,
-                        isShowChevron: true
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.notice,
-                        titleColor: nil,
-                        subtitle: nil,
-                        subtitleColor: nil,
-                        isShowChevron: true
-                    )
-                ]
-               
-                section(title: "앱 설정", items: secondSectionItem)
-
-                
-                let thirdSectionItem: [SettingInfoData] = [
-                    SettingInfoData(
-                        title: SettingCategory.logout,
-                        titleColor: .textRed,
-                        subtitle: nil,
-                        subtitleColor: nil,
-                        isShowChevron: false
-                    ),
-                    SettingInfoData(
-                        title: SettingCategory.deleteAccount,
-                        titleColor: .textRed,
-                        subtitle: nil,
-                        subtitleColor: nil,
-                        isShowChevron: false
-                    )
+                    NavigationBackButtonView(title: "설정") {
+                        dismiss()
+                    }
+                    
+                    // MARK: - 계정 Section
+                    let firstSectionItem = [
+                        SettingInfoData(
+                            title: SettingCategory.editNickname,
+                            titleColor: nil,
+                            subtitle: UserDefaultsManager.shared.getNickname(),
+                            subtitleColor: nil,
+                            isShowChevron: true
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.editEmail,
+                            titleColor: nil,
+                            subtitle: UserDefaultsManager.shared.getEmail(),
+                            subtitleColor: nil,
+                            isShowChevron: true
+                        ),
+                        // TODO: SNS 간편 가입된 계정인지 확인 필요
+                        SettingInfoData(
+                            title: SettingCategory.editPassword,
+                            titleColor: nil,
+                            subtitle: "sns 간편가입된 계정입니다.",
+                            subtitleColor: .gray6,
+                            isShowChevron: true
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.linkedSNS,
+                            titleColor: .anipickPrimary,
+                            subtitle: "카카오톡",
+                            subtitleColor: .anipickPrimary,
+                            isShowChevron: false
+                        )
                     ]
-                // MARK: - 기타 Section
-                section(title: "기타", items: thirdSectionItem)
-
-                Spacer()
-                    .frame(height: 50)
+                    
+                    section(title: "계정", items: firstSectionItem)
+                    // MARK: - 앱 설정 Section
+                    let secondSectionItem = [
+                        SettingInfoData(
+                            title: SettingCategory.appVersion,
+                            titleColor: nil,
+                            subtitle: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
+                            subtitleColor: nil,
+                            isShowChevron: false
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.inquiry,
+                            titleColor: nil,
+                            subtitle: nil,
+                            subtitleColor: nil,
+                            isShowChevron: true
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.termsOfService,
+                            titleColor: nil,
+                            subtitle: nil,
+                            subtitleColor: nil,
+                            isShowChevron: true
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.privacyPolicy,
+                            titleColor: nil,
+                            subtitle: nil,
+                            subtitleColor: nil,
+                            isShowChevron: true
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.notice,
+                            titleColor: nil,
+                            subtitle: nil,
+                            subtitleColor: nil,
+                            isShowChevron: true
+                        )
+                    ]
+                    
+                    section(title: "앱 설정", items: secondSectionItem)
+                    
+                    
+                    let thirdSectionItem: [SettingInfoData] = [
+                        SettingInfoData(
+                            title: SettingCategory.logout,
+                            titleColor: .textRed,
+                            subtitle: nil,
+                            subtitleColor: nil,
+                            isShowChevron: false
+                        ),
+                        SettingInfoData(
+                            title: SettingCategory.deleteAccount,
+                            titleColor: .textRed,
+                            subtitle: nil,
+                            subtitleColor: nil,
+                            isShowChevron: false
+                        )
+                    ]
+                    // MARK: - 기타 Section
+                    section(title: "기타", items: thirdSectionItem)
+                    
+                    Spacer()
+                        .frame(height: 50)
+                }
+            }
+            
+            if viewModel.isShowLogoutPopup {
+                LogoutPopupView {
+                    viewModel.isShowLogoutPopup = false
+                } okAction: {
+                    viewModel.tappedLogout()
+                    UserDefaultsManager.shared.logoutAllClearInfo()
+                }
             }
         }
         .navigationBarBackButtonHidden()
@@ -149,7 +160,8 @@ struct SettingView: View {
         detailInfo: SettingInfoData
     ) -> some View {
         Button {
-            self.viewModel.moveToDetailSettingView(route: detailInfo.title.route)
+            self.viewModel.actionBySettingCategory(category: detailInfo.title)
+                // self.viewModel.moveToDetailSettingView(route: detailInfo.title.route)
         } label: {
             HStack {
                 Text(detailInfo.title.rawValue)

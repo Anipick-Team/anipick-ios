@@ -55,6 +55,10 @@ extension EmailSignupViewModel {
             )
             let response = try await authUsecase.postEmailSignup(request: request)
             if response.code == 200 {
+                UserDefaultsManager.shared.setAccessToken(accessToken: response.result?.token?.accessToken ?? "")
+                DLog("\(UserDefaultsManager.shared.getAccessToken())")
+                UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
+                UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "nickname - null")
                 self.navigationManager.push(route: .preferenceSelection)
                 // self.navigationManager.push(route: .content)
             }

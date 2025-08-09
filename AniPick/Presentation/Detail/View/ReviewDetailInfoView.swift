@@ -34,14 +34,13 @@ struct ReviewDetailInfoView: View {
                                 .padding(.bottom, 16)
                             
                             Text("(\(self.viewModel.myReviewCount, specifier: "%.1f")/5.0)")
-                            
                                 .customFontStyle(size: 20, color: .gray6, weight: .bold)
                         }
                     }
                     .padding(.bottom, 12)
                     
                     Button {
-                        DLog("상세 리뷰 작성하기")
+                        DLog("상세 리뷰 작성하기로 이동")
                         viewModel.registerStarRating()
                         viewModel.moveToWriteReview()
                     } label: {
@@ -221,6 +220,7 @@ struct ReviewDetailInfoView: View {
             ForEach(1...5, id: \.self) { starIdx in
                 Button {
                     starRating.wrappedValue = Double(starIdx)
+                    viewModel.registerStarRating()
                 } label: {
                     Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
                         .resizable()

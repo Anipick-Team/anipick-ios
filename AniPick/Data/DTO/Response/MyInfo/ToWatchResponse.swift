@@ -13,23 +13,21 @@ struct ToWatchResponse: Codable {
     let result: ToWatchListResult
 }
 
-struct ToWatchListResult: Codable {
+struct ToWatchListResult: Codable, Hashable {
     let count: Int
     let cursor: ToWatchAnimeCursor
-    let animes: [ToWatchAnime]
+    let animes: [ToWatchAnime]?
 }
 
-struct ToWatchAnimeCursor: Codable {
+struct ToWatchAnimeCursor: Codable, Hashable {
     let lastId: Int
 }
 
-struct ToWatchAnime: Codable, Identifiable {
-    let animeId: Int
-    let userAnimeStatusId: Int
-    let title: String
-    let coverImageUrl: String
+struct ToWatchAnime: Codable, Hashable {
+    let animeId: Int?
+    let userAnimeStatusId: Int?
+    let title: String?
+    let coverImageUrl: String?
     let myRating: Double?
-    
-    var id: Int { animeId } // For ForEach use
 }
 

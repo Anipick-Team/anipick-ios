@@ -12,7 +12,7 @@ enum SettingAPI: URLRequestConvertible {
     case editNickname(nickname: String) // response - baseResponse
     case editEmail(email: String, password: String) // response - baseResponse
     case editPassword(currentPassword: String, newPassword: String, confirmNewPassword: String) //response - baseResponse
-    
+    case withdrawal
     
     var path: String {
         switch self {
@@ -22,6 +22,8 @@ enum SettingAPI: URLRequestConvertible {
             return "api/setting/email"
         case .editPassword:
             return "api/setting/password"
+        case .withdrawal:
+            return "api/settins/withdrawal"
         }
     }
     
@@ -32,6 +34,8 @@ enum SettingAPI: URLRequestConvertible {
         case .editEmail:
             return .put
         case .editPassword:
+            return .patch
+        case .withdrawal:
             return .patch
         }
     }
@@ -54,6 +58,8 @@ enum SettingAPI: URLRequestConvertible {
                 "newPassword": newPassword,
                 "confirmNewPassword": confirmNewPassword
             ]
+        case .withdrawal:
+            return nil
         }
     }
     
@@ -69,6 +75,8 @@ enum SettingAPI: URLRequestConvertible {
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .editPassword:
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+        case .withdrawal:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         
         for key in headers.dictionary.keys {

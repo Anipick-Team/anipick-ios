@@ -211,8 +211,7 @@ struct HomeSearchView: View {
     private func selectProducerView(studioInfo: [Studio]?) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             self.subTabView()
-            // TODO: 몇개인지 정확하게 추출
-            Text("총 \(studioInfo?.count)개")
+            Text("총 \(studioInfo?.count ?? 0)개")
                 .font(.system(size: 14))
                 .foregroundStyle(.gray8)
                 .padding(.bottom, 20)
@@ -285,15 +284,15 @@ struct HomeSearchView: View {
             self.subTabView()
             
             // TODO: 몇명 인지 정확하게 추출
-            Text("총 4명")
+            Text("총 \(info.count)명")
                 .font(.system(size: 14))
                 .foregroundStyle(.gray8)
                 .padding(.bottom, 20)
             
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<4) { _ in
-                        self.personCell()
+                    ForEach(info, id: \.self) { item in
+                        self.personCell(item: item)
                     }
                 }
             }
@@ -380,7 +379,7 @@ struct HomeSearchView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 Text(anime.title ?? "-")
-                    .font(.system(size: 14))
+                    .customFontStyle(size: 14, color: .anipickBlack)
                     .lineLimit(2)
                     .padding(.top, 6)
             }
@@ -425,27 +424,48 @@ struct HomeSearchView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 Text(anime.title ?? "-")
-                    .font(.system(size: 14))
+                    .customFontStyle(size: 14, color: .anipickBlack)
                     .lineLimit(2)
                     .padding(.top, 6)
             }
         }
     }
     
-    private func personCell() -> some View {
+    private func personCell(item: Person) -> some View {
         return VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
                 // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 105)
-
+                if let url = item.profileImage {
+                    AsyncImage(url: URL(string: url)) { phase in
+                        switch phase {
+                        case .empty:
+                            // 로딩 중 placeholder
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(Color.gray.opacity(0.2))
+                            
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .clipped()
+                            
+                        case .failure:
+                            Image(systemName: "photo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                            
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
-            Text("사아람이름")
-               // .frame(width: 128, height: 45)
-                .font(.system(size: 14))
+            Text(item.name ?? "--")
+                .customFontStyle(size: 14, color: .anipickBlack)
                 .lineLimit(2)
                 .padding(.top, 6)
         }

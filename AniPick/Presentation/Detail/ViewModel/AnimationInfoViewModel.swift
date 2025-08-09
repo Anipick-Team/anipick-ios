@@ -217,6 +217,40 @@ extension AnimationInfoViewModel {
             }
     }
     
+    func postAnimeWatchingStatus(animeId: Int, status: String) {
+        session.request(AnimeAPI.animeWatchingStatus(animeId: animeId, status: status))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    if value.code == 128 {
+                        self.deleteAnimeWatchingStatus(animeId: animeId)
+                        self.postAnimeWatchingStatus(animeId: animeId, status: status)
+                    }
+                    DLog("애니메이션 시청 상태 등록 성공 - \(value)")
+                case .failure(let error):
+                    DLog("애니메이션 시청 상태 등록 실패 - \(error)")
+                }
+            }
+    }
+    
+    func deleteAnimeWatchingStatus(animeId: Int) {
+        session.request(AnimeAPI.deleteAnimeWatchingStatus(animeId: animeId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("애니메이션 시청 상태 삭제 성공 - \(value)")
+                case .failure(let error):
+                    DLog("애니메이션 시청 상태 삭제 실패 - \(error)")
+                }
+            }
+    }
+    
     func moveToWriteReview() {
         self.navigationManager.push(route: .review(starRating: self.myReviewCount, animeId: self.animeId))
     }

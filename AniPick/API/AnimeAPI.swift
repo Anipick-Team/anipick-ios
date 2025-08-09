@@ -43,7 +43,7 @@ enum AnimeAPI: URLRequestConvertible {
     
     // 회원가입 시 사용하는 애니평가
     case preference(query: String?, year: Int?, season: Int?, genre: Int?, lastId: Int?)
-    case storedPreference
+    case storedPreference(request: [AuthAnimeRatingRequest])
     
     
     // 홈화면의 공개예정
@@ -108,7 +108,7 @@ enum AnimeAPI: URLRequestConvertible {
         case .preference:
             return "api/explore-search"
         case .storedPreference:
-            return "api/reivews/bulk"
+            return "api/reviews/bulk"
         case .commingSoonInfo:
             return "api/animes/coming-soon"
             
@@ -280,13 +280,14 @@ enum AnimeAPI: URLRequestConvertible {
             return rawParams.compactMapValues { $0 }
             
         case let .preference(query, year, season, genre, lastId):
-           return [
+            let rawParams: [String: Any?] = [
             "query": query,
             "year": year,
             "season": season, // 예: "spring", "summer", "fall", "winter"
             "genres": genre,
             "lastId": lastId
            ]
+            return rawParams.compactMapValues { $0 }
         case .storedPreference:
             // TODO: 배열로 선택한 값 넣는 것 필요함~~
             /*
@@ -382,7 +383,8 @@ enum AnimeAPI: URLRequestConvertible {
             
         case .preference:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-        case .storedPreference:
+        case let .storedPreference(request):
+            urlRequest.httpBody = try JSONEncoder().encode(request)
             urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
             
         case .commingSoonInfo:

@@ -18,7 +18,10 @@ final class PreferenceSelectionViewModel: ObservableObject {
     @Published var selectedQuarter: String = ""
     @Published var searchBarString: String = ""
     
+    @Published var storedRatedAnimeList: [AuthAnimeRatingRequest] = []
+    @Published var selectedAnimeList: Set<Int> = []
     @Published var isPresentModelView: Bool = false
+        
     let session = Session(interceptor: TokenInterceptor.shared)
     
     private let navigationManager: NavigationManager
@@ -58,16 +61,17 @@ extension PreferenceSelectionViewModel {
     
     func fetchRecommendAnime() {
         let genreList = UserDefaultsManager.shared.getMetaDataForGenres()
-        guard let id = genreList.first(where: { $0.name == self.selectedGenre })?.id else {
-            return
-        }
+//        guard let id = genreList.first(where: { $0.name == self.selectedGenre })?.id else {
+//            return
+//        }
         
         session.request(
             AnimeAPI.preference(
-                query: self.searchBarString,
+                query: self.searchBarString.isEmpty ? nil : self.searchBarString,
                 year: Int(self.selectedYear),
                 season: Int(self.selectedQuarter),
-                genre: id,
+                // TODO: 장르설정
+                genre: nil,
                 lastId: nil
             )
         )
@@ -88,8 +92,57 @@ extension PreferenceSelectionViewModel {
             }
     }
     
+    func tappedEachRatedAnime(animeId: Int, rating: Double) {
+            let newAnime = AuthAnimeRatingRequest(animeId: animeId, rating: rating)
+
+            if let index = storedRatedAnimeList.firstIndex(where: { $0.animeId == animeId }) {
+                // 이미 존재 → 업데이트
+                DLog("index - \(index) newAnime - \(newAnime)")
+                storedRatedAnimeList[index] = newAnime
+            } else {
+                // 없으면 추가
+                DLog("newAnime - \(newAnime)")
+                storedRatedAnimeList.append(newAnime)
+            }
+        }
+    
+    func isShowRatedAnime(animeId: Int) {
+        if selectedAnimeList.contains(animeId) {
+            selectedAnimeList.remove(animeId) // 이미 있으면 해제
+          } else {
+              selectedAnimeList.insert(animeId) // 없으면 추가
+          }
+    }
+    
+    func isRatedAnime(animeId: Int) -> Bool {
+        return selectedAnimeList.contains(animeId)
+    }
+    
+//    func isRatedAnime(animeId: Int) -> Bool {
+//        return storedRatedAnimeList.contains { $0.animeId == animeId }
+//    }
+    // TODO: 완료를 눌렀을 떄, API 통신해서 값 보내기
+    func tappedDoneRatedAnime() {
+        AF.request(AnimeAPI.storedPreference(request: self.storedRatedAnimeList))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("회원가입 시, 취향선택 탭탭 - \(value)")
+                case .failure(let error):
+                    DLog("회원가입 시, 취향선택 탭탭 Error - \(error)")
+                }
+            }
+    }
+    
     func tappedModalSaveButton() {
         
+    }
+    
+    func moveToMainView() {
+        self.navigationManager.push(route: .homeView)
     }
     
     func tappedModelView() {

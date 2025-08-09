@@ -10,12 +10,13 @@ import Alamofire
 
 enum MyInfoAPI: URLRequestConvertible {
     case myInfo
-    case toWatchAnimeList(status: String, lastId: Int, size: Int)
-    case watchingAnimeList(status: String, lastId: Int, size: Int)
-    case finishedAnimeList(status: String, lastId: Int, size: Int)
+    case toWatchAnimeList(status: String, lastId: Int?)
+    case watchingAnimeList(status: String, lastId: Int?)
+    case finishedAnimeList(status: String, lastId: Int?)
     case ratedAnimeList(lastId: Int?, lastLikeCount: Int?, lastRating: String?, sort: String?, reviewOnly: Bool)
     case likedAnimeList(lastId: Int?, size: Int)
     case likedPersonList
+    case editProfileImage
     
     
     var path: String {
@@ -34,6 +35,8 @@ enum MyInfoAPI: URLRequestConvertible {
             return "api/mypage/animes/like"
         case .likedPersonList:
             return "api/mypage/persons/like"
+        case .editProfileImage:
+            return "api/mypage/profile-image"
         }
     }
     
@@ -53,6 +56,8 @@ enum MyInfoAPI: URLRequestConvertible {
             return .get
         case .likedPersonList:
             return .get
+        case .editProfileImage:
+            return .post
         }
     }
     
@@ -60,24 +65,30 @@ enum MyInfoAPI: URLRequestConvertible {
         switch self {
         case .myInfo: //MyInfoResponse
             return nil
-        case let .toWatchAnimeList(status, lastId, size): //ToWatchResponse
-            return [
+        case let .toWatchAnimeList(status, lastId): //ToWatchResponse
+            let rawParams: [String : Any?] = [
                 "status": status, // WATCHLIST/WATCHING/FINISHED
                 "lastId": lastId,
-                "size": size
+                "size": 20
             ]
-        case let .watchingAnimeList(status, lastId, size): //ToWatchResponse
-            return [
+            
+            return rawParams.compactMapValues { $0 }
+        case let .watchingAnimeList(status, lastId): //ToWatchResponse
+            let rawParams: [String : Any?] = [
                 "status": status, // WATCHLIST/WATCHING/FINISHED
                 "lastId": lastId,
-                "size": size
+                "size": 20
             ]
-        case let .finishedAnimeList(status, lastId, size): //ToWatchResponse
-            return [
+            
+            return rawParams.compactMapValues { $0 }
+        case let .finishedAnimeList(status, lastId): //ToWatchResponse
+            let rawParams: [String : Any?] = [
                 "status": status, // WATCHLIST/WATCHING/FINISHED
                 "lastId": lastId,
-                "size": size
+                "size": 20
             ]
+            
+            return rawParams.compactMapValues { $0 }
         case let .ratedAnimeList(lastId, lastLikeCount, lastRating, sort, reviewOnly): //RatedReviewListResponse
             let reviewOnlyString = reviewOnly ? "true" : "false"
             let rawParams: [String: Any?] = [
@@ -99,6 +110,8 @@ enum MyInfoAPI: URLRequestConvertible {
             return rawParams.compactMapValues { $0 }
         case .likedPersonList: // LikedPersonListResponse
            return nil
+        case .editProfileImage:
+            return nil
         }
     }
     
@@ -121,6 +134,8 @@ enum MyInfoAPI: URLRequestConvertible {
         case .likedAnimeList:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .likedPersonList:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .editProfileImage:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         

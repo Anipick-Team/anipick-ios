@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct StarRatingView: View {
-    @State private var starRating: Int = 0
+    @State private var starRating: Double = 0.0
+    let action: (Double) -> Void
     
     var body: some View {
         VStack(spacing: 0) {
@@ -21,7 +22,7 @@ struct StarRatingView: View {
                 Spacer()
                 
                 Button {
-                     
+                   action(starRating)
                 } label: {
                     Text("평가하기")
                         .foregroundStyle(.white)
@@ -46,9 +47,9 @@ struct StarRatingView: View {
         return HStack(spacing: 0) {
             ForEach(1...5, id: \.self) { starIdx in
                 Button {
-                    self.starRating = starIdx
+                    self.starRating = Double(starIdx)
                 } label: {
-                    Image(starIdx <= starRating ? .fillPickStar : .unfillStar)
+                    Image(starIdx <= Int(starRating) ? .fillPickStar : .unfillStar)
                         .resizable()
                         .frame(width: 27, height: 27)
                 }
@@ -60,5 +61,7 @@ struct StarRatingView: View {
 }
 
 #Preview {
-    StarRatingView()
+    StarRatingView() { value in
+        DLog("preview 평가하기 tapped tapped - rating: \(value)")
+    }
 }

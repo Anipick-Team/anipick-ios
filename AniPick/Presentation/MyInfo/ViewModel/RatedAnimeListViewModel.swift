@@ -31,11 +31,12 @@ final class RatedAnimeListViewModel: ObservableObject {
 
 extension RatedAnimeListViewModel {
     func fetchRatedAnimeList() {
+        self.ratedReviewList.removeAll()
         session.request(
             MyInfoAPI.ratedAnimeList(
-                lastId: self.lastId,
-                lastLikeCount: self.lastLikeCount,
-                lastRating: self.lastRating,
+                lastId: nil,
+                lastLikeCount: nil,
+                lastRating: nil,
                 sort: self.sortCategory.rawValue,
                 reviewOnly: self.isShowOnlyReview
             )
@@ -57,7 +58,7 @@ extension RatedAnimeListViewModel {
 
                     self.ratedReviewList = filtered
                 }
-                DLog("MyInfo - Rated Review List - \(value)")
+                DLog("MyInfo - Rated Review List fetct- \(value)")
        
             case .failure(let error):
                 DLog("error: \(error)")
@@ -93,7 +94,7 @@ extension RatedAnimeListViewModel {
 
                     self.ratedReviewList += filtered
                 }
-                DLog("MyInfo - Rated Review List - \(value)")
+                DLog("MyInfo - Rated Review List loadmore - \(value)")
        
             case .failure(let error):
                 DLog("error: \(error)")

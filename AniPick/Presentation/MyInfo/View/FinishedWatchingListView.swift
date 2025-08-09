@@ -27,69 +27,73 @@ struct FinishedWatchingListView: View {
             Spacer().frame(height: 20)
             
             // TODO: 총 갯수 가져와서 보여줘야함
-            Text("총 12개")
+            Text("총 \(viewModel.finishedListCount)개")
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.bottom, 20)
             
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<12) { _ in
-                        animationCell()
+                    ForEach(viewModel.finishedList, id: \.self) { item in
+                        animationCell(item: item) {
+                            self.viewModel.moveToDetailAnime(animeId: item.animeId ?? 0)
+                        }
                     }
                 }
             }
             .scrollIndicators(.hidden)
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(.chevronLeft)
-                        .foregroundColor(.black)
-                }
-            }
-        }
         .padding(.horizontal, 20)
-    }
-    
-    
-    
-    private func animationCell() -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 162)
-
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text("착각하는 공방주 영풍파티의 전 잡어쩌구어쩌구")
-               // .frame(width: 128, height: 45)
-                .font(.system(size: 14))
-                .lineLimit(2)
-                .padding(.vertical, 6)
-            
-            HStack(alignment: .center, spacing: 0) {
-                Text("내 평가")
-                    .customFontStyle(size: 12, color: .gray8)
-                    .padding(.trailing, 8)
-                
-                Image(.fillPickStar)
-                    .resizable()
-                    .frame(width: 12, height: 12)
-                
-                Text("2.3")
-                    .customFontStyle(size: 14, color: .point)
-                
-                
-            }
-            
+        .onAppear {
+            self.viewModel.fetchFinishedList()
         }
     }
+    
+    
+    
+    private func animationCell(item: ToWatchAnime, action: @escaping () -> Void) -> some View {
+        return Button {
+            action()
+        } label: {
+            VStack(spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    if let url = item.coverImageUrl {
+                        AsyncImage(url: URL(string: url)) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
+                            case .failure:
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(item.title ?? "--")
+                    .customFontStyle(size: 14, color: .anipickBlack)
+                    .lineLimit(2)
+                    .padding(.top, 6)
+            }
+        }
+    }
+    
     
     @ViewBuilder
     private func sectionDivder() -> some View {
