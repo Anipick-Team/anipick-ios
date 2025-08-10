@@ -31,9 +31,7 @@ struct EditEmailView: View {
                 .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
                 .padding(.bottom, 12)
                 
-           // email로 하면 swift가 email로 인식해서, 파랗게 보여서 이렇게 처리함
-            let email = obfuscateEmail("12345@gmail.com")
-            // TODO: Userdefaults에서 이메일 가져오기
+            let email = UserDefaultsManager.shared.getEmail()
             Text(email)
                 .customFontStyle(size: 16, color: .anipickBlack)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -70,7 +68,7 @@ struct EditEmailView: View {
             TextFieldComponents(
                 titleText: "비밀번호",
                 placeholderText: "텍스트를 입력",
-                textFieldString: $viewModel.newEmailString,
+                textFieldString: $viewModel.passwordString,
                 enableEyeIcon: true
             )
             .padding(.bottom, 12)
@@ -109,11 +107,11 @@ struct EditEmailView: View {
             
             Spacer().frame(height: 32)
             
-            // TODO: ViewModel 연결해서 enable 동작하게 만들기 / 탈퇴 액션
             FullWidthButton(
                 isEnable: .constant(true),
                 buttonText: "저장") {
                     DLog("비밀번호 변경 저장 탭")
+                    viewModel.checkEmail()
                 }
             
         }

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Alamofire
 
 final class EditEmailViewModel: ObservableObject {
     
@@ -14,9 +15,11 @@ final class EditEmailViewModel: ObservableObject {
     @Published var newEmailString: String = ""
     @Published var isShowErrorMessage: Bool = false
     @Published var errorMessage: String = ""
+    @Published var passwordString: String = ""
     
-    @Published var isInvalidPassword: Bool = true
-    @Published var isInvalidEmail: Bool = true
+    @Published var isInvalidPassword: Bool = false
+    @Published var isInvalidEmail: Bool = false
+    let session = Session(interceptor: TokenInterceptor.shared)
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
@@ -33,5 +36,23 @@ final class EditEmailViewModel: ObservableObject {
     
     func checkInvalidPassword() {
         // TODO: 비밀번호가 일치하지 않습니다.
+    }
+    
+    func checkEmail() {
+        session.request(SettingAPI.editEmail(email: self.newEmailString, password: self.passwordString))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("✅ 성공: \(value)")
+                    UserDefaultsManager.shared.setEmail(self.newEmailString)
+                    self.navigationManager.pop()
+                case .failure(let error):
+                    DLog("❌ 실패: \(error)")
+                }
+                
+            }
     }
 }

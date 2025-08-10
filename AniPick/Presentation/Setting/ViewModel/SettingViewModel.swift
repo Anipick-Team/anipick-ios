@@ -13,6 +13,9 @@ final class SettingViewModel: ObservableObject {
     @Published var newNickname: String = ""
     @Published var isShowLogoutPopup: Bool = false
     
+    @Published var nickname: String = ""
+    @Published var email: String = ""
+    
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
     }
@@ -61,6 +64,10 @@ final class SettingViewModel: ObservableObject {
             }
     }
     
+    func resetData() {
+        self.nickname = UserDefaultsManager.shared.getNickname()
+        self.email = UserDefaultsManager.shared.getEmail()
+    }
     
     func actionBySettingCategory(category: SettingCategory) {
         switch category {

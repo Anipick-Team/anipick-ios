@@ -136,8 +136,48 @@ extension MyInfoViewModel {
             }
     }
     
+    // TODO: profile 이미지 업로드 하는 것 정리 필요
+    func editProfimeImage(image: UIImage) {
+        let request = ProfileAPI.editProfileImage(image: image)
+        session.upload(multipartFormData: { multidata in
+            guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+                print("Failed to convert image to data")
+                return
+            }
+            
+            multidata.append(imageData, withName: "profileImageFile", fileName: "profile.jpg", mimeType: "image/jpeg")
+        }, to: request.path, method: request.method)
+        .response { response in
+            switch response.result {
+            case .success(let data):
+                print("Image uploaded successfully: \(String(describing: data))")
+            case .failure(let error):
+                print("Failed to upload image: \(error.localizedDescription)")
+            }
+        }
+    }
     
-    
+    func getProfileImage(completion: @escaping (Image?) -> Void) {
+        let imageId = UserDefaultsManager.shared.getImageId()
+        session.request(MyInfoAPI.getProfileImage(imageId: imageId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .response { response in
+                switch response.result {
+                case .success(let data):
+                    print("Image uploaded successfully: \(String(describing: data))")
+                    if let data = data, let uiImage = UIImage(data: data) {
+                        let swiftUIImage = Image(uiImage: uiImage)  // UIImage를 Image로 변환
+                        completion(swiftUIImage)
+                    } else {
+                        completion(nil)
+                    }
+                case .failure(let error):
+                    print("Failed to upload image: \(error.localizedDescription)")
+                }
+            }
+    }
     
     func moveToLikedAnimeListView() {
         self.navigationManager.push(route: .likeAnimeList)

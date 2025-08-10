@@ -192,8 +192,8 @@ struct ReviewDetailInfoView: View {
                         self.selectedSortOption = option
                         self.isShowSortOptionView.toggle()
                     }
-                    .padding(.top, 140)
-                    .padding(.trailing, 20)
+                    .padding(.top, 380)
+                    .padding(.trailing, 0)
             }
         }
         

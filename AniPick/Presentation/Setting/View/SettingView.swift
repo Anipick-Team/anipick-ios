@@ -27,14 +27,14 @@ struct SettingView: View {
                         SettingInfoData(
                             title: SettingCategory.editNickname,
                             titleColor: nil,
-                            subtitle: UserDefaultsManager.shared.getNickname(),
+                            subtitle: viewModel.nickname,
                             subtitleColor: nil,
                             isShowChevron: true
                         ),
                         SettingInfoData(
                             title: SettingCategory.editEmail,
                             titleColor: nil,
-                            subtitle: UserDefaultsManager.shared.getEmail(),
+                            subtitle: viewModel.email,
                             subtitleColor: nil,
                             isShowChevron: true
                         ),
@@ -130,6 +130,9 @@ struct SettingView: View {
                     UserDefaultsManager.shared.logoutAllClearInfo()
                 }
             }
+        }
+        .onAppear {
+            self.viewModel.resetData()
         }
         .navigationBarBackButtonHidden()
     }

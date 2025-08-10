@@ -11,6 +11,10 @@ struct MyInfoView: View {
     @StateObject var viewModel: MyInfoViewModel
     @Environment(\.dismiss) private var dismiss
     
+    @State private var selectedImage: UIImage? = nil
+    @State private var showImagePicker: Bool = false
+    @State private var profileImage: Image? = nil
+    
     var body: some View {
         VStack(spacing: 0) {
             ScrollView {
@@ -44,24 +48,36 @@ struct MyInfoView: View {
                     
                     HStack(alignment: .center, spacing: 0) {
                         ZStack(alignment: .bottomTrailing) {
-                            Image(systemName: "person")
-                                .resizable()
-                                .scaledToFill()
-                                .frame(width: 95, height: 95)
-                                .clipShape(Circle())
-                            
-                            ZStack {
-                                Circle()
-                                    .fill(Color.green)
-                                    .frame(width: 34, height: 34)
-                                
-                                Image("edit-profile-button")
+                            if let profileImage {
+                                profileImage
                                     .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 18, height: 18)
-                                    .foregroundColor(.white) // 필요 시 색상 변경
+                                    .scaledToFill()
+                                    .frame(width: 95, height: 95)
+                                    .clipShape(Circle())
+                            } else {
+                                Image(systemName: "person")
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 95, height: 95)
+                                    .clipShape(Circle())
                             }
-                            .offset(x: 6, y: 6) // 살짝 튀어나오게
+                            
+                            Button {
+                                self.showImagePicker.toggle()
+                            } label: {
+                                ZStack {
+                                    Circle()
+                                        .fill(Color.green)
+                                        .frame(width: 34, height: 34)
+                                    
+                                    Image("edit-profile-button")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 18, height: 18)
+                                        .foregroundColor(.white) // 필요 시 색상 변경
+                                }
+                                .offset(x: 6, y: 6) // 살짝 튀어나오게
+                            }
                         }
                         .frame(width: 100, height: 100)
                         
@@ -153,19 +169,23 @@ struct MyInfoView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(.chevronLeft)
-                        .foregroundColor(.black)
+        .onChange(of: self.showImagePicker) { newValue in
+            if newValue == false {
+                viewModel.getProfileImage() { image in
+                    self.profileImage = image
                 }
             }
+            
+        }
+        .sheet(isPresented: $showImagePicker) {
+            ImagePicker(selectedImage: $selectedImage)
         }
         .padding(.horizontal, 20)
         .onAppear {
             viewModel.fetchMyInfo()
+            viewModel.getProfileImage() { image in
+                self.profileImage = image
+            }
         }
     }
     

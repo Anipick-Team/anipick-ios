@@ -16,7 +16,7 @@ enum MyInfoAPI: URLRequestConvertible {
     case ratedAnimeList(lastId: Int?, lastLikeCount: Int?, lastRating: String?, sort: String?, reviewOnly: Bool)
     case likedAnimeList(lastId: Int?, size: Int)
     case likedPersonList
-    case editProfileImage
+    case getProfileImage(imageId: Int)
     
     
     var path: String {
@@ -35,8 +35,8 @@ enum MyInfoAPI: URLRequestConvertible {
             return "api/mypage/animes/like"
         case .likedPersonList:
             return "api/mypage/persons/like"
-        case .editProfileImage:
-            return "api/mypage/profile-image"
+        case let .getProfileImage(imageId):
+            return "api/mypage/profile-image/\(imageId)"
         }
     }
     
@@ -56,8 +56,8 @@ enum MyInfoAPI: URLRequestConvertible {
             return .get
         case .likedPersonList:
             return .get
-        case .editProfileImage:
-            return .post
+        case .getProfileImage:
+            return .get
         }
     }
     
@@ -110,7 +110,7 @@ enum MyInfoAPI: URLRequestConvertible {
             return rawParams.compactMapValues { $0 }
         case .likedPersonList: // LikedPersonListResponse
            return nil
-        case .editProfileImage:
+        case .getProfileImage:
             return nil
         }
     }
@@ -135,7 +135,7 @@ enum MyInfoAPI: URLRequestConvertible {
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .likedPersonList:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-        case .editProfileImage:
+        case .getProfileImage:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         

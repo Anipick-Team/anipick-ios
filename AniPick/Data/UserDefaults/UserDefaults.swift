@@ -20,6 +20,8 @@ enum UserDefaultKey: String {
     
     case lastVisitedAnime
     
+    case imageId
+    
 }
 
 final class UserDefaultsManager {
@@ -150,6 +152,14 @@ extension UserDefaultsManager {
         self.setRefreshToken(refreshToken: "")
         self.setNickname("")
         self.setEmail("")
+    }
+    
+    func setImageId(imageId: Int) {
+        defaults.set(imageId, forKey: UserDefaultKey.imageId.rawValue)
+    }
+    
+    func getImageId() -> Int {
+        return defaults.integer(forKey: UserDefaultKey.imageId.rawValue)
     }
 }
 

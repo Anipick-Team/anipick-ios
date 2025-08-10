@@ -210,14 +210,14 @@ struct AnimationInfoView: View {
     private func animationWatchState(animeId: Int, title: AnimationWatchStatus) -> some View {
         Button {
             DLog("\(title.title) 탭탭")
-            self.selectedAnimationStatusTab = title
+            self.viewModel.selectedAnimationStatusTab = title
             self.viewModel.postAnimeWatchingStatus(animeId: animeId, status: title.status)
         } label: {
             Text(title.title)
-                .customFontStyle(size: 14, color: title == self.selectedAnimationStatusTab ? .white : .anipickBlack)
+                .customFontStyle(size: 14, color: title == self.viewModel.selectedAnimationStatusTab ? .white : .anipickBlack)
                 .padding(.vertical, 8)
                 .frame(maxWidth: .infinity)
-                .background(title == self.selectedAnimationStatusTab ? .anipickPrimary : .gray5)
+                .background(title == self.viewModel.selectedAnimationStatusTab ? .anipickPrimary : .gray5)
                 .cornerRadius(8)
         }
         .padding(.horizontal, 2)
@@ -335,6 +335,19 @@ enum AnimationWatchStatus: String, CaseIterable {
             ""
         }
     }
+    
+    static func fromStatus(_ status: String) -> AnimationWatchStatus? {
+            switch status {
+            case "WATCHLIST":
+                return .wantToWatch
+            case "WATCHING":
+                return .watching
+            case "FINISHED":
+                return .finished
+            default:
+                return .empty
+            }
+        }
 }
 
 enum AnimationInfoTab: String, CaseIterable {

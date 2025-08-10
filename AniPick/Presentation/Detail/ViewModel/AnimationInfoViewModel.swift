@@ -28,6 +28,8 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var reviewCount: Int = 0
     @Published var MyReview: MyReviewItem? = nil
     
+    @Published var selectedAnimationStatusTab: AnimationWatchStatus = .empty
+    
     let session = Session(interceptor: TokenInterceptor.shared)
     
     
@@ -65,6 +67,7 @@ extension AnimationInfoViewModel {
                     self.reviewCount = value.result.reviewCount ?? 0
                     self.reviewContent = value.result.description ?? ""
                     self.isActiveLike = value.result.isLiked ?? false
+                    self.selectedAnimationStatusTab = AnimationWatchStatus.fromStatus(value.result.watchStatus ?? "") ?? .empty
                 case let .failure(error):
                     DLog("Error: \(error)")
                 }
