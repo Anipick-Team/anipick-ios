@@ -8,9 +8,18 @@
 import Alamofire
 import Foundation
 
-enum ExploreSortCategory: String {
+enum ExploreSortCategory: String, CaseIterable {
     case popularity
-    case rating
+    case rating 
+    
+    var title: String {
+        switch self {
+        case .popularity:
+            return "인기순"
+        case .rating:
+            return "최신순"
+        }
+    }
 }
 
 struct ExploreReqeustItem: Codable {

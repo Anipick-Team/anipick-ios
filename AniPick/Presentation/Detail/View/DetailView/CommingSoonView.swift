@@ -104,7 +104,7 @@ struct CommingSoonView: View {
                     .animation(.easeInOut, value: viewModel.isShowSortCategoryOptionView)
             }
         }
-            
+        .background(Color.white)
             .navigationBarBackButtonHidden(true)
             .onAppear {
                 viewModel.fetchCommingSoonInfo()
@@ -123,19 +123,26 @@ struct CommingSoonView: View {
                         AsyncImage(url: URL(string: url)) { phase in
                             switch phase {
                             case .empty:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .clipped()
                             case .success(let image):
                                 image
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
                                     .clipped()
                             case .failure:
-                                Image(systemName: "photo")
+                                Image(.animeThumbnail)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .clipped()
                             @unknown default:
                                 EmptyView()
                             }

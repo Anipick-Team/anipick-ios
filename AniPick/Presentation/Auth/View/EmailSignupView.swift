@@ -12,6 +12,7 @@ struct EmailSignupView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     
     @StateObject var viewModel: EmailSignupViewModel
+    @State private var isVisibleIcons: Bool = false
     
     var body: some View {
     //    NavigationStack(path: $navigationManager.path) {
@@ -19,7 +20,7 @@ struct EmailSignupView: View {
                 ScrollView {
                     VStack(alignment:.leading, spacing: 0) {
                         Spacer()
-                            .frame(height: 29)
+                            .frame(height: 20)
                         
                         VStack(alignment: .leading) {
                             Text("이메일 회원가입")
@@ -54,38 +55,60 @@ struct EmailSignupView: View {
                                 Image(viewModel.isValidPassword() ? .check : .uncheck)
                             }
                             
+                            
                             ZStack {
-                                SecureField(
-                                    "",
-                                    text: $viewModel.passwordString,
-                                    prompt: Text("비밀번호를 입력해주세요")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(.textGray)
-                                )
-                                .padding(16)
-                                .background(.textFieldBackground)
-                                .cornerRadius(8)
+                                if isVisibleIcons {
+                                    TextField(
+                                        "",
+                                        text: $viewModel.passwordString,
+                                        prompt: Text("비밀번호를 입력해주세요")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.textGray)
+                                    )
+                                    .foregroundColor(.anipickBlack)
+                                    .padding(16)
+                                    .background(.textFieldBackground)
+                                    .cornerRadius(8)
+                                } else {
+                                    SecureField(
+                                        "",
+                                        text: $viewModel.passwordString,
+                                        prompt: Text("비밀번호를 입력해주세요")
+                                            .font(.system(size: 16, weight: .medium))
+                                            .foregroundColor(.textGray)
+                                    )
+                                    .foregroundColor(.anipickBlack)
+                                    .padding(16)
+                                    .background(.textFieldBackground)
+                                    .cornerRadius(8)
+ 
+                                }
                                 
                                 HStack {
                                     Spacer()
-                                    Image(.eyeUnvisibleIcons)
-                                        .padding(.trailing, 15)
+                                    
+                                    Button {
+                                        self.isVisibleIcons.toggle()
+                                    } label: {
+                                        Image(self.isVisibleIcons ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                                            .padding(.trailing, 15)
+                                    }
                                 }
                             }
-                            
-                            Text("8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요.")
-                                .customFontStyle(size: 12, color: .gray8)
-                                .padding(.top, 8)
-                                .padding(.horizontal, 4)
-                        }
+
+                        Text("8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요.")
+                            .customFontStyle(size: 12, color: .gray8)
+                            .padding(.top, 8)
+                            .padding(.horizontal, 4)
+                    }
+                    
+                    Spacer().frame(height: 64)
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text("애니픽 이용을 위해 동의가 필요해요.")
+                            .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
+                            .padding(.bottom, 17)
                         
-                        Spacer().frame(height: 64)
-                        
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text("애니픽 이용을 위해 동의가 필요해요.")
-                                .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
-                                .padding(.bottom, 17)
-                            
                             Button {
                                 DLog("전체 동의 탭")
                                 viewModel.toggleAllAgreement()
@@ -204,6 +227,7 @@ struct EmailSignupView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
+            .background(Color.white)
         }
   //  }
 }

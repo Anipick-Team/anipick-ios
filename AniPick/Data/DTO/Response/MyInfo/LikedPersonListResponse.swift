@@ -20,14 +20,13 @@ struct LikedPersonListResult: Decodable {
 }
 
 struct LikedPersonCursor: Decodable {
-    let lastId: Int
+    let lastId: Int?
 }
 
-struct LikedRatedPerson: Decodable, Identifiable {
-    let personId: Int
-    let userLikedVoiceActorId: Int
-    let name: String
-    let profileImageUrl: String
+struct LikedRatedPerson: Decodable, Hashable {
+    let personId: Int?
+    let userLikedVoiceActorId: Int?
+    let name: String?
+    let profileImageUrl: String?
 
-    var id: Int { personId } // ForEach 등을 위해 Identifiable 적용
 }

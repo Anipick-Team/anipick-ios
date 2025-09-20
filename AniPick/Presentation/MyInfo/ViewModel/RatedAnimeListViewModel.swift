@@ -18,7 +18,7 @@ final class RatedAnimeListViewModel: ObservableObject {
     @Published var isShowOnlyReview: Bool = false
     @Published var isShowSortOptionView: Bool = false
     @Published var sortCategory: RatedSortOption = .latest //정렬 기준 (latest, likes, ratingDesc, ratingAsc)
-    @Published var ratedReviewList: [ReviewItem] = []
+    @Published var ratedReviewList: [MyReview] = []
     @Published var lastLikeCount: Int? = nil
     
     var lastId: Int? = nil
@@ -44,20 +44,20 @@ extension RatedAnimeListViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: RecentReviewsResponse.self) { resposne in
+        .responseDecodable(of: MyReviewListResponse.self) { resposne in
             switch resposne.result {
             case .success(let value):
-                if let result = value.result,
-                   let reviewList = result.reviews {
-                    self.lastId = result.cursor?.lastId
-                    self.lastLikeCount = result.count
-                    self.lastRating = result.cursor?.lastValue
+//                if let result = value.result,
+//                   let reviewList = result.reviews {
+                self.lastId = value.result.cursor.lastId
+                self.lastLikeCount = value.result.count
+               //     self.lastRating = result.cursor?.lastValue
                     let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
 
-                    let filtered = reviewList.filter { !existingIds.contains($0.reviewId) }
+                    let filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
 
                     self.ratedReviewList = filtered
-                }
+           //     }
                 DLog("MyInfo - Rated Review List fetct- \(value)")
        
             case .failure(let error):
@@ -79,21 +79,21 @@ extension RatedAnimeListViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: RecentReviewsResponse.self) { resposne in
+        .responseDecodable(of: MyReviewListResponse.self) { resposne in
             switch resposne.result {
             case .success(let value):
-                if let result = value.result,
-                   let reviewList = result.reviews {
-                    self.lastId = result.cursor?.lastId
-                    self.lastLikeCount = result.count
-                    self.lastRating = result.cursor?.lastValue
+//                if let result = value.result,
+//                   let reviewList = result.reviews {
+                self.lastId = value.result.cursor.lastId
+                self.lastLikeCount = value.result.count
+              //  self.lastRating = value.result.cursor.lastValue
                     
                     let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
 
-                    let filtered = reviewList.filter { !existingIds.contains($0.reviewId) }
+                let filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
 
                     self.ratedReviewList += filtered
-                }
+             //   }
                 DLog("MyInfo - Rated Review List loadmore - \(value)")
        
             case .failure(let error):

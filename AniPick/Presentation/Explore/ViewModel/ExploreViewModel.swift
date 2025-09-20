@@ -12,7 +12,7 @@ final class ExploreViewModel: ObservableObject {
     @Published var exploreItems: [Anime] = []
     @Published var selectedYear: String = ""
     @Published var selectedSeason: String = ""
-    @Published var selectedGenres: Int = -1 // 메타데이터에서 id값으로 판단
+    @Published var selectedGenres: Int = -1
     @Published var selectedType: String = ""
     @Published var selectedItems: [String] = []
     @Published var selectdCountList: [ExploreFilterTab] = []
@@ -21,10 +21,14 @@ final class ExploreViewModel: ObservableObject {
     @Published var countForYear: Int = 0
     @Published var countForGenre: Int = 0
     @Published var countFOrType: Int = 0
-    var lastId: Int? = -1
+    var lastId: Int? = nil
+
     
     @Published var exploreRequestItem : ExploreReqeustItem? = nil
     @Published var selectedCategory: ExploreSortCategory = .popularity
+    
+    @Published var isShowSortOptionView: Bool = false
+    
     let session = Session(interceptor: TokenInterceptor.shared)
     
     private let usecase: ExploreUsecase
@@ -38,7 +42,12 @@ final class ExploreViewModel: ObservableObject {
 
 extension ExploreViewModel {
     func getExploreItems(category: ExploreSortCategory) {
-        session.request(ExploreAPI.exploreAnime(sort: category, item: self.exploreRequestItem))
+        session.request(
+            ExploreAPI.exploreAnime(
+                sort: category,
+                item: self.exploreRequestItem
+            )
+        )
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -55,6 +64,12 @@ extension ExploreViewModel {
                     DLog("failure \(error)")
                 }
             }
+    }
+    
+    func tappedSortButton() {
+        self.isShowSortOptionView.toggle()
+        self.exploreItems.removeAll()
+        self.getExploreItems(category: self.selectedCategory)
     }
     
     // 무한 스크롤 시 불러오는 값

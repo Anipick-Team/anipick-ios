@@ -6,16 +6,19 @@
 //
 
 import SwiftUI
+import Alamofire
 
 struct ReportReviewWithReasonPopupView: View {
     var cancelAction: () -> Void
-    var okAction: () -> Void
+    var okAction: (String) -> Void
+    
+    @State private var reasonReportString: String = ""
+    let session = Session(interceptor: TokenInterceptor.shared)
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.5)
                 .ignoresSafeArea()
-
             
             // TODO: 가운데 정렬 필요함
             VStack(spacing: 0) {
@@ -31,71 +34,22 @@ struct ReportReviewWithReasonPopupView: View {
                 
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(alignment: .center, spacing: 0) {
-                        HStack(alignment: .center, spacing: 0) {
-                            Image(.unSelectIcon)
-                                .resizable()
-                                .frame(width: 19, height: 19)
-                                .padding(.trailing, 8)
-                            
-                            Text("스포일러")
-                                .customFontStyle(size: 16, color: .anipickBlack)
-                            
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
+                        self.reportCategoryButton(title: .spoiler, isSelected: false)
                         
-                        HStack(alignment: .center, spacing: 0) {
-                            Image(.unSelectIcon)
-                                .resizable()
-                                .frame(width: 19, height: 19)
-                                .padding(.trailing, 8)
-                            
-                            Text("편파적인 언행")
-                                .customFontStyle(size: 16, color: .anipickBlack)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
+                        self.reportCategoryButton(title: .biasedBehaviro, isSelected: false)
                         
                     }
                     .padding(.bottom, 16)
                     
                     
                     HStack(alignment: .center, spacing: 0) {
-                        HStack(alignment: .center, spacing: 0) {
-                            Image(.unSelectIcon)
-                                .resizable()
-                                .frame(width: 19, height: 19)
-                                .padding(.trailing, 8)
-                            
-                            Text("욕설 및 비하")
-                                .customFontStyle(size: 16, color: .anipickBlack)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
-                        HStack(alignment: .center, spacing: 0) {
-                            Image(.unSelectIcon)
-                                .resizable()
-                                .frame(width: 19, height: 19)
-                                .padding(.trailing, 8)
-                            
-                            Text("홍보성 및 영리 목적")
-                                .customFontStyle(size: 16, color: .anipickBlack)
-                            Spacer()
-                        }
-                        .frame(maxWidth: .infinity)
+                        self.reportCategoryButton(title: .profanity, isSelected: false)
+                        self.reportCategoryButton(title: .promotional, isSelected: false)
                     }
                     .padding(.bottom, 16)
                     
-                    HStack(alignment: .center, spacing: 0) {
-                        Image(.unSelectIcon)
-                            .resizable()
-                            .frame(width: 19, height: 19)
-                            .padding(.trailing, 8)
-                        
-                        Text("음란성 및 선정성")
-                            .customFontStyle(size: 16, color: .anipickBlack)
-                         Spacer()
-                    }
+                    
+                    self.reportCategoryButton(title: .obscenity, isSelected: false)
                 }
                 .padding(.horizontal, 20)
                 
@@ -113,7 +67,7 @@ struct ReportReviewWithReasonPopupView: View {
                     Divider()
 
                     Button {
-                        okAction()
+                        okAction(self.reasonReportString)
                     } label: {
                         Text("신고하기")
                             .customFontStyle(size: 16, color: .anipickPrimary)
@@ -129,6 +83,29 @@ struct ReportReviewWithReasonPopupView: View {
             .padding(.horizontal, 20)
         }
     }
+    
+    private func reportCategoryButton(title: ReportReason, isSelected: Bool) -> some View {
+        return Button {
+            self.reasonReportString = title.rawValue
+        } label: {
+            HStack(alignment: .center, spacing: 0) {
+                Image(self.reasonReportString == title.rawValue ? .selectIcon : .unSelectIcon)
+                    .resizable()
+                    .frame(width: 19, height: 19)
+                    .padding(.trailing, 8)
+                
+                Text(title.rawValue)
+                    .customFontStyle(size: 16, color: .anipickBlack)
+                
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+        }
+    }
+    
+    private func reportReview() {
+        
+    }
 }
 
 enum ReportReason: String {
@@ -142,8 +119,8 @@ enum ReportReason: String {
 #Preview {
     ReportReviewWithReasonPopupView {
         DLog("cancel")
-    } okAction: {
-        DLog("ok")
+    } okAction: { reportReason in
+        DLog(reportReason)
     }
 
 }

@@ -11,6 +11,7 @@ import GoogleSignIn
 import GoogleSignInSwift
 import Alamofire
 import AuthenticationServices
+import KakaoSDKAuth
 
 @MainActor
 class MainLoginViewModel: ObservableObject {
@@ -41,10 +42,6 @@ class MainLoginViewModel: ObservableObject {
 
 extension MainLoginViewModel {
     
-    func testtest() {
-        self.navigationManager.push(route: .content(activeTab: .home))
-        // self.navigationManager.push(route: .preferenceSelection)
-    }
     func tappedEmailSignup() {
         navigationManager.push(route: AppRoute.emailSignup)
     }
@@ -52,25 +49,62 @@ extension MainLoginViewModel {
     func tappedEmailLogin() {
         navigationManager.push(route: AppRoute.emailLogin)
     }
-    func getKakaoAccessToken() {
-        DLog("Tapped kakao Button")
+    
+    func signInWithKakao() async throws -> String {
+        // 1) 카카오톡 앱 가능하면 앱으로, 아니면 계정(웹뷰) 로그인
+        let oauthToken: OAuthToken
         if UserApi.isKakaoTalkLoginAvailable() {
-            UserApi.shared.loginWithKakaoTalk { [self] (oauthToken, error) in
-                DLog("\(String(describing: oauthToken))")
-                let code = oauthToken?.accessToken ?? ""
-                Task {
-                    await self.postSocialLogin(provider: .kakao, code: code)
+            oauthToken = try await withCheckedThrowingContinuation { cont in
+                UserApi.shared.loginWithKakaoTalk { token, error in
+                    if let error { cont.resume(throwing: error) }
+                    else if let token { cont.resume(returning: token) }
+                    else { cont.resume(throwing: NSError(domain: "Kakao", code: -1)) }
                 }
             }
         } else {
-            // 2. 카카오계정 웹 로그인
-            DLog("Kakao 로그인 값 받아오는 로직 실패-")
-            UserApi.shared.loginWithKakaoAccount { (oauthToken, error) in
-               // handleLogin(oauthToken, error)
-                DLog("Kakao 로그인 값 받아오는 로직 실패----- \(error)")
+            oauthToken = try await withCheckedThrowingContinuation { cont in
+                UserApi.shared.loginWithKakaoAccount { token, error in
+                    if let error { cont.resume(throwing: error) }
+                    else if let token { cont.resume(returning: token) }
+                    else { cont.resume(throwing: NSError(domain: "Kakao", code: -1)) }
+                }
+            }
+        }
+
+        // 필요한 건 accessToken
+        return oauthToken.accessToken
+    }
+    
+    func kakaoLogin() {
+        Task {
+            do {
+                let accessToken = try await signInWithKakao()
+                await self.postSocialLogin(provider: .kakao, code: accessToken)
+            } catch {
+                DLog("KakaoLogin failed - \(error)")
             }
         }
     }
+//    func getKakaoAccessToken() {
+//        DLog("Tapped kakao Button")
+//        if UserApi.isKakaoTalkLoginAvailable() {
+//            UserApi.shared.loginWithKakaoTalk { [self] (oauthToken, error) in
+//                DLog("\(String(describing: oauthToken))")
+//                let code = oauthToken?.accessToken ?? ""
+//                Task {
+//                    await self.postSocialLogin(provider: .kakao, code: code)
+//                }
+//            }
+//        } else {
+//            // 2. 카카오계정 웹 로그인
+//            DLog("Kakao 로그인 값 받아오는 로직 실패-")
+//            UserApi.shared.loginWithKakaoAccount { (oauthToken, error) in
+//                handleLogin(oauthToken, error)
+//                DLog("Kakao 로그인 값 받아오는 로직 실패----- \(error)")
+//            }
+//        }
+//    }
+    
     func getGoogleIDToken() {
         DLog("Tapped google Button")
         guard let presentVC = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else { return }
@@ -95,11 +129,20 @@ extension MainLoginViewModel {
         code: String
     ) async {
         do {
+            DLog("Social 로그인 확인 - \(provider) - \(code)")
             let request = SocialLoginRequest(platform: "ios", code: code)
             let response = try await authUsecase.postSocialLogin(
                 provider: provider,
                 request: request
             )
+            DLog("Social 로그인 - \(response)")
+            if response.code == 200 {
+                UserDefaultsManager.shared.setSNSAccount(sns: provider.rawValue)
+                UserDefaultsManager.shared.setAccessToken(accessToken: response.result?.token?.accessToken ?? "")
+                UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
+                UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "")
+                self.navigationManager.push(route: .preferenceSelection)
+            }
             // TODO: 소셜로그인 response를 받아서 어떻게 처리할 것인지 layer 나누고 처리해야함
             // TODO: UserName, id, accessToken, refreshToken -  UserDefaults에 저장
         } catch {
@@ -179,9 +222,9 @@ extension MainLoginViewModel {
         .responseDecodable(of: LoginResponse.self) { response in
             switch response.result {
             case .success(let value):
-                print("✅ 성공: \(value)")
+                DLog("✅ 성공: \(value)")
             case .failure(let error):
-                print("❌ 실패: \(error)")
+                DLog("❌ 실패: \(error)")
             }
         }
     }
@@ -234,66 +277,7 @@ extension MainLoginViewModel {
             }
         }
     }
-    
-//    func emailSignup() {
-//        let url = baseUrl + "/api/users/signup"
-//        
-//        let parameter: Parameters = [
-//            "email": "slpm3957@naver.com",
-//            "password": "IosTest1234!",
-//            "termsAndConditions": true
-//        ]
-//        
-//        let headers: HTTPHeaders = [
-//            "Content-Type": "application/json"
-//        ]
-//        
-//        AF.request(
-//            url,
-//            method: .post,
-//            parameters: parameter,
-//            encoding: JSONEncoding.default,
-//            headers: headers
-//        )
-//        .responseDecodable(of: LoginResponse.self) { response in
-//            switch response.result {
-//            case .success(let value):
-//                print("✅ 성공: \(value)")
-//            case .failure(let error):
-//                print("❌ 실패: \(error)")
-//            }
-//        }
-//    }
-    
-//    func emailLogin() {
-//        let url = baseUrl + "/api/users/login"
-//        
-//        let parameter: Parameters = [
-//            "email": "slpm3957@naver.com",
-//            "password": "newIosPassword1!"
-//        ]
-//        
-//        let headers: HTTPHeaders = [
-//            "Content-Type": "application/json"
-//        ]
-//        
-//        AF.request(
-//            url,
-//            method: .post,
-//            parameters: parameter,
-//            encoding: JSONEncoding.default,
-//            headers: headers
-//        )
-//        .responseDecodable(of: LoginResponse.self) { response in
-//            switch response.result {
-//            case .success(let value):
-//                print("✅ 성공: \(value)")
-//            case .failure(let error):
-//                print("❌ 실패: \(error)")
-//            }
-//        }
-//    }
-//    
+
     func findPassword() {
         let url = baseUrl + "/api/auth/email/send"
         
@@ -391,47 +375,10 @@ extension MainLoginViewModel {
         switch provider {
         case .kakao:
             DLog("Tapped kakao Button")
-//            if UserApi.isKakaoTalkLoginAvailable() {
-//                UserApi.shared.loginWithKakaoTalk { [self] (oauthToken, error) in
-//                    DLog("\(String(describing: oauthToken))")
-//                    let code = oauthToken?.accessToken ?? ""
-//                    Task {
-//                        do {
-//                            let request = SocialLoginRequest(platform: "ios", code: code)
-//                            loginResponse = try await self.authUsecase.socialLogin(
-//                                provider: "KAKAO",
-//                                request: request
-//                            )
-//                            DLog("KAKAO - \(String(describing: loginResponse))")
-//                        } catch {
-//                            DLog("KAKAO 로그인 실패")
-//                        }
-//                    }
-//                }
-//            } else {
-//                // 2. 카카오계정 웹 로그인
-//                DLog("계정 실패")
-//                UserApi.shared.loginWithKakaoAccount { (oauthToken, error) in
-//                   // handleLogin(oauthToken, error)
-//                    DLog("계정 실패실패")
-//                }
-//            }
+
         case .google:
             DLog("Tapped google Button")
-//            let code = self.googleLogin()
-//            Task {
-//                do {
-//                    let request = SocialLoginRequest(platform: "ios", code: code)
-//                    loginResponse = try await self.authUsecase.socialLogin(
-//                        provider: "GOOGLE",
-//                        request: request
-//                    )
-//                    DLog("Google - \(String(describing: loginResponse))")
-//                } catch {
-//                    DLog("KAKAO 로그인 실패")
-//                }
-//            }
-//            
+            
         case .apple:
             DLog("Tapped apple Button")
         }
@@ -440,70 +387,34 @@ extension MainLoginViewModel {
     func configure(_ request: ASAuthorizationAppleIDRequest) {
         request.requestedScopes = [.fullName, .email]
     }
-
+    
     func handle(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let auth):
             if let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential {
                 let userIdentifier = appleIDCredential.user
-               let fullName = appleIDCredential.fullName
+                let fullName = appleIDCredential.fullName
                 let email = appleIDCredential.email
                 
                 if let data = String(data: appleIDCredential.authorizationCode!, encoding: .utf8) {
-                    print("authCode: \(data))")
+                    DLog("authCode: \(data))")
                 }
-                print("User ID: \(userIdentifier)")
-                print("Full Name: \(String(describing: fullName))")
-                print("Email: \(String(describing: email))")
-             // TODO: 여기서 email 전의 내용까지만 보내기
-                
+                DLog("User ID: \(userIdentifier)")
+                DLog("Full Name: \(String(describing: fullName))")
+                DLog("Email: \(String(describing: email))")
+                if let email = appleIDCredential.email {
+                    let usernamePart = email.components(separatedBy: "@").first ?? ""
+                    DLog("Username part: \(usernamePart)")
+                    self.postSocialLogin(provider: "APPLE", code: usernamePart)
+                }
+          //      self.navigationManager.push(route: .content(activeTab: .home))
             }
         case .failure(let error):
-            print("Authorization failed: \(error.localizedDescription)")
+            DLog("Authorization failed: \(error.localizedDescription)")
         }
     }
     
-    func handleLogin(_ oauthToken: OAuthToken?, _ error: Error?) {
-            if let error = error {
-                print("❌ 로그인 실패: \(error.localizedDescription)")
-            } else {
-                print("✅ 로그인 성공: \(String(describing: oauthToken?.accessToken))")
-                // 사용자 정보 가져오기
-                UserApi.shared.me { user, error in
-                    if let user = user {
-                        print("사용자 정보: \(user.kakaoAccount?.email ?? "이메일 없음")")
-                    }
-                }
-            }
-        }
-    
-//    func tappedEmailSignupButton() {
-//        self.navigationPath.append(AppRoute.emailSignUp)
-//        DLog("이메일 회원가입 버튼 탭")
-//    }
-    
-//    func tappedEmailLoginButton() {
-//        self.navigationPath.append(AppRoute.emailLogin)
-//        DLog("이메일 로그인 버튼 탭")
-//    }
-//    
     func tappedProblemLoginButton() {
         DLog("로그인에 문제있음!!!")
     }
 }
-
-//enum MainLoginRoute {
-//    case emailSignUp
-//    case emailLogin
-//    case LoginProblem
-//}
-//
-//enum EmailLoginRoute {
-//    case emailSignup
-//    case findPassword
-//    case successLogin
-//}
-//
-//
-
-

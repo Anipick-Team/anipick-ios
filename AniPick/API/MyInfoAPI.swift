@@ -15,8 +15,9 @@ enum MyInfoAPI: URLRequestConvertible {
     case finishedAnimeList(status: String, lastId: Int?)
     case ratedAnimeList(lastId: Int?, lastLikeCount: Int?, lastRating: String?, sort: String?, reviewOnly: Bool)
     case likedAnimeList(lastId: Int?, size: Int)
-    case likedPersonList
+    case likedPersonList(lastId: Int?)
     case getProfileImage(imageId: Int)
+    case getProfile(imageId: Int)
     
     
     var path: String {
@@ -36,7 +37,9 @@ enum MyInfoAPI: URLRequestConvertible {
         case .likedPersonList:
             return "api/mypage/persons/like"
         case let .getProfileImage(imageId):
-            return "api/mypage/profile-image/\(imageId)"
+            return "api/image/profile-image/\(imageId)"
+        case let .getProfile(imageId):
+            return "api/image/\(imageId)"
         }
     }
     
@@ -57,6 +60,8 @@ enum MyInfoAPI: URLRequestConvertible {
         case .likedPersonList:
             return .get
         case .getProfileImage:
+            return .get
+        case .getProfile:
             return .get
         }
     }
@@ -108,9 +113,16 @@ enum MyInfoAPI: URLRequestConvertible {
             ]
             
             return rawParams.compactMapValues { $0 }
-        case .likedPersonList: // LikedPersonListResponse
-           return nil
+        case let .likedPersonList(lastId):
+            let rawParams = [
+                "lastId": lastId,
+                "size": 30
+            ]
+            
+            return rawParams.compactMapValues { $0 }
         case .getProfileImage:
+            return nil
+        case .getProfile:
             return nil
         }
     }
@@ -136,6 +148,8 @@ enum MyInfoAPI: URLRequestConvertible {
         case .likedPersonList:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .getProfileImage:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .getProfile:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         

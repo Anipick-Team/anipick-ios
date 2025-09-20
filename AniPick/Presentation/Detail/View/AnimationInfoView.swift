@@ -27,44 +27,61 @@ struct AnimationInfoView: View {
                                     Image(.animeThumbnail)
                                         .resizable()
                                         .frame(maxWidth: .infinity)
-                                        .frame(height: 220)
+                                        .frame(height: 280)
                                 case .success(let image):
                                     image
                                         .resizable()
                                         .scaledToFill()
-                                        .frame(width: UIScreen.main.bounds.width, height: 220)
+                                        .frame(width: UIScreen.main.bounds.width, height: 280)
                                         .clipped()
                                 case .failure:
                                     Image(.animeThumbnail)
                                         .resizable()
-                                        .frame(width: 133, height: 154)
-                                        .padding(.bottom, 23)
-                                        .padding(.trailing, 20)
-                                        .cornerRadius(8)
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 280)
                                 @unknown default:
                                     EmptyView()
                                 }
                             }
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 280)
+                            .ignoresSafeArea(edges: .top)
+                            
                             Color.black.opacity(0.4)
-                                .frame(width: UIScreen.main.bounds.width, height: 220)
+                                .frame(width: UIScreen.main.bounds.width, height: 280)
                         }
                         
                     } else {
                         ZStack {
                             Rectangle()
                                 .frame(maxWidth: .infinity)
-                                .frame(height: 220)
+                                .frame(height: 280)
                                 .foregroundColor(.gray7)
+                                .ignoresSafeArea(edges: .top)
                             
                             Color.black.opacity(0.4)
-                                .frame(width: UIScreen.main.bounds.width, height: 220)
+                                .frame(width: UIScreen.main.bounds.width, height: 280)
                         }
                         
                     }
                     
                     HStack(alignment: .top, spacing: 0) {
-                        NavigationBackButtonView(title: "") {
-                            dismiss()
+                        ZStack {
+                            HStack(alignment: .center, spacing: 0) {
+                                Button {
+                                    dismiss()
+                                    DLog("뒤로가기 누름")
+                                } label: {
+                                    Image("chevron-left-stroke")
+                                        .resizable()
+                                        .frame(width: 24, height: 24)
+                                }
+                                .padding(.leading, 20)
+                                Spacer()
+                            }
+                            
+                            Spacer()
+                            
                         }
                         .zIndex(2)
                         .padding(.top, 54)
@@ -183,7 +200,8 @@ struct AnimationInfoView: View {
                             AnimationDetailInfoView(
                                 detailInfo: detailInfo,
                                 seriesInfo: viewModel.seriesAnimeInfo,
-                                recommendationInfo: viewModel.recommendationInfo
+                                recommendationInfo: viewModel.recommendationInfo,
+                                viewModel: viewModel
                             )
                         } else if self.selectedInfoTab == .reviewInfo {
                             ReviewDetailInfoView(
@@ -201,6 +219,8 @@ struct AnimationInfoView: View {
                 }
             }
         }
+        .background(Color.white)
+        .edgesIgnoringSafeArea(.top)
         .onAppear {
             viewModel.setLastVisitedAnimeId()
         }
@@ -297,6 +317,7 @@ struct CharacterVoiceActorCell: View {
             .padding(.vertical, 8)
             .background(Color(red: 248/255, green: 249/255, blue: 253/255)) // 연한 회색
         }
+        .background(Color.white)
         .frame(width: 190)
         .cornerRadius(16)
         .clipped()

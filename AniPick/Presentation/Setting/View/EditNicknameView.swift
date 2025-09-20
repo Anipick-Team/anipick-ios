@@ -52,8 +52,8 @@ struct EditNicknameView: View {
             .padding(.bottom, 12)
             
             // TODO: 이미 사용중인지 확인하는 api 보내는 통신해야함
-            if viewModel.isDuplicateNickname {
-                Text("이미 사용 중인 닉네임입니다")
+            if viewModel.isShowErrorMessage {
+                Text(self.viewModel.errorMessage)
                     .customFontStyle(size: 14, color: .point, weight: .semibold)
             }
             
@@ -73,11 +73,12 @@ struct EditNicknameView: View {
                 buttonText: "저장") {
                     DLog("닉네임 변경 저장 액션")
                     viewModel.editNickName()
-                    viewModel.pop()
+            
                 }
         }
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
+        .background(Color.white)
     }
     
     @ViewBuilder

@@ -186,4 +186,8 @@ extension HomeViewModel {
         // TODO: animeID 저장된 것 보내는 것으로 교체 필요
         self.navigationManager.push(route: .recommendView(animeId: 16498))
     }
+    
+    func moveToRankingView() {
+        self.navigationManager.push(route: .content(activeTab: .ranking))
+    }
 }

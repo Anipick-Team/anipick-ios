@@ -18,14 +18,19 @@ struct ForgetPasswordView: View {
             
             VStack(alignment: .leading) {
                 Text("비밀번호 찾기")
-                    .font(.system(size: 24, weight: .semibold))
-                    .padding(.bottom, 4)
+                    .customFontStyle(size: 24, color: .anipickBlack, weight: .semibold)
+                   .padding(.bottom, 4)
+                   .padding(.bottom, 4)
                 
                 Text("회원 서비스 사용을 위해 비밀번호를 찾아주세요.")
                     .customFontStyle(size: 14, color: .gray8)
             }
             
             Spacer().frame(height: 64)
+            
+            Text("이메일")
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .semibold)
+                .padding(.bottom, 12)
             
             HStack(spacing: 0) {
                 TextField(
@@ -35,7 +40,9 @@ struct ForgetPasswordView: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.textGray)
                 )
+                .autocapitalization(.none)
                 .padding(16)
+                .foregroundColor(.anipickBlack)
                 .background(.textFieldBackground)
                 .cornerRadius(8)
                 
@@ -45,14 +52,14 @@ struct ForgetPasswordView: View {
                         await viewModel.tappedValidNumberButton()
                     }
                 } label: {
-                    Text("인증번호 받기")
-                        .foregroundColor(.white)
-                        .font(.system(size: 16))
-                        .frame(maxWidth: .infinity)
-                        .frame(width: 120, height: 50)
-                        .background(.anipickPrimary)
-                        .cornerRadius(8)
-                        .padding(.leading, 12)
+                        Text(viewModel.validNumButtonText)
+                            .foregroundColor(.white)
+                            .font(.system(size: 16))
+                            .frame(maxWidth: .infinity)
+                            .frame(width: 120, height: 50)
+                            .background(.anipickPrimary)
+                            .cornerRadius(8)
+                            .padding(.leading, 12)
                 }
             }
             
@@ -73,7 +80,7 @@ struct ForgetPasswordView: View {
                 )
             }
             
-            Text(viewModel.emailGuideText)
+            Text(viewModel.validNumeberGuideText)
                 .customFontStyle(size: 14, color: .point)
                 .padding(.top, 12)
                 .padding(.leading, 2)
@@ -92,7 +99,7 @@ struct ForgetPasswordView: View {
             
             FullWidthButton(isEnable: $viewModel.activeNextButton, buttonText: "다음") {
                 Task {
-                    await self.viewModel.tappedValidNumberButton()
+                    await self.viewModel.tappedNextButton()
                 }
             }
             .padding(.bottom, 16)
@@ -111,6 +118,7 @@ struct ForgetPasswordView: View {
             }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
+        .background(Color.white)
         
     }
 }
@@ -118,3 +126,5 @@ struct ForgetPasswordView: View {
 #Preview {
     AppDIContainer.makeFindPasswordView()
 }
+
+

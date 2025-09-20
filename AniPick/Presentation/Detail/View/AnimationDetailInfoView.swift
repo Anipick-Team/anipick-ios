@@ -12,16 +12,25 @@ struct AnimationDetailInfoView: View {
     let seriesInfo: [SeriesAnime]
     let recommendationInfo: [Anime]
     
+    @StateObject var viewModel: AnimationInfoViewModel
+    
+    @State private var lineLimit: Int? = 3
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(detailInfo.description ?? "--")
                 .customFontStyle(size: 14, color: .anipickBlack)
-                .lineLimit(3)
+                .lineLimit(self.lineLimit)
                 .padding(.bottom, 16)
             
             HStack(alignment: .center, spacing: 0) {
                 Button {
                     DLog("더보기 버튼 탭탭")
+                    if self.lineLimit == 3 {
+                        self.lineLimit = nil
+                    } else {
+                        self.lineLimit = 3
+                    }
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
                         Text("더보기")
@@ -61,26 +70,37 @@ struct AnimationDetailInfoView: View {
             Spacer().frame(height: 60)
             
             self.sectionCategoryButton(title: "캐릭터/성우진") {
+                self.viewModel.moveToVoiceActorDetailView(animeId: detailInfo.animeId)
                 DLog("캐릭터 성우진 상세로 이동")
             }
             .padding(.bottom, 20)
             
             // TODO: 캐릭터, 성우진만 넣으면 UI가 깨짐 확인 필요 및 UI 수정
-//            HStack(alignment: .center, spacing: 8) {
-//                CharacterVoiceActorCell(characterName: "캐릭터명", actorName: "성우명")
-//                CharacterVoiceActorCell(characterName: "캐릭터명", actorName: "성우명")
-//            }
-            
+            ScrollView(.horizontal) {
+                LazyHStack(alignment: .center, spacing: 8) {
+                    ForEach(viewModel.characterInfoList, id: \.self) { item in
+                        CharacterAndVoiceActorCellView(
+                            characterImageUrl: item.character?.imageUrl ?? "",
+                            charactreName: item.character?.name ?? "",
+                            voiceActorImageUrl: item.voiceActor?.imageUrl ?? "",
+                            voiceActorName: item.voiceActor?.name ?? ""
+                        )
+                    }
+                }
+                .padding(.horizontal, 12)
+            }
+            .padding(.bottom, 20)
             
             self.sectionCategoryButton(title: "시리즈 정보") {
                 DLog("시리즈 정보로 이동")
             }
             .padding(.bottom, 20)
             
-            
-            ForEach(seriesInfo, id: \.self) { item in
+            ScrollView(.horizontal) {
                 HStack(alignment: .center, spacing: 8) {
-                    self.animationCell(title: item.title ?? "--", subtitle: item.airDate ?? "--")
+                    ForEach(viewModel.seriesInfoList, id: \.self) { item in
+                        self.animationCell(title: item.title ?? "", imageUrl: item.coverImageUrl ?? "")
+                    }
                 }
             }
             
@@ -93,13 +113,15 @@ struct AnimationDetailInfoView: View {
             }
             .padding(.bottom, 20)
             
-            
-            ForEach(recommendationInfo, id: \.self) { item in
+            ScrollView(.horizontal) {
                 HStack(alignment: .center, spacing: 8) {
-                    self.animationCell(title: item.title ?? "--", subtitle: "")
+                    ForEach(viewModel.recommendAnimeList, id: \.self) { item in
+                        self.animationCell(title: item.title ?? "--", imageUrl: item.coverImageUrl ?? "")
+                    }
                 }
             }
         }
+        .background(Color.white)
     }
     
     @ViewBuilder
@@ -130,14 +152,24 @@ struct AnimationDetailInfoView: View {
             infoTextView(string: "\(detailInfo.age ?? "-") 이상 시청")
         case .productionCompany:
             if let studios = detailInfo.studios {
-                HStack(spacing: 4) {
+                VStack(spacing: 4) {
                     ForEach(studios, id: \.self) { studio in
-                        Button {
-                            DLog("제작사 탭탭 - \(studio.name)")
-                        } label: {
-                            Text(studio.name ?? "--")
-                                .customFontStyle(size: 14, color: .anipickSecondary)
-                                .underline(true, color: .anipickSecondary)
+                        if let name = studio.name {
+                            Button {
+                                DLog("제작사 탭탭 - \(String(describing: studio.name)) \(studio.studioId)")
+                                self.viewModel.moveToProducerDetailView(studioId: studio.studioId ?? 0)
+                            } label: {
+                                HStack(spacing: 0) {
+                                    
+                                    Spacer()
+                                    
+                                    Text(name)
+                                        .customFontStyle(size: 14, color: .anipickSecondary)
+                                        .underline(true, color: .anipickSecondary)
+                                        .frame(maxWidth: .infinity, alignment: .trailing)
+                                        .padding(.vertical, 4)
+                                }
+                            }
                         }
                     }
                 }
@@ -178,27 +210,47 @@ struct AnimationDetailInfoView: View {
         }
     }
     
-    private func animationCell(title: String, subtitle: String) -> some View {
+    private func animationCell(title: String, imageUrl: String) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 162)
-
+                    AsyncImage(url: URL(string: imageUrl)) { phase in
+                        switch phase {
+                        case .empty:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 162)
+                                .clipped()
+                            
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 162)
+                                .clipped()
+                        case .failure:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .frame(height: 162)
+                                .clipped()
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
             Text(title)
-               // .frame(width: 128, height: 45)
                 .customFontStyle(size: 12, color: .anipickBlack)
                 .lineLimit(2)
+                .frame(width: 115, alignment: .leading)
+                .multilineTextAlignment(.leading)
                 .padding(.top, 6)
-            
-            if subtitle.isEmpty == false {
-                Text(subtitle)
-                    .customFontStyle(size: 12, color: .gray8)
-            }
+                
         }
     }
     

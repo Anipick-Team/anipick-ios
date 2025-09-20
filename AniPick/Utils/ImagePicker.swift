@@ -22,7 +22,7 @@ struct ImagePicker: UIViewControllerRepresentable {
                 parent.selectedImage = selectedImage
                 
                 let request = ProfileAPI.editProfileImage(image: selectedImage)
-                let url = "http://anipick.p-e.kr:8080/api/mypage/profile-image"
+                let url = "http://anipick.p-e.kr:8080/api/image/profile-image"
                 session.upload(multipartFormData: { multidata in
                     guard let imageData = selectedImage.jpegData(compressionQuality: 0.8) else {
                         DLog("Failed to convert image to data")

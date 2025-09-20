@@ -23,10 +23,7 @@ struct MainLoginView: View {
                 Spacer()
                     .frame(height: 48)
                 
-                // TODO: test code - delete me
-                Button {
-                    viewModel.testtest()
-                } label: {
+
                     VStack(spacing: 0) {
                         Text("나에게 딱 맞는 애니 추천을 위해.")
                             .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
@@ -35,11 +32,11 @@ struct MainLoginView: View {
                             .customFontStyle(size: 14, color: .anipickBlack)
                     }
                     .padding(.bottom, 60)
-                }
+                
                 
                 Button {
                     DLog("kakao로 로그인 하기")
-                    viewModel.getKakaoAccessToken()
+                    viewModel.kakaoLogin()
                     
                 } label: {
                     Image(.kakaoLoginButton)
@@ -109,7 +106,7 @@ struct MainLoginView: View {
                 
             }
             .navigationBarBackButtonHidden(true)
-            .background(.white)
+            .background(Color.white)
     }
     
     private func configure(_ request: ASAuthorizationAppleIDRequest) {

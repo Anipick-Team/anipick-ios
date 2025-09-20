@@ -28,10 +28,10 @@ enum AnimeAPI: URLRequestConvertible {
     case animeWatchingStatus(animeId: Int,  status: String) // WATCHLIST, WATCHING, FINISHED 중 하나
     case deleteAnimeWatchingStatus(animeId: Int)
     
-    case studioDetailInfo(studioId: Int, lastId: Int, lastValue: Int, size: Int)
-    case charactersDetailInfo(animeId: Int, lastId: Int, lastValue: Int, size: Int)
+    case studioDetailInfo(studioId: Int, lastId: Int?, lastValue: Int?, size: Int)
+    case charactersDetailInfo(animeId: Int, lastId: Int?, lastValue: Int?, size: Int)
     
-    case voiceActorDetailInfo(personId: Int, lastId: Int, size: Int)
+    case voiceActorDetailInfo(personId: Int, lastId: Int?, size: Int)
     case likePerson(personId: Int)
     case cancelLikePerson(personId: Int)
     
@@ -234,23 +234,27 @@ enum AnimeAPI: URLRequestConvertible {
             
             
         case .studioDetailInfo(let studioId, let lastId, let lastValue, let size):
-            return [
+            let rawParams: [String: Any?] = [
                 "lastId": lastId,
                 "lastValue": lastValue,
                 "size": size
             ]
             
+            return rawParams.compactMapValues { $0 }
         case .charactersDetailInfo(let animeId, let lastId, let lastValue, let size):
-            return [
+            let rawParams: [String: Any?] = [
                 "lastId": lastId,
                 "lastValue": lastValue,
                 "size": size
             ]
+            
+            return rawParams.compactMapValues { $0 }
         case .voiceActorDetailInfo(let personId, let lastId, let size):
-            return [
+            let rawParams: [String: Any?] = [
                 "lastId": lastId,
                 "size": size
             ]
+            return rawParams.compactMapValues { $0 }
             
         case .likePerson:
             return nil
@@ -360,12 +364,12 @@ enum AnimeAPI: URLRequestConvertible {
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
             
         case .charactersDetailInfo:
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
             
             
             
-        case .voiceActorDetailInfo(let personId, let lastId, let size):
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+        case .voiceActorDetailInfo:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .likePerson:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .cancelLikePerson:

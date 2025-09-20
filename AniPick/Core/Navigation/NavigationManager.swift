@@ -80,4 +80,8 @@ enum AppRoute: Hashable {
     case likePersonList
     case ratedAnimeList
     
+    case producerDetail(studioId: Int)
+    case voiceActorDetail(animeId: Int)
+    case characterAndVoiceActorDetail(animeId: Int)
+    
 }

@@ -10,7 +10,7 @@ import SwiftUI
 struct EmailLoginView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var navigationManager: NavigationManager
-
+    @State private var isVisibleIcons: Bool = false
     @StateObject var viewModel: EmailLoginViewModel
         
     var body: some View {
@@ -34,16 +34,53 @@ struct EmailLoginView: View {
                 placeholderText: "이메일을 입력해주세요",
                 textFieldString: $viewModel.emailString
             )
+            .autocapitalization(.none)
+            
+            Text(viewModel.emailGuideText)
+                .customFontStyle(size: 14, color: .point)
             
             Spacer().frame(height: 40)
             
-            TextFieldComponents(
-                titleText: "비밀번호",
-                placeholderText: "비밀번호를 입력해주세요",
-                textFieldString: $viewModel.passwordString,
-                enableEyeIcon: true
-            )
-
+            
+            ZStack {
+                if isVisibleIcons {
+                    TextField(
+                        "",
+                        text: $viewModel.passwordString,
+                        prompt: Text("비밀번호를 입력해주세요")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                } else {
+                    SecureField(
+                        "",
+                        text: $viewModel.passwordString,
+                        prompt: Text("비밀번호를 입력해주세요")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                }
+                
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        self.isVisibleIcons.toggle()
+                    } label: {
+                        Image(self.isVisibleIcons ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                            .padding(.trailing, 15)
+                    }
+                }
+            }
+        
             Spacer().frame(height: 40)
             
             VStack(spacing: 0) {
@@ -110,6 +147,7 @@ struct EmailLoginView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
+        .background(Color.white)
         
         
     }

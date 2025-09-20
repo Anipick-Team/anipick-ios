@@ -31,8 +31,11 @@ struct RecentReviewCell: View {
                     AsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         case .success(let image):
                             image
                                 .resizable()
@@ -40,10 +43,11 @@ struct RecentReviewCell: View {
                                 .frame(height: 72)
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                         case .failure:
-                            Image(systemName: "photo")
+                            Image(.animeThumbnail)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 80, height: 64)
+                                .frame(height: 72)
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
                         @unknown default:
                             EmptyView()
                         }
@@ -91,7 +95,7 @@ struct RecentReviewCell: View {
             
             Spacer().frame(height: 16)
             
-            Text(item.content ?? item.reviewContent ?? "--")
+            Text(item.reviewContent ?? "--")
                 .lineLimit(self.reviewContentLimit)
                 .font(.system(size: 16))
                 .foregroundStyle(.anipickBlack)
@@ -127,9 +131,11 @@ struct RecentReviewCell: View {
                 }
                 
                 // TODO: 좋아요 갯수 넣어야함
-                Text("\(item.likeCount ?? 0)")
-                    .foregroundStyle(.gray6)
-                    .font(.system(size: 14))
+                if let likeCount = item.likeCount {
+                    Text("\(likeCount)")
+                        .foregroundStyle(.gray6)
+                        .font(.system(size: 14))
+                }
                 
                 Spacer()
                 
@@ -149,7 +155,7 @@ struct RecentReviewCell: View {
         }
         .padding(.vertical, 16)
         .padding(.horizontal, 20)
-        .background(.white)
+        .background(Color.white)
         .cornerRadius(8)
     }
     
@@ -166,9 +172,9 @@ struct RecentReviewCell: View {
             .gesture(
                 DragGesture(minimumDistance: 0)
                     .onChanged { value in
-                        if item.isMine ?? false {
+                     //   if item.isMine ?? false {
                             updateRating(with: value.location.x)
-                        }
+                     //   }
                     }
             )
             Text("\(starRating, specifier: "%.1f")")

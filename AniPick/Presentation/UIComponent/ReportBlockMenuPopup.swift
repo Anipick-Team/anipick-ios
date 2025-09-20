@@ -10,6 +10,8 @@ import SwiftUI
 struct ReportBlockMenuPopup: View {
     
     @Binding var isShowBlockMenu: Bool
+    let reportAction: () -> Void
+    let blockAction: () -> Void
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -17,8 +19,7 @@ struct ReportBlockMenuPopup: View {
                 VStack(spacing: 0) {
                     Button {
                         // TODO: 신고 액션 넣어야함
-                        DLog("신고 액션")
-                        isShowBlockMenu = false
+                        reportAction()
                     } label: {
                         Text("신고")
                             .font(.system(size: 14))
@@ -33,8 +34,8 @@ struct ReportBlockMenuPopup: View {
                     
                     Button {
                         // TODO: 차단 액션 넣어야함
-                        DLog("차아단")
-                        isShowBlockMenu = false
+                        blockAction()
+
                     } label: {
                         Text("차단")
                             .font(.system(size: 14))
@@ -47,7 +48,6 @@ struct ReportBlockMenuPopup: View {
                     RoundedRectangle(cornerRadius: 12)
                         .fill(Color.white)
                         .border(.gray5)
-                    
                         .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 4)
                 )
                 .cornerRadius(8)
@@ -60,6 +60,6 @@ struct ReportBlockMenuPopup: View {
     }
 }
 
-#Preview {
-    ReportBlockMenuPopup(isShowBlockMenu: .constant(true))
-}
+//#Preview {
+//    ReportBlockMenuPopup(isShowBlockMenu: .constant(true))
+//}

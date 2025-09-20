@@ -10,13 +10,12 @@ import SwiftUI
 struct PreferenceSelectionView: View {
     @StateObject var viewModel: PreferenceSelectionViewModel
     
-    let quarterList = ["전체", "1분기", "2분기", "3분기", "4분기"]
+    let quarterList = ["전체", "1", "2", "3", "4"]
     @State private var selectedList: [String] = []
     @State private var isShowStarRatingView: Bool = false
     
     var currentList: [String] {
         switch selectedTab {
-            // quator -> 분기는 1,2,3,4 분기로 나누어져있어서 따로 받아와서 처리 X
         case .yearQuarter: return UserDefaultsManager.shared.getMetaDataForSeasonYear().map { String($0) }
         case .genre: return UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
         }
@@ -37,18 +36,16 @@ struct PreferenceSelectionView: View {
             Spacer().frame(height: 34)
             
             Text("좋아하는 애니메이션을 선택하면\n취향에 맞는 작품을 추천할게요")
-                .font(.system(size: 20, weight: .semibold))
+                .customFontStyle(size: 20, color: .anipickBlack, weight: .semibold)
                 .padding(.bottom, 8)
             
             Text("좋아하는 애니메이션을 골라 주세요.")
-                .font(.system(size: 14))
-                .foregroundStyle(.anipickSecondary)
+                .customFontStyle(size: 14, color: .anipickSecondary)
             
             Spacer().frame(height: 40)
             
-            Text("평가한 작품 \(viewModel.ratedAnimeCount)")
-                .font(.system(size: 14))
-                .foregroundStyle(.gray6)
+            Text("평가한 작품 \(viewModel.storedRatedAnimeList.count)")
+                .customFontStyle(size: 14, color: viewModel.storedRatedAnimeList.count > 0 ? .point : .gray6)
             
             Spacer().frame(height: 16)
             
@@ -66,18 +63,21 @@ struct PreferenceSelectionView: View {
                         .foregroundColor(.textGray)
                 )
                 .padding(.horizontal, 4)
+                .background(Color.gray5)
+                .foregroundColor(.anipickBlack)
                 
                 Spacer()
                 
                 Button {
-                    print("searchBar all clear 버튼")
+                    DLog("searchBar all clear 버튼")
+                    self.viewModel.tappedAllClearButton()
                 } label: {
                     Image(.allClearButton)
                         .padding(.horizontal, 12)
                 }
             }
             .padding(.vertical, 11)
-            .background(Color(.systemGray6))
+            .background(Color.gray5)
             .cornerRadius(8)
             
             Spacer().frame(height: 16)
@@ -113,7 +113,7 @@ struct PreferenceSelectionView: View {
                     self.viewModel.isPresentModelView.toggle()
                 } label: {
                     HStack(alignment: .center, spacing: 0) {
-                        Text(self.viewModel.selectedQuarter.isEmpty ? "분기" : self.viewModel.selectedQuarter)
+                        Text(self.viewModel.selectedQuarter.isEmpty ? "분기" : "\(self.viewModel.selectedQuarter)분기")
                             .font(.system(size: 16))
                             .foregroundStyle(self.viewModel.selectedQuarter.isEmpty ? .textBlack : .anipickSecondary)
                             .padding(.trailing, 10)
@@ -133,7 +133,7 @@ struct PreferenceSelectionView: View {
                 
                 
                 Button {
-                    print("장르 탭탭")
+                    DLog("장르 탭탭")
                     self.selectedTab = .genre
                     self.viewModel.isPresentModelView.toggle()
                 } label: {
@@ -167,15 +167,15 @@ struct PreferenceSelectionView: View {
             ScrollView {
                 ForEach(viewModel.animeList, id: \.self) { value in
                     // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
-                    let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
+                  //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
                     animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
                         self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
                     }
                     // TODO: 각 애니메이션 별 star 표시하도록 적용
                     if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
                         StarRatingView() { rating in
-                            // 평가하기 눌렀을 때의 action
                             self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
+                            self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
                         }
                     }
                 }
@@ -199,6 +199,7 @@ struct PreferenceSelectionView: View {
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
+        .background(Color.white)
         .sheet(isPresented: $viewModel.isPresentModelView) {
             filterSelectedHalfModalView()
                 .presentationDetents([.height(self.sheetHeight)])
@@ -208,7 +209,7 @@ struct PreferenceSelectionView: View {
         }
         .onAppear {
             self.viewModel.fetchMataData()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
                    viewModel.fetchRecommendAnime()
                }
         }
@@ -254,7 +255,6 @@ struct PreferenceSelectionView: View {
             .padding(.bottom, 16)
             .padding(.horizontal, 20)
             
-            
             Rectangle()
                 .frame(maxWidth: .infinity)
                 .frame(height: 1)
@@ -268,6 +268,7 @@ struct PreferenceSelectionView: View {
                     Picker("", selection: $viewModel.selectedYear) {
                         ForEach(yearList, id: \.self) {
                             Text($0)
+                                .customFontStyle(size: 18, color: .anipickSecondary)
                         }
                     }
                     .pickerStyle(.wheel)
@@ -275,6 +276,8 @@ struct PreferenceSelectionView: View {
                     Picker("", selection: $viewModel.selectedQuarter) {
                         ForEach(quarterList, id: \.self) {
                             Text($0)
+                                .customFontStyle(size: 18, color: .anipickSecondary)
+                                .customFontStyle(size: 18, color: .anipickSecondary)
                         }
                     }
                     .pickerStyle(.wheel)
@@ -285,7 +288,8 @@ struct PreferenceSelectionView: View {
                     FlowLayout() {
                         ForEach(currentList, id: \.self) { item in
                             Button {
-                                print("장르 탭 : \(item)")
+                                DLog("장르 탭 : \(item)")
+                                self.viewModel.selectedGenre(name: item)
                                 self.viewModel.selectedGenre = item
                             } label: {
                                 Text(item)
@@ -314,7 +318,7 @@ struct PreferenceSelectionView: View {
                 Spacer()
                 
                 Button {
-                    print("초기화버튼 탭")
+                    DLog("초기화버튼 탭")
                     self.viewModel.selectedYear = ""
                     self.viewModel.selectedGenre = ""
                     self.viewModel.selectedQuarter = ""
@@ -327,9 +331,8 @@ struct PreferenceSelectionView: View {
                 Spacer().frame(width: 16)
                 
                 Button {
-                    print("완료버튼")
+                    DLog("완료버튼")
                     self.viewModel.tappedModelView()
-                    
                 } label: {
                     Text("완료")
                         .frame(width: 60, height: 30)
@@ -344,6 +347,7 @@ struct PreferenceSelectionView: View {
             
         }
         .padding(.vertical, 20)
+        .background(.white)
     }
     
     private func animationCell(anime: AnimePreference, showStarRating: Bool, action: @escaping () -> Void) -> some View {
@@ -364,9 +368,11 @@ struct PreferenceSelectionView: View {
                                         switch phase {
                                         case .empty:
                                             // 로딩 중 placeholder
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.gray.opacity(0.2))
+                                            Image(.animeThumbnail)
+                                                .resizable()
+                                                .scaledToFill()
                                                 .frame(width: 133, height: 89)
+                                                .clipped()
                                             
                                         case .success(let image):
                                             image
@@ -377,13 +383,11 @@ struct PreferenceSelectionView: View {
                                             
                                         case .failure:
                                             // 실패 시 fallback
-                                            RoundedRectangle(cornerRadius: 12)
-                                                .fill(Color.gray.opacity(0.4))
-                                                .overlay(
-                                                    Image(systemName: "photo")
-                                                        .foregroundColor(.white)
-                                                )
+                                            Image(.animeThumbnail)
+                                                .resizable()
+                                                .scaledToFill()
                                                 .frame(width: 133, height: 89)
+                                                .clipped()
                                             
                                         @unknown default:
                                             EmptyView()
@@ -409,7 +413,9 @@ struct PreferenceSelectionView: View {
                                 
                                 Spacer()
                                 
-                                if viewModel.isRatedAnime(animeId: anime.animeId ?? 0) {
+                                if viewModel.isRatedDoneAnime(animeId: anime.animeId ?? 0) {
+                                    let index = self.viewModel.storedRatedAnimeList.firstIndex(where: { $0.animeId == anime.animeId ?? 0 })
+                                    var currentStar = self.viewModel.storedRatedAnimeList[index ?? 0].rating
                                     HStack(spacing: 0) {
                                         ForEach(1...5, id: \.self) { starIdx in
                                             Button {
@@ -417,7 +423,7 @@ struct PreferenceSelectionView: View {
                                                 eachStarRating = Double(starIdx)
                                                 self.viewModel.tappedEachRatedAnime(animeId: anime.animeId ?? 0, rating: Double(starIdx))
                                             } label: {
-                                                Image(starIdx <= Int(eachStarRating) ? .fillPickStar : .unfillStar)
+                                                Image(starIdx <= Int(currentStar) ? .fillPickStar : .unfillStar)
                                                     .resizable()
                                                     .frame(width: 20, height: 20)
                                             }
@@ -425,10 +431,9 @@ struct PreferenceSelectionView: View {
                                             
                                         }
                                         
-                                        Text("(\(eachStarRating).0)")
+                                        Text("(\(String(format: "%.1f", currentStar)))")
+                                            .customFontStyle(size: 14, color: .point)
                                             .padding(.leading, 8)
-                                            .font(.system(size: 14))
-                                            .foregroundStyle(.point)
                                     }
                                     .padding(.bottom, 4)
                                 }

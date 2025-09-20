@@ -67,7 +67,7 @@ struct WriteReviewView: View {
                 
                 ClearTextEditor(text: $viewModel.reviewTextContent)
                     .frame(height: 140)
-                    .customFontStyle(size: 16, color: .gray8)
+                    .customFontStyle(size: 16, color: .anipickBlack)
                     .padding(.horizontal, 20)
                     .padding(.top, 20)
                     .background(Color.clear)
@@ -134,9 +134,7 @@ struct WriteReviewView: View {
             }
             .padding(.top, 8)
             
-            
             Spacer()
-            
             
             FullWidthButton(isEnable: .constant(true), buttonText: "리뷰 작성하기") {
                 DLog("리뷰 작성 탭탭")
@@ -144,15 +142,11 @@ struct WriteReviewView: View {
                 viewModel.pop()
             }
             .padding(.bottom, 20)
-            
-            
-            
-            
-            
-            
+
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
+        .background(Color.white)
     }
     
     // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기

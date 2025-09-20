@@ -12,6 +12,7 @@ enum UserDefaultKey: String {
     case homeRecentKeyword
     case nickname
     case email
+    case sns
     
     case seasonYear
     case seasonQuater
@@ -48,6 +49,15 @@ extension UserDefaultsManager {
     func getRefreshToken() -> String {
         return defaults.string(forKey: UserDefaultKey.refreshToken.rawValue) ?? ""
     }
+    
+    // 값이 있으면 sns로 가입된 것, 빈 값이면 이메일로그인
+    func setSNSAccount(sns: String) {
+        defaults.string(forKey: UserDefaultKey.sns.rawValue)
+    }
+    
+    func getSNSAccount() -> String {
+        return defaults.string(forKey: UserDefaultKey.sns.rawValue) ?? ""
+    }
 }
 
 
@@ -80,7 +90,7 @@ extension UserDefaultsManager {
     }
     
     func getEmail() -> String {
-        return defaults.string(forKey: UserDefaultKey.email.rawValue) ?? "--"
+        return defaults.string(forKey: UserDefaultKey.email.rawValue) ?? ""
     }
     
     func setNickname(_ nickname: String) {
@@ -152,6 +162,9 @@ extension UserDefaultsManager {
         self.setRefreshToken(refreshToken: "")
         self.setNickname("")
         self.setEmail("")
+        self.setSNSAccount(sns: "")
+        self.setImageId(imageId: -1)
+        self.setLastVisitedAnimeId(animeId: 0)
     }
     
     func setImageId(imageId: Int) {

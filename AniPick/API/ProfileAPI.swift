@@ -15,7 +15,7 @@ enum ProfileAPI: URLRequestConvertible {
     var path: String {
         switch self {
         case .editProfileImage:
-            return "api/mypage/profile-image"
+            return "api/image/profile-image"
         }
     }
     

@@ -13,6 +13,7 @@ final class LikeAnimeListViewModel: ObservableObject {
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
+        self.fetchLikeAnimeList()
     }
     
     @Published var isEmptyLikeAnime: Bool = true
@@ -44,6 +45,10 @@ extension LikeAnimeListViewModel {
                     DLog("MyInfo - Liked Anime List error  - \(error)")
                 }
             }
+    }
+    
+    func moveToPersonDetail(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
 
 }

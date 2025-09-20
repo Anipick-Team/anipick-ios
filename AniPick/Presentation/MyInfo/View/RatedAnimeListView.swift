@@ -15,6 +15,7 @@ struct RatedAnimeListView: View {
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     @State private var sortButtonFrame: CGRect = .zero
+    @State private var isShowBlockMenu: Bool = false
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -22,6 +23,7 @@ struct RatedAnimeListView: View {
                 NavigationBackButtonView(title: "평가한 작품") {
                     dismiss()
                 }
+                .padding(.top, 12)
                 
                 Spacer().frame(height: 30)
                 
@@ -83,7 +85,7 @@ struct RatedAnimeListView: View {
                         Spacer().frame(height: 20)
 
                         ForEach(viewModel.ratedReviewList, id: \.self) { item in
-                            RecentReviewCell(item: item) { id, buttonFrame in
+                            MyReviewCell(item: item) { id, buttonFrame in
                                 DLog("button tapped")
                             }
                             .onAppear {
@@ -113,14 +115,12 @@ struct RatedAnimeListView: View {
                 }
                 .coordinateSpace(name: "SortOverlayArea")
                 .onPreferenceChange(ScrollOffsetPreferenceKey.self) { offset in
-                    DLog("offset - \(offset)")
                     if viewModel.isShowSortOptionView {
                         viewModel.isShowSortOptionView = false
                     }
                 }
             }
         }
-
         .overlay(alignment: .topLeading) {
             if viewModel.isShowSortOptionView {
                 SortDropdownView(selectedOption: $viewModel.sortCategory) { option in
@@ -221,9 +221,9 @@ enum RatedSortOption: String, CaseIterable {
         case .likes:
             "좋아요 순"
         case .ratingDesc:
-            "평가 낮은 순"
-        case .ratingAsc:
             "평가 높은 순"
+        case .ratingAsc:
+            "평가 낮은 순"
         }
     }
 }

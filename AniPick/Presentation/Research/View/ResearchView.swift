@@ -148,6 +148,7 @@ struct ResearchView: View {
             .scrollIndicators(.hidden)
         
         }
+        .background(Color.white)
         .sheet(isPresented: $isPresentYearFilter) {
             filterKeywordHalfModalView()
                 .presentationDetents([.height(self.sheetHeight)])

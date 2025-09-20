@@ -15,13 +15,9 @@ struct HomeView: View {
         VStack(spacing: 0) {
             // MARK: - 상단 로고 및 searchBar
             HStack(spacing: 0) {
-                Button {
-                    UserDefaultsManager.shared.setAccessToken(accessToken: "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0dGVzdEB0ZXN0LmNvbSIsImlhdCI6MTc1Mjc1OTA1NiwiZXhwIjoxNzUyNzYyNjU2fQ.RfOACqPKox4B73rHPBGfWdYVU-BGNAKfzzUMsob0J5JGQM78u6xWdozl9isj1HORqSHSBT3nvFH86Z2xtkIBEA")
-                } label: {
                     Image(.aniPickLogoGreen)
                         .resizable()
                         .frame(width: 110, height: 22)
-                }
                 
                 Spacer()
                 
@@ -34,9 +30,10 @@ struct HomeView: View {
                         .frame(width: 24, height: 24)
                 }
             }
+            .padding(.top, 12)
             .padding(.horizontal, 20)
             
-            Spacer().frame(height: 32)
+            Spacer().frame(height: 24)
             
             Rectangle()
                 .frame(maxWidth: .infinity)
@@ -54,11 +51,7 @@ struct HomeView: View {
                         Spacer()
                         
                         Button {
-                             // TODO: 실시간 인기 애니메이션 탭했을 때, 이동동선 확인
-//                            print("실시간 인기 애니메이션 탭탭")
-//                            Task {
-//                                await viewModel.getTrendingAnimes()
-//                            }
+                            self.viewModel.moveToRankingView()
                         } label: {
                             Image(.chevronLeftGray)
                                 .resizable()
@@ -81,11 +74,9 @@ struct HomeView: View {
                             }
                         }
                         .padding(.horizontal, 20)
-                        
                     }
                 }
                 .padding(.top, 36)
-                
                 
                 sectionDivider()
                 
@@ -151,6 +142,7 @@ struct HomeView: View {
             }
         }
         .navigationBarBackButtonHidden(true)
+        .background(Color.white)
         .onAppear {
             DLog("accessToken - \(UserDefaultsManager.shared.getAccessToken())")
             DLog("refreshToken - \(UserDefaultsManager.shared.getRefreshToken())")
@@ -203,7 +195,7 @@ struct HomeView: View {
     
     private func sectionDivider() -> some View {
         return VStack(spacing: 0) {
-            Spacer().frame(height: 52)
+            Spacer().frame(height: 32)
             
             Rectangle()
                 .foregroundColor(.clear)
@@ -259,15 +251,18 @@ struct HomeView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     if let url = anime.coverImageUrl {
                         AsyncImage(url: URL(string: url)) { phase in
                             switch phase {
                             case .empty:
                                 // 로딩 중 placeholder
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 174)
+                                    .clipped()
                                 
                             case .success(let image):
                                 image
@@ -278,12 +273,11 @@ struct HomeView: View {
                                 
                             case .failure:
                                 // 실패 시 fallback
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.4))
-                                    .overlay(
-                                        Image(systemName: "photo")
-                                            .foregroundColor(.white)
-                                    )
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 174)
+                                    .clipped()
                                 
                             @unknown default:
                                 EmptyView()
@@ -297,7 +291,7 @@ struct HomeView: View {
                             .foregroundColor(Color.green)
                             .frame(width: 36, height: 36)
                         
-                        Text("1")
+                        Text("\(anime.rank ?? 0)")
                             .foregroundColor(.white)
                             .font(.system(size: 14, weight: .black))
                     }
@@ -305,9 +299,9 @@ struct HomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 Text(anime.title ?? "")
-                    .foregroundStyle(.anipickBlack)
-                    .frame(width: 128, height: 45)
-                    .font(.system(size: 16))
+                    .customFontStyle(size: 16, color: .anipickBlack)
+                    .frame(width: 128, height: 45, alignment: .leading)
+                    .multilineTextAlignment(.leading)
                     .lineLimit(2)
                     .padding(.top, 6)
             }
@@ -318,16 +312,18 @@ struct HomeView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     // 회색 배경 정사각형
                     if let url = anime.coverImageUrl {
                         AsyncImage(url: URL(string: url)) { phase in
                             switch phase {
                             case .empty:
-                                // 로딩 중 placeholder
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 174)
+                                    .clipped()
                                 
                             case .success(let image):
                                 image
@@ -337,14 +333,11 @@ struct HomeView: View {
                                     .clipped()
                                 
                             case .failure:
-                                // 실패 시 fallback
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.4))
-                                    .overlay(
-                                        Image(systemName: "photo")
-                                            .foregroundColor(.white)
-                                    )
-                                
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 128, height: 174)
+                                    .clipped()
                             @unknown default:
                                 EmptyView()
                             }
@@ -355,9 +348,8 @@ struct HomeView: View {
                 }
                 
                 Text(anime.title ?? "-")
-                    .foregroundStyle(.anipickBlack)
-                    .frame(width: 128, height: 45)
-                    .font(.system(size: 16))
+                    .customFontStyle(size: 16, color: .anipickBlack)
+                    .frame(width: 128, height: 45, alignment: .leading)
                     .lineLimit(2)
                     .padding(.top, 6)
             }

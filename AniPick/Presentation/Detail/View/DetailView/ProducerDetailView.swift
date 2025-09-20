@@ -9,58 +9,56 @@ import SwiftUI
 
 struct ProducerDetailView: View {
     @Environment(\.dismiss) private var dismiss
+    @StateObject var viewModel: ProducerDetailViewModel
     
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            NavigationBackButtonView(title: "제작사이름이름") {
+            NavigationBackButtonView(title: viewModel.producerName) {
                 dismiss()
             }
-            .padding(.horizontal, -20)
             
             Spacer().frame(height: 30)
             
-            self.sectionDivder()
-                .padding(.horizontal, -20)
-            
-            Spacer().frame(height: 20)
-            
             ScrollView {
-                ProducerProductView()
-                
-                self.sectionDivder()
-                    .frame(maxWidth: .infinity)
-                    .padding(.horizontal, -40)
-                
-                ProducerProductView()
-                self.sectionDivder()
-                    .padding(.horizontal, -20)
-                
-                ProducerProductView()
+                self.makeProducerView(producerList: self.viewModel.producerList)
             }
-            .padding(.horizontal, 20)
+        }
+        .navigationBarBackButtonHidden()
+        .background(Color.white)
+        .onAppear {
+            self.viewModel.fetchProducerInfo()
         }
     }
 
-    private func ProducerProductView() -> some View {
+    private func makeProducerView(producerList: [(String, [AnimeWithSeasonYear])]) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
-            Spacer().frame(height: 24)
-            
-            self.yearTag(year: "2025")
-                .padding(.bottom, 20)
-            
-            LazyVGrid(columns: columns, spacing: 24) {
-                ForEach(0..<5) { _ in
-                    // TODO: API 에서 데이터 가져와서 보여줘야함
-                    animationCell()
+            ForEach(producerList, id: \.0) { (year, itemList) in
+                self.sectionDivder()
+                
+                Spacer().frame(height: 24)
+                
+                HStack(spacing: 0) {
+                    self.yearTag(year: year)
+                        .padding(.bottom, 20)
+                        .padding(.leading, 20)
+                    
+                    Spacer()
                 }
+                
+                LazyVGrid(columns: columns, spacing: 24) {
+                    ForEach(itemList, id: \.self) { item in
+                        animationCell(item: item)
+                    }
+                }
+                .padding(.horizontal, 20)
+                
+                Spacer().frame(height: 32)
+                
             }
-            
-            Spacer().frame(height: 32)
-
+            .frame(maxWidth: .infinity)
         }
-        .frame(maxWidth: .infinity)
     }
     
     private func yearTag(year: String) -> some View {
@@ -75,22 +73,47 @@ struct ProducerDetailView: View {
     }
     
     
-    private func animationCell() -> some View {
-        return VStack(spacing: 0) {
+    private func animationCell(item: AnimeWithSeasonYear) -> some View {
+        return Button {
+            self.viewModel.moveToDetailAnimeView(animeId: item.animeId ?? 0)
+        } label: {
+            VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 162)
-
+                if let url = item.coverImageUrl {
+                    AsyncImage(url: URL(string: url)) { phase in
+                        switch phase {
+                        case .empty:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 162)
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 162)
+                        case .failure:
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 162)
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
             
-            Text("착각하는 공방주 영풍파티의 전 잡어쩌구어쩌구")
-               // .frame(width: 128, height: 45)
-                .font(.system(size: 14))
-                .lineLimit(2)
-                .padding(.top, 6)
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(item.title ?? "--")
+                        .customFontStyle(size: 14, color: .anipickBlack)
+                        .lineLimit(2)
+                        .padding(.top, 6)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                }
+        }
         }
     }
     
@@ -105,7 +128,7 @@ struct ProducerDetailView: View {
     }
 }
 
-
-#Preview {
-    ProducerDetailView()
-}
+//
+//#Preview {
+//    AppDIContainer.makeProducerDetailView()
+//}

@@ -9,30 +9,30 @@ import Alamofire
 import Foundation
 
 enum RankingAPI: URLRequestConvertible {
-    case realtime(genre: String?, lastId: Int?, size: Int?)
+    case realtime(genre: String?, lastId: Int?, lastValue: Int?, size: Int?)
     case yearAndSeason(year: Int, season: Int, genre: String, lastId: Int, size: Int)
-    case allTime(genre: String, lastId: Int, size: Int)
-    
-    init(realtime genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
-        self = .realtime(genre: genre ?? "", lastId: lastId, size: size ?? 20)
-    }
-    
-    init(year: Int, season: Int, genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
-        self = .yearAndSeason(year: year, season: season, genre: genre ?? "", lastId: lastId ?? 0, size: size ?? 20)
-    }
-    
-    init(allTime genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
-          self = .allTime(genre: genre ?? "", lastId: lastId ?? 0, size: size ?? 20)
-      }
+    case allTime(genre: String?, lastId: Int?, lastRank: Int?, size: Int?)
+//
+//    init(realtime genre: String? = nil, lastId: Int? = nil, lastValue: Int? = nil, size: Int? = nil) {
+//        self = .realtime(genre: genre ?? "", lastId: lastId, lastValue: lastValue, size: size ?? 20)
+//    }
+//    
+//    init(year: Int, season: Int, genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
+//        self = .yearAndSeason(year: year, season: season, genre: genre ?? "", lastId: lastId ?? 0, size: size ?? 20)
+//    }
+//    
+//    init(allTime genre: String? = nil, lastId: Int? = nil, size: Int? = nil) {
+//          self = .allTime(genre: genre ?? "", lastId: lastId ?? 0, size: size ?? 20)
+//      }
     
     var path: String {
         switch self {
         case .realtime:
             return "api/rankings/real-time"
         case let .yearAndSeason(year, season, genre, lastId, size):
-            return "api/rankgins/\(year)/\(season)?genre=\(genre)&lastId=\(lastId)&size=\(size)"
-        case let .allTime(genre, lastId, size):
-            return "api/rankings/all-time?genre=\(genre)&lastId=\(lastId)&size=\(size)"
+            return "api/rankgins/year-season?genre=\(genre)&lastId=\(lastId)&size=\(size)"
+        case let .allTime(genre, lastId, lastRank, size):
+            return "api/rankings/all-time"
         }
     }
     
@@ -49,19 +49,25 @@ enum RankingAPI: URLRequestConvertible {
     
     var parameters: Parameters? {
         switch self {
-        case let .realtime(genre, lastId, size):
-//            let rawParams: [String: Any?]  = [
-//                "genre": genre,
-//                "lastId": lastId,
-//                "size": size
-//           ]
-//            return rawParams.compactMapValues { $0 }
-            return nil
+        case let .realtime(genre, lastId, lastValue, size):
+            let rawParams: [String: Any?]  = [
+                "genre": genre,
+                "lastId": lastId,
+                "lastValue": lastValue,
+                "size": size
+           ]
+            return rawParams.compactMapValues { $0 }
             
-        case .yearAndSeason(let year, let season, let genre, let lastId, let size):
+        case let .yearAndSeason(year, season, genre, lastId, size):
             return nil
-        case .allTime(let genre, let lastId, let size):
-            return nil
+        case let .allTime(genre, lastId, lastRank, size):
+            let rawParams: [String: Any?]  = [
+                "genre": genre,
+                "lastId": lastId,
+                "lastRank": lastRank,
+                "size": size
+           ]
+            return rawParams.compactMapValues { $0 }
         }
     }
     

@@ -13,7 +13,7 @@ enum ReviewAPI: URLRequestConvertible {
     case likeReview(id: Int)
     case cancelReview(id: Int)
     case deleteReview(id: Int)
-    case reportReview(id: Int)
+    case reportReview(id: Int, message: String)
     case blockUser(userId: Int)
     
     var path: String {
@@ -26,7 +26,7 @@ enum ReviewAPI: URLRequestConvertible {
             return "api/reviews/\(id)/like"
         case let .deleteReview(id):
             return "api/reviews/\(id)"
-        case let .reportReview(id):
+        case let .reportReview(id, _):
             return "api/reviews/\(id)/report"
         case let .blockUser(userId):
             return "api/\(userId)/block-user"
@@ -54,15 +54,15 @@ enum ReviewAPI: URLRequestConvertible {
         switch self {
         case .recentReview:
             return nil
-        case .likeReview(let id):
+        case .likeReview:
             return nil
-        case .cancelReview(let id):
+        case .cancelReview:
             return nil
-        case .deleteReview(let id):
+        case .deleteReview:
             return nil
-        case .reportReview(let id):
-            return ["message": "신고를 왜 했을까요오"]
-        case .blockUser(let userId):
+        case let .reportReview(_, message):
+            return ["message": message]
+        case .blockUser:
             return nil
         }
     }
@@ -82,7 +82,7 @@ enum ReviewAPI: URLRequestConvertible {
         case .deleteReview:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .reportReview:
-            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
         case .blockUser:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }

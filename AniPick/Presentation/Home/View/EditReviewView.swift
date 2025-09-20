@@ -52,13 +52,8 @@ struct EditReviewView: View {
                     .frame(height: 123)
                     .padding(.horizontal, 20)
             }
-            
-            
-            
-            
-            
-            
         }
+        .background(Color.white)
     }
 }
 

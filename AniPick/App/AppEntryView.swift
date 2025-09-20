@@ -15,15 +15,13 @@ struct AppEntryView: View {
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
-                //    AppDIContainer.makeLoginView()
-                AppDIContainer.makeContentView(activeTab: .home)
-                //                if isLoggedIn == false {
-                //                    AppDIContainer.makeContentView()
-                //                    //AppDIContainer.makeHomeView()
-                //                } else {
-                //                    AppDIContainer.makeLoginView()
-                //                }
+                if UserDefaultsManager.shared.getAccessToken().isEmpty {
+                    AppDIContainer.makeLoginView()
+                } else {
+                    AppDIContainer.makeContentView(activeTab: .home)
+                }
             }
+            .background(Color.white)
             .onAppear {
                 TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
@@ -92,6 +90,12 @@ struct AppEntryView: View {
                     AppDIContainer.makeRecentReviewView()
                 case .recommendView(let animeId):
                     AppDIContainer.makeRecommendationView(animeId: animeId)
+                case .producerDetail(let studioId):
+                    AppDIContainer.makeProducerDetailView(studioId: studioId)
+                case .voiceActorDetail(let animeId):
+                    AppDIContainer.makeVoiceActorDetailView(animeId: animeId)
+                case .characterAndVoiceActorDetail(let animeId):
+                    AppDIContainer.makeCharacterAndVoiceActorDetailVIew(animeId: animeId)
                 default:
                     Text("asdfasdf")
                 }

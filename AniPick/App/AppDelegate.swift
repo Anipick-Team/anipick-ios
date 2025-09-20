@@ -28,6 +28,8 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             return AuthController.handleOpenUrl(url: url)
         }
         
+        return false
+        
         if GIDSignIn.sharedInstance.handle(url) {
             return true
         }

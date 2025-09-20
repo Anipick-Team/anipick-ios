@@ -24,7 +24,6 @@ struct ContentView: View {
                 .tabItem {
                     Image(viewModel.activeTab == .home ? .homeFilled : .homeUnfilled)
                     Text("홈")
-                        
                 }
                 .foregroundStyle(viewModel.activeTab == .home ? Color.primaryColor: Color.textGrayColor)
                 .tag(Tab.home)
@@ -50,6 +49,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.myInfo)
         }
+        .background(Color.white)
         .navigationBarBackButtonHidden()
         
     }

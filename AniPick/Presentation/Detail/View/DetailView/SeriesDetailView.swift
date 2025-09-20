@@ -68,6 +68,7 @@ struct SeriesDetailView: View {
             
             
         }
+        .background(Color.white)
         .padding(.horizontal, 20)
     }
     

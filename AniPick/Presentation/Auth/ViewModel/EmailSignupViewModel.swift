@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 class EmailSignupViewModel: ObservableObject {
     @Published var isAgreeAll: Bool = false
     @Published var isAgreeOverFourteen: Bool = false
@@ -59,8 +60,12 @@ extension EmailSignupViewModel {
                 DLog("\(UserDefaultsManager.shared.getAccessToken())")
                 UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "nickname - null")
+                UserDefaultsManager.shared.setEmail(self.emailString)
+                UserDefaultsManager.shared.setSNSAccount(sns: "")
                 self.navigationManager.push(route: .preferenceSelection)
                 // self.navigationManager.push(route: .content)
+            } else if response.code == 109 {
+                self.emailGuideText = "이미 가입한 이메일입니다."
             }
             // TODO: UserName, id, accessToken, refreshToken -  UserDefaults에 저장 - Email 회원가입 정리
         } catch {
@@ -71,7 +76,7 @@ extension EmailSignupViewModel {
 
 extension EmailSignupViewModel {
     func validateEmailInputs()  {
-        print("validateInputs 호출호출!")
+        DLog("validateInputs 호출호출!")
         // TODO: 이미 가입한 이메일일 경우, "이미 가입한 이메일입니다. 표시"
         if self.emailString.isEmpty {
             self.emailGuideText = "이메일을 입력해주세요."
@@ -89,6 +94,7 @@ extension EmailSignupViewModel {
         let regex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
         return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: trimmed)
     }
+    
     
     func validateInputs()  {
         print("validateInputs 호출호출!")

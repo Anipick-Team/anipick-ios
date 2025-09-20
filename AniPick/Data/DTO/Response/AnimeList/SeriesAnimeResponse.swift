@@ -20,10 +20,15 @@ struct SeriesAnimeResult: Decodable {
     let animes: [SeriesAnime]?
 }
 
-
 struct SeriesAnime: Decodable, Hashable {
     let animeId: Int?
     let title: String?
     let coverImageUrl: String?
     let airDate: String?
+}
+
+struct SeriesDetailResponse: Decodable {
+    let code: Int
+    let value: String
+    let result: [SeriesAnime]
 }

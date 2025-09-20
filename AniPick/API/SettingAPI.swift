@@ -23,7 +23,7 @@ enum SettingAPI: URLRequestConvertible {
         case .editPassword:
             return "api/setting/password"
         case .withdrawal:
-            return "api/settins/withdrawal"
+            return "api/setting/withdrawal"
         }
     }
     

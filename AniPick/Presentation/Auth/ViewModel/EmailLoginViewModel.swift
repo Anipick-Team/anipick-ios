@@ -10,10 +10,14 @@ import SwiftUI
 class EmailLoginViewModel: ObservableObject {
     @Published var emailString: String = "" {
         didSet {
-            print(emailString)
-            validateInputs()
+            DLog(emailString)
+            validateEmailInputs()
         }
     }
+    
+    @Published var emailGuideText: String = ""
+    
+
     @Published var passwordString: String = "" {
         didSet {
             print(passwordString)
@@ -49,9 +53,10 @@ extension EmailLoginViewModel {
                     UserDefaultsManager.shared.setAccessToken(accessToken: result.token?.accessToken ?? "")
                     DLog("\(UserDefaultsManager.shared.getAccessToken())")
                     UserDefaultsManager.shared.setRefreshToken(refreshToken: result.token?.refreshToken ?? "")
-                    UserDefaultsManager.shared.setNickname(result.nickname ?? "123123")
+                    UserDefaultsManager.shared.setNickname(result.nickname ?? "---")
                     UserDefaultsManager.shared.setEmail(self.emailString)
                     DLog("\(UserDefaultsManager.shared.getNickname())")
+                    UserDefaultsManager.shared.setSNSAccount(sns: "")
                     self.navigationManager.push(route: AppRoute.content(activeTab: .home))
                 }
             }
@@ -63,6 +68,24 @@ extension EmailLoginViewModel {
 
     private func moveToHomeView() {
         self.navigationManager.push(route: AppRoute.content(activeTab: .home))
+    }
+    
+    func validateEmailInputs()  {
+        DLog("validateInputs 호출호출!")
+        // TODO: 이미 가입한 이메일일 경우, "이미 가입한 이메일입니다. 표시"
+        if self.emailString.isEmpty {
+            self.emailGuideText = "이메일을 입력해주세요."
+        } else if self.isValidEmail(emailString) == false {
+            self.emailGuideText = "올바른 이메일 형식이 아닙니다."
+        } else {
+            self.emailGuideText = ""
+        }
+    }
+
+    private func isValidEmail(_ email: String) -> Bool {
+        let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
+        let regex = "[A-Z0-9a-z._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}"
+        return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: trimmed)
     }
     
     func validateInputs()  {

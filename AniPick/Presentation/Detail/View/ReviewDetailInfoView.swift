@@ -20,7 +20,9 @@ struct ReviewDetailInfoView: View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
                 // TODO: main body가 너무 길어짐. 따로 함수뷰로 분리 필요
-                if viewModel.reviewContent.isEmpty {
+                // TODO: 조건문 반대로 바꾸기
+                if viewModel.hasMyReview == false {
+              //  if viewModel.reviewContent.isEmpty {
                     ZStack {
                         Rectangle()
                             .frame(height: 123)
@@ -59,13 +61,13 @@ struct ReviewDetailInfoView: View {
                         
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
-                                self.smallStarView(starRating: self.viewModel.myReviewCount)
-                                Text(String(format: "%.1f", self.viewModel.myReviewCount))
+                                self.smallStarView(starRating: self.viewModel.storedMyReviewRate)
+                                Text(String(format: "%.1f", self.viewModel.storedMyReviewRate))
                                     .customFontStyle(size: 14, color: .gray8)
                                 
                                 Spacer()
                                 
-                                Text("2024.01.23")
+                                Text(self.viewModel.myReviewCreatedAt)
                                     .customFontStyle(size: 12, color: .gray6)
                                 
                             }
@@ -116,11 +118,11 @@ struct ReviewDetailInfoView: View {
                         .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
                         .padding(.trailing, 8)
                     
-                    VStack(alignment: .leading, spacing: 0) {
-                        Spacer()
-                        Text("\(viewModel.reviewCount)")
+        //            VStack(alignment: .leading, spacing: 0) {
+                        // Spacer()
+                        Text("\(viewModel.reviewCount)개")
                             .customFontStyle(size: 14, color: .gray6)
-                    }
+                 //   }
                     
                     
                     Spacer()
@@ -185,6 +187,9 @@ struct ReviewDetailInfoView: View {
                 
                 
             }
+            .onAppear {
+                self.viewModel.getMyReview()
+            }
             
             if self.isShowSortOptionView {
                 SortDropdownView2(
@@ -196,15 +201,17 @@ struct ReviewDetailInfoView: View {
                     .padding(.trailing, 0)
             }
         }
-        
+        .background(Color.white)
     }
+    
+    
     private func smallStarView(starRating: Double) -> some View {
         return HStack(spacing: 0) {
             ForEach(1...5, id: \.self) { starIdx in
                 Button {
                     self.starRating = starIdx
                 } label: {
-                    Image(starIdx <= self.starRating ? .fillPickStar : .unfillStar)
+                    Image(starIdx <= Int(starRating) ? .fillPickStar : .unfillStar)
                         .resizable()
                         .frame(width: 20, height: 20)
                 }

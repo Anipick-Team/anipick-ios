@@ -42,14 +42,14 @@ struct SettingView: View {
                         SettingInfoData(
                             title: SettingCategory.editPassword,
                             titleColor: nil,
-                            subtitle: "sns 간편가입된 계정입니다.",
+                            subtitle: viewModel.isSNSAccount ? "sns 간편가입된 계정입니다." : "",
                             subtitleColor: .gray6,
                             isShowChevron: true
                         ),
                         SettingInfoData(
                             title: SettingCategory.linkedSNS,
                             titleColor: .anipickPrimary,
-                            subtitle: "카카오톡",
+                            subtitle: viewModel.isShowSNStitle,
                             subtitleColor: .anipickPrimary,
                             isShowChevron: false
                         )
@@ -131,6 +131,7 @@ struct SettingView: View {
                 }
             }
         }
+        .background(Color.white)
         .onAppear {
             self.viewModel.resetData()
         }

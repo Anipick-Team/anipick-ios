@@ -44,6 +44,7 @@ struct ToWatchListView: View {
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
+        .background(Color.white)
         .onAppear {
             self.viewModel.fetchToWatchList()
         }

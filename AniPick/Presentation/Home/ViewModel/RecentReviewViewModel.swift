@@ -40,6 +40,38 @@ extension RecentReviewViewModel {
             }
     }
     
+    func reportReview(reviewId: Int, message: String) {
+        session.request(ReviewAPI.reportReview(id: reviewId, message: message))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("리뷰 신고 success - \(value)")
+                case .failure(let error):
+                    DLog("리뷰 신고 failure - \(error)")
+                }
+            }
+        
+    }
+    
+    func blockUser(userId: Int) {
+        session.request(ReviewAPI.blockUser(userId: userId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("사용자 차단 success - \(value)")
+                case .failure(let error):
+                    DLog("사용자 차단 failure - \(error)")
+                }
+            }
+    }
+    
+    
     func moveToDetailAnimation(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }

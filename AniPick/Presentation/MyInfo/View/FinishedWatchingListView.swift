@@ -26,7 +26,6 @@ struct FinishedWatchingListView: View {
             
             Spacer().frame(height: 20)
             
-            // TODO: 총 갯수 가져와서 보여줘야함
             Text("총 \(viewModel.finishedListCount)개")
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.bottom, 20)
@@ -34,7 +33,7 @@ struct FinishedWatchingListView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.finishedList, id: \.self) { item in
-                        animationCell(item: item) {
+                        self.animationCell(item: item) {
                             self.viewModel.moveToDetailAnime(animeId: item.animeId ?? 0)
                         }
                     }
@@ -44,6 +43,7 @@ struct FinishedWatchingListView: View {
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
+        .background(Color.white)
         .onAppear {
             self.viewModel.fetchFinishedList()
         }
@@ -65,31 +65,42 @@ struct FinishedWatchingListView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .cornerRadius(8)
+                                
                             case .success(let image):
                                 image
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
-                                    .clipped()
+                                    .frame(height: 162)
+                                    .cornerRadius(8)
                             case .failure:
                                 Image(.animeThumbnail)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .cornerRadius(8)
                             @unknown default:
                                 EmptyView()
                             }
                         }
                         .clipShape(RoundedRectangle(cornerRadius: 12))
                     }
-                    
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
-                Text(item.title ?? "--")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
+                VStack(spacing: 0) {
+                    Text(item.title ?? "--")
+                        .customFontStyle(size: 14, color: .anipickBlack)
+                        .lineLimit(2)
+                        .padding(.top, 6)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity)
+                    
+                    Spacer()
+                }
             }
         }
     }

@@ -11,6 +11,11 @@ struct EditPasswordView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: EditPasswordViewModel
     
+    @State private var isVisibleIconsCurrentPW: Bool = false
+    @State private var isVisibleIconsNewPW: Bool = false
+    @State private var isVisibleIconsCheckPW: Bool = false
+    
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer().frame(height: 20)
@@ -27,37 +32,172 @@ struct EditPasswordView: View {
             
             Spacer().frame(height: 36)
                         
-            securityPasswordView(
-                title: "현재 비밀번호",
-                isShowCheck: nil,
-                textFieldText: $viewModel.currentPassword,
-                placeholderText: "현재 비밀번호",
-                eyeVisibleIcons: false,
-                errorMessage: viewModel.currentPasswordErrorMessage
-            )
+            Text("현재 비밀번호")
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
+                .padding(.bottom, 12)
+            
+            ZStack {
+                if isVisibleIconsCurrentPW {
+                    TextField(
+                        "",
+                        text: $viewModel.currentPassword,
+                        prompt: Text("현재 비밀번호")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                } else {
+                    SecureField(
+                        "",
+                        text: $viewModel.currentPassword,
+                        prompt: Text("현재 비밀번호")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+
+                }
+                
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        self.isVisibleIconsCurrentPW.toggle()
+                    } label: {
+                        Image(self.isVisibleIconsCurrentPW ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                            .padding(.trailing, 15)
+                    }
+                }
+            }
+            
+            if viewModel.currentPasswordErrorMessage.isEmpty == false {
+                Text(viewModel.currentPasswordErrorMessage)
+                    .customFontStyle(size: 14, color: .point, weight: .semibold)
+                    .padding(.top, 8)
+            }
+
+            Spacer().frame(height: 32)
+            
+            Text("새 비밀번호")
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
+                .padding(.bottom, 12)
+            
+                Image(self.viewModel.isValidatePassword ? .check : .uncheck)
+            
+            
+            ZStack {
+                if isVisibleIconsNewPW {
+                    TextField(
+                        "",
+                        text: $viewModel.newPassword,
+                        prompt: Text("영문, 숫자, 특수문자 2개 이상 조합, 10자 이상")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                } else {
+                    SecureField(
+                        "",
+                        text: $viewModel.newPassword,
+                        prompt: Text("영문, 숫자, 특수문자 2개 이상 조합, 10자 이상")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+
+                }
+                
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        self.isVisibleIconsNewPW.toggle()
+                    } label: {
+                        Image(self.isVisibleIconsNewPW ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                            .padding(.trailing, 15)
+                    }
+                }
+            }
+            
+            if viewModel.NewErrorMessage.isEmpty == false {
+                Text(viewModel.NewErrorMessage)
+                    .customFontStyle(size: 14, color: .point, weight: .semibold)
+                    .padding(.top, 8)
+            }
             
             Spacer().frame(height: 32)
             
+            Text("새 비밀번호 확인")
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
+                .padding(.bottom, 12)
             
-            securityPasswordView(
-                title: "새 비밀번호",
-                isShowCheck: true,
-                textFieldText: $viewModel.newPassword,
-                placeholderText: "영문, 숫자, 특수문자 2개 이상 조합, 10자 이상",
-                eyeVisibleIcons: false,
-                errorMessage: viewModel.NewErrorMessage
-            )
- 
-            Spacer().frame(height: 32)
+            Image(self.viewModel.isShowGreenCheckDoublePW ? .check : .uncheck)
             
-            securityPasswordView(
-                title: "새 비밀번호 확인",
-                isShowCheck: true,
-                textFieldText: $viewModel.checkNewPassword,
-                placeholderText: "비밀번호 확인",
-                eyeVisibleIcons: false,
-                errorMessage: viewModel.NewErrorMessage
-            )
+            
+            ZStack {
+                if isVisibleIconsCheckPW {
+                    TextField(
+                        "",
+                        text: $viewModel.checkNewPassword,
+                        prompt: Text("비밀번호 확인")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                } else {
+                    SecureField(
+                        "",
+                        text: $viewModel.checkNewPassword,
+                        prompt: Text("비밀번호 확인")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+
+                }
+                
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        self.isVisibleIconsCheckPW.toggle()
+                    } label: {
+                        Image(self.isVisibleIconsCheckPW ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                            .padding(.trailing, 15)
+                    }
+                }
+            }
+            
+            if viewModel.checkNewErrorMessage.isEmpty == false {
+                Text(viewModel.checkNewErrorMessage)
+                    .customFontStyle(size: 14, color: .point, weight: .semibold)
+                    .padding(.top, 8)
+            }
+    
           
             Spacer()
             
@@ -73,11 +213,13 @@ struct EditPasswordView: View {
             FullWidthButton(
                 isEnable: .constant(true),
                 buttonText: "저장") {
-                    DLog("닉네임 변경 저장 액션")
+                    DLog("비밀번호 변경 저장 탭탭")
+                    viewModel.editPassword()
                 }
         }
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
+        .background(Color.white)
     }
     
     private func obfuscateEmail(_ email: String) -> String {
@@ -91,61 +233,6 @@ struct EditPasswordView: View {
             .frame(maxWidth: .infinity)
             .background(.gray5)
         
-    }
-    
-    @ViewBuilder
-    private func securityPasswordView(
-        title: String,
-        isShowCheck: Bool?,
-        textFieldText: Binding<String>,
-        placeholderText: String,
-        eyeVisibleIcons: Bool,
-        errorMessage: String?
-    ) -> some View {
-        VStack(alignment:.leading, spacing: 0) {
-            HStack(spacing: 0 ) {
-                Text(title)
-                    .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
-                    .padding(.bottom, 12)
-                Spacer()
-                
-                if let isShowCheck {
-                    Image(isShowCheck ? .check : .uncheck)
-                }
-            }
-            
-            ZStack {
-                SecureField(
-                    "",
-                    text: textFieldText,
-                    prompt: Text(placeholderText)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.textGray)
-                )
-                .padding(16)
-                .background(.textFieldBackground)
-                .cornerRadius(8)
-                
-                HStack {
-                    Spacer()
-                    
-                    Button {
-                        // TODO: 버튼 눌렀을 때 바뀌는 거 처리해야함
-                    } label : {
-                        Image(eyeVisibleIcons ? .eyeVisibleIcons : .eyeUnvisibleIcons)
-                            .padding(.trailing, 15)
-                    }
-                }
-            }
-            
-            if let errorMessage {
-                Text(errorMessage)
-                    .customFontStyle(size: 14, color: .point, weight: .semibold)
-                    .padding(.top, 8)
-            } else {
-                
-            }
-        }
     }
 }
 

@@ -13,6 +13,7 @@ final class PreferenceSelectionViewModel: ObservableObject {
     @Published var animeList: [AnimePreference] = []
     @Published var ratedAnimeCount: Int = 0
     
+    @Published var selectedGenreId: Int? = nil
     @Published var selectedGenre: String = ""
     @Published var selectedYear: String = ""
     @Published var selectedQuarter: String = ""
@@ -59,19 +60,23 @@ extension PreferenceSelectionViewModel {
             }
     }
     
+    func selectedGenre(name: String) {
+        let genreList = UserDefaultsManager.shared.getMetaDataForGenres()
+        if let actionId = genreList.first(where: { $0.name == name })?.id {
+            DLog("\(name) 장르의 id 값")
+            self.selectedGenreId = actionId
+        }
+    }
+    
     func fetchRecommendAnime() {
         let genreList = UserDefaultsManager.shared.getMetaDataForGenres()
-//        guard let id = genreList.first(where: { $0.name == self.selectedGenre })?.id else {
-//            return
-//        }
         
         session.request(
             AnimeAPI.preference(
                 query: self.searchBarString.isEmpty ? nil : self.searchBarString,
                 year: Int(self.selectedYear),
                 season: Int(self.selectedQuarter),
-                // TODO: 장르설정
-                genre: nil,
+                genre: self.selectedGenreId,
                 lastId: nil
             )
         )
@@ -118,6 +123,9 @@ extension PreferenceSelectionViewModel {
         return selectedAnimeList.contains(animeId)
     }
     
+    func isRatedDoneAnime(animeId: Int) -> Bool {
+        return storedRatedAnimeList.contains { $0.animeId == animeId }
+    }
 //    func isRatedAnime(animeId: Int) -> Bool {
 //        return storedRatedAnimeList.contains { $0.animeId == animeId }
 //    }
@@ -136,16 +144,19 @@ extension PreferenceSelectionViewModel {
                 }
             }
     }
-    
+    func tappedAllClearButton() {
+        self.searchBarString = ""
+    }
     func tappedModalSaveButton() {
         
     }
     
     func moveToMainView() {
-        self.navigationManager.push(route: .homeView)
+        self.navigationManager.push(route: .content(activeTab: .home))
     }
     
     func tappedModelView() {
         self.isPresentModelView.toggle()
+        self.fetchRecommendAnime()
     }
 }

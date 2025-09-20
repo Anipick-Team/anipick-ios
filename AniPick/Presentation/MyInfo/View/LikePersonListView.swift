@@ -27,54 +27,72 @@ struct LikePersonListView: View {
             
             Spacer().frame(height: 20)
             
-            // TODO: 총 갯수 가져와서 보여줘야함
-            Text("총 14명")
+            Text("총 \(viewModel.likedPersonCount)명")
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.bottom, 20)
             
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<12) { _ in
+                    ForEach(viewModel.likedPersonList, id: \.self) { item in
                         // TODO: API 에서 데이터 가져와서 보여줘야함
-                        personCell()
+                        personCell(item: item)
+                            .onAppear {
+                                self.viewModel.fetchNextPage(personId: item.personId ?? 0)
+                            }
                     }
                 }
             }
             .scrollIndicators(.hidden)
         }
         .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .topBarLeading) {
-                Button {
-                    dismiss()
-                } label: {
-                    Image(.chevronLeft)
-                        .foregroundColor(.black)
-                }
-            }
-        }
         .padding(.horizontal, 20)
+        .background(Color.white)
     }
     
     
     
-    private func personCell() -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 105)
-
+    private func personCell(item: LikedRatedPerson) -> some View {
+        return Button {
+            self.viewModel.moveToPersonDetailView(personId: item.personId ?? 0)
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                ZStack(alignment: .topLeading) {
+                    if let url = item.profileImageUrl {
+                        AsyncImage(url: URL(string: url)) { phase in
+                            switch phase {
+                            case .empty:
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 105)
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 105)
+                            case .failure:
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 105)
+                            @unknown default:
+                                EmptyView()
+                            }
+                        }
+                    }
+                    
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(item.name ?? "-")
+                    .font(.system(size: 14))
+                    .lineLimit(2)
+                    .padding(.top, 6)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text("성우이름")
-                .font(.system(size: 14))
-                .lineLimit(2)
-                .padding(.top, 6)
         }
     }
+    
+    
     @ViewBuilder
     private func sectionDivder() -> some View {
         Rectangle()

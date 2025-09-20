@@ -37,7 +37,7 @@ struct HomeSearchView: View {
                     }
                     
                     TextField("무엇을 검색할까요?", text: $viewModel.searchText)
-                        .foregroundColor(.primary)
+                        .foregroundStyle(.anipickBlack)
                         .disableAutocorrection(true)
                         .submitLabel(.done)
                         .onSubmit {
@@ -91,6 +91,7 @@ struct HomeSearchView: View {
                 }
 
         }
+        .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             self.viewModel.checkRecentKeywordList()
@@ -354,8 +355,11 @@ struct HomeSearchView: View {
                             switch phase {
                             case .empty:
                                 // 로딩 중 placeholder
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
                                 
                             case .success(let image):
                                 image
@@ -365,10 +369,11 @@ struct HomeSearchView: View {
                                     .clipped()
                                 
                             case .failure:
-                                Image(systemName: "photo")
+                                Image(.animeThumbnail)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .clipped()
                                 
                             @unknown default:
                                 EmptyView()
@@ -399,8 +404,11 @@ struct HomeSearchView: View {
                             switch phase {
                             case .empty:
                                 // 로딩 중 placeholder
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
                                 
                             case .success(let image):
                                 image
@@ -410,10 +418,11 @@ struct HomeSearchView: View {
                                     .clipped()
                                 
                             case .failure:
-                                Image(systemName: "photo")
+                                Image(.animeThumbnail)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .clipped()
                                 
                             @unknown default:
                                 EmptyView()
@@ -439,10 +448,11 @@ struct HomeSearchView: View {
                     AsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
-                            // 로딩 중 placeholder
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
-                            
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .clipped()
                         case .success(let image):
                             image
                                 .resizable()
@@ -451,10 +461,11 @@ struct HomeSearchView: View {
                                 .clipped()
                             
                         case .failure:
-                            Image(systemName: "photo")
+                            Image(.animeThumbnail)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(maxWidth: .infinity)
+                                .clipped()
                             
                         @unknown default:
                             EmptyView()

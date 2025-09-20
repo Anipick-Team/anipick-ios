@@ -14,6 +14,11 @@ final class RecommendedAnimeViewModel: ObservableObject {
     
     @Published var recommedationAnimes: [Anime] = []
     @Published var recommedationTitle: String = ""
+    
+    
+    var lastId: Int? = nil
+    var lastValue: String? = nil
+    
     let session = Session(interceptor: TokenInterceptor.shared)
     init(navigationManager: NavigationManager, animeId: Int? = nil) {
         self.navigationManager = navigationManager
@@ -25,7 +30,13 @@ final class RecommendedAnimeViewModel: ObservableObject {
 extension RecommendedAnimeViewModel {
     func fetchRecommedationAnime() {
         if let animeId = self.animeId {
-            session.request(RecommendationAPI.recommedationWithAnimeId(animeId: animeId))
+            session.request(
+                RecommendationAPI.recommedationWithAnimeId(
+                    animeId: animeId,
+                    lastId: self.lastId,
+                    lastValue: self.lastValue
+                )
+            )
                 .cURLDescription { description in
                     DLog("\(description)")
                 }
@@ -35,15 +46,21 @@ extension RecommendedAnimeViewModel {
                         DLog("fetch recommedation detail with anime success \(value)")
                         if let animeList = value.result,
                            let recommend = animeList.animes {
-                            self.recommedationAnimes = recommend
+                            self.recommedationAnimes.append(contentsOf: recommend)
                             self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
+                            self.lastId = value.result?.cursor?.lastId
                         }
                     case .failure(let error):
                         DLog("fetch recommedation detail with anim error \(error)")
                     }
                 }
         } else {
-            session.request(RecommendationAPI.recommedation)
+            session.request(
+                RecommendationAPI.recommedation(
+                    lastId: self.lastId,
+                    lastValue: self.lastValue
+                )
+            )
                 .cURLDescription { description in
                     DLog("\(description)")
                 }
@@ -53,13 +70,20 @@ extension RecommendedAnimeViewModel {
                         DLog("fetch recommedation detail success \(value)")
                         if let animeList = value.result,
                            let recommend = animeList.animes {
-                            self.recommedationAnimes = recommend
+                            self.recommedationAnimes.append(contentsOf: recommend)
                             self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
+                            self.lastId = value.result?.cursor?.lastId
                         }
                     case .failure(let error):
                         DLog("fetch recommedation detail error \(error)")
                     }
                 }
+        }
+    }
+    
+    func getNextPage(lastAnimeId: Int) {
+        if lastAnimeId == self.recommedationAnimes.last?.animeId {
+            self.fetchRecommedationAnime()
         }
     }
     

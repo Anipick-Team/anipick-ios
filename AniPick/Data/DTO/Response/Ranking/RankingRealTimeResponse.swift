@@ -12,17 +12,25 @@ struct RankingRealTimeResponse: Decodable {
 }
 
 struct RankingResult: Decodable {
-    let cursor: CursorId
+    let cursor: RankingCursor
     let animes: [RankedAnime]
 }
 
-struct RankedAnime: Decodable {
-    let animeId: Int
-    let title: String
-    let coverImageUrl: String
-    let rank: Int
-    let change: Int
-    let trend: Trend
-    let genres: [String]
+struct RankingCursor: Decodable {
+    let sort: String?
+    let lastId: Int
+    let lastValue: String?
+}
+
+struct RankedAnime: Decodable, Hashable {
+    let animeId: Int?
+    let title: String?
+    let coverImageUrl: String?
+    let rank: Int?
+    let change: String?
+    let trend: String?
+    let genres: [String]?
+    let popularity: Int?
+    let trending: String?
 }
 

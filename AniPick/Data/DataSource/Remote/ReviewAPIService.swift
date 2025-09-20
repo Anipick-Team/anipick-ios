@@ -41,9 +41,9 @@ extension ReviewAPIService {
     }
     
     /// 리뷰 신고
-    func reportReview(id: Int) async throws -> BaseResponse {
-        try await requestAPI(.reportReview(id: id))
-    }
+//    func reportReview(id: Int) async throws -> BaseResponse {
+//        try await requestAPI(.reportReview(id: id))
+//    }
     
     /// 유저 차단
     func blockUser(userId: Int) async throws -> BaseResponse {

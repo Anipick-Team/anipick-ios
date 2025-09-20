@@ -27,6 +27,7 @@ struct RecommendedAnimeView: View {
                     .padding(.leading, 20)
                     Spacer()
                 }
+                .padding(.top, 8)
                 
                 Spacer()
                 
@@ -55,7 +56,6 @@ struct RecommendedAnimeView: View {
                 
                 VStack {
                     HStack {
-                        // TODO: 이름 변겨 ㅇ필요
                         Text("최근 찾아보신 \(viewModel.recommedationTitle)과\n비슷한 작품이에요")
                             .customFontStyle(size: 20, color: .gray5, weight: .bold)
                             .padding(.top, 12)
@@ -82,12 +82,16 @@ struct RecommendedAnimeView: View {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.recommedationAnimes, id: \.self) { item in
                         animationCell(item: item)
+                            .onAppear {
+                                self.viewModel.getNextPage(lastAnimeId: item.animeId ?? 0)
+                            }
                     }
                 }
             }
             .scrollIndicators(.hidden)
             .padding(.horizontal, 20)
         }
+        .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.fetchRecommedationAnime()
@@ -104,8 +108,10 @@ struct RecommendedAnimeView: View {
                         AsyncImage(url: URL(string: url)) { phase in
                             switch phase {
                             case .empty:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
                             case .success(let image):
                                 image
                                     .resizable()

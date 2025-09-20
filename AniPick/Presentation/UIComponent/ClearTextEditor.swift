@@ -16,7 +16,7 @@ struct ClearTextEditor: UIViewRepresentable {
         let textView = UITextView()
         textView.backgroundColor = .clear
         textView.font = UIFont.systemFont(ofSize: 16)
-        textView.textColor = UIColor.label
+        textView.textColor = .anipickBlack
         textView.delegate = context.coordinator
         return textView
     }

@@ -15,13 +15,36 @@ final class SettingViewModel: ObservableObject {
     
     @Published var nickname: String = ""
     @Published var email: String = ""
+    @Published var isShowSNStitle: String = ""
+    @Published var isSNSAccount: Bool = false
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
+        self.initSetting()
     }
     
      func moveToDetailSettingView(route: AppRoute) {
         navigationManager.push(route: route)
+    }
+    
+    func initSetting() {
+        let isSNS = UserDefaultsManager.shared.getSNSAccount()
+        DLog("어떤 SNS? = \(isSNS)")
+        if isSNS.isEmpty {
+            self.isSNSAccount = false
+        } else {
+            self.isSNSAccount = true
+            switch isSNS {
+            case "KAKAO":
+                self.isShowSNStitle = "카카오톡"
+            case "GOOGLE":
+                self.isShowSNStitle = "구글"
+            case "APPLE":
+                self.isShowSNStitle = "애플"
+            default:
+                self.isShowSNStitle = ""
+            }
+        }
     }
     
     func tappedLogout() {
@@ -42,6 +65,10 @@ final class SettingViewModel: ObservableObject {
             }
     }
  
+    func moveToDeleteAccount() {
+        self.navigationManager.push(route: .deleteAccount)
+    }
+    
     func tappedWithdrawal() {
         AF.request(SettingAPI.withdrawal)
             .cURLDescription { description in
@@ -51,12 +78,14 @@ final class SettingViewModel: ObservableObject {
                 switch response.result {
                 case .success(let value):
                     DLog("withdrawal success - \(value)")
-                    self.navigationManager.popToRoot()
-                    self.navigationManager.push(route: .mainLoginView)
-                    // TODO: User정보 전부 clear하는 값 필요
-                    UserDefaultsManager.shared.setAccessToken(accessToken: "")
-                    UserDefaultsManager.shared.setRefreshToken(refreshToken: "")
-                    UserDefaultsManager.shared.setNickname("")
+                    if value.code == 200 {
+                        self.navigationManager.popToRoot()
+                        self.navigationManager.push(route: .mainLoginView)
+                        // TODO: User정보 전부 clear하는 값 필요
+                        UserDefaultsManager.shared.setAccessToken(accessToken: "")
+                        UserDefaultsManager.shared.setRefreshToken(refreshToken: "")
+                        UserDefaultsManager.shared.setNickname("")
+                    }
                 case .failure(let error):
                     DLog("withdrawal error - \(error)")
                 }
@@ -67,6 +96,7 @@ final class SettingViewModel: ObservableObject {
     func resetData() {
         self.nickname = UserDefaultsManager.shared.getNickname()
         self.email = UserDefaultsManager.shared.getEmail()
+        DLog("설정에서 닉네임 및 이메일 확인 - \(self.nickname) - \(self.email)")
     }
     
     func actionBySettingCategory(category: SettingCategory) {
@@ -98,7 +128,8 @@ final class SettingViewModel: ObservableObject {
             self.isShowLogoutPopup = true
         case .deleteAccount:
             DLog("탈퇴 APIAPI")
-            self.tappedWithdrawal()
+         //   self.tappedWithdrawal()
+            self.moveToDeleteAccount()
         }
         
     }

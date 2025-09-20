@@ -16,7 +16,7 @@ struct StarRatingView: View {
             HStack(spacing: 0) {
                 starView()
                     .padding(.trailing, 6)
-                Text("(\(starRating).0/5.0)")
+                Text("(\(String(format: "%.1f", starRating))/5.0)")
                     .font(.system(size: 16))
                     .foregroundStyle(starRating > 0 ? .point : .gray6)
                 Spacer()
@@ -40,6 +40,7 @@ struct StarRatingView: View {
             .background(.gray7)
             .cornerRadius(4)
         }
+        .background(Color.white)
         .frame(height: 68)
     }
     

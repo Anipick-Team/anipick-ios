@@ -15,6 +15,7 @@ struct AppleLoginTestView: View {
             onCompletion: handle
         )
         .signInWithAppleButtonStyle(.black)
+        .background(Color.white)
         .frame(height: 45)
         .padding()
     }

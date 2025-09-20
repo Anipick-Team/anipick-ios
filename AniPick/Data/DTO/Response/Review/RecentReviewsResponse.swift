@@ -25,6 +25,7 @@ struct ReviewCursor: Decodable {
 
 struct ReviewItem: Decodable, Hashable {
     let reviewId: Int?
+    let userId: Int?
     let animeId: Int?
     let animeTitle: String?
     let animeCoverImageUrl: String?

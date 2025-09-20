@@ -9,14 +9,14 @@ import Alamofire
 import Foundation
 
 enum RecommendationAPI: URLRequestConvertible {
-    case recommedation
-    case recommedationWithAnimeId(animeId: Int)
+    case recommedation(lastId: Int?, lastValue: String?)
+    case recommedationWithAnimeId(animeId: Int, lastId: Int?, lastValue: String?)
     
     var path: String {
         switch self {
         case .recommedation:
-            return "api/recommendation/animes"
-        case .recommedationWithAnimeId(let animeId):
+            return "api/recommendation/animes/recommendation/animes"
+        case let .recommedationWithAnimeId(animeId, _, _):
             return "api/recommendation/animes/\(animeId)/recent"
             
         }
@@ -33,10 +33,18 @@ enum RecommendationAPI: URLRequestConvertible {
     
     var parameters: Parameters? {
         switch self {
-        case .recommedation:
-            return nil
-        case .recommedationWithAnimeId:
-            return nil
+        case let .recommedation(lastId, lastValue):
+            let rawParams: [String: Any?] = [
+                "lastId": lastId,
+                "lastValue": lastValue
+            ]
+            return rawParams.compactMapValues { $0 }
+        case let .recommedationWithAnimeId(_, lastId, lastValue):
+            let rawParams: [String: Any?] = [
+                "lastId": lastId,
+                "lastValue": lastValue
+            ]
+            return rawParams.compactMapValues { $0 }
         }
     }
     

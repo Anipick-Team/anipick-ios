@@ -15,7 +15,7 @@ final class MyInfoViewModel: ObservableObject {
     @Published var watchingCount: Int = 0
     @Published var finishedCount: Int = 0
     @Published var likedAnimeList: [LikedAnime] = []
-    @Published var likedPersonList: [LikedPerson] = []
+    @Published var likedPersonList: [LikedRatedPerson] = []
     
     @Published var toWatchList: [ToWatchAnime] = []
     @Published var toWatchListCount: Int = 0
@@ -38,6 +38,7 @@ final class MyInfoViewModel: ObservableObject {
     
     var watchlistLastId: Int? = nil
     var watchingListLastId: Int? = nil
+    var likedPersonLastId: Int? = nil
 }
 
 extension MyInfoViewModel {
@@ -80,6 +81,24 @@ extension MyInfoViewModel {
                     DLog("❌ 실패: \(error)")
                 }
             }
+    }
+    
+    func fetchLikePersonList() {
+        session.request(MyInfoAPI.likedPersonList(lastId: self.likedPersonLastId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: LikedPersonListResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("fetch person list success - \(value)")
+                    self.likedPersonList = value.result.persons
+                    self.likedPersonLastId = value.result.cursor.lastId
+                case .failure(let error):
+                    DLog("fetch person list error - \(error)")
+                }
+            }
+        
     }
     
     func fetchToWatchList() {
@@ -159,14 +178,15 @@ extension MyInfoViewModel {
     
     func getProfileImage(completion: @escaping (Image?) -> Void) {
         let imageId = UserDefaultsManager.shared.getImageId()
-        session.request(MyInfoAPI.getProfileImage(imageId: imageId))
+      //  session.request(MyInfoAPI.getProfileImage(imageId: imageId))
+        session.request(MyInfoAPI.getProfile(imageId: imageId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
             .response { response in
                 switch response.result {
                 case .success(let data):
-                    print("Image uploaded successfully: \(String(describing: data))")
+                    DLog("profile Image get successfully: \(String(describing: data))")
                     if let data = data, let uiImage = UIImage(data: data) {
                         let swiftUIImage = Image(uiImage: uiImage)  // UIImage를 Image로 변환
                         completion(swiftUIImage)
@@ -174,7 +194,7 @@ extension MyInfoViewModel {
                         completion(nil)
                     }
                 case .failure(let error):
-                    print("Failed to upload image: \(error.localizedDescription)")
+                    DLog("Failed to get profile image: \(error.localizedDescription)")
                 }
             }
     }
@@ -189,5 +209,9 @@ extension MyInfoViewModel {
     
     func moveToDetailAnime(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
+    
+    func moveToLikedPersonListView() {
+        self.navigationManager.push(route: .likePersonList)
     }
 }

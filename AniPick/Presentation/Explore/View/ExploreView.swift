@@ -40,86 +40,100 @@ struct ExploreView: View {
     @State private var exploreRequestItem: ExploreReqeustItem? = nil
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-
-            self.headerView()
-            
-            Spacer().frame(height: 16)
-            
-            HStack(spacing: 0) {
-                self.filterCategoryButtonView(selectedTab: .yearQuarter)
-                    .padding(.trailing, 8)
+        ZStack(alignment: .topTrailing) {
+            VStack(alignment: .leading, spacing: 0) {
                 
-                self.filterCategoryButtonView(selectedTab: .genre)
-                    .padding(.trailing, 8)
+                self.headerView()
                 
-                self.filterCategoryButtonView(selectedTab: .type)
+                Spacer().frame(height: 16)
                 
-            }
-            .padding(.horizontal, 20)
-            
-            if viewModel.selectedItems.isEmpty == false {
-                self.selectredCategoryView(selectedItems: viewModel.selectedItems)
-            }
-            
-            HStack(spacing: 0) {
-                Spacer()
-                
-                Button {
-                    DLog("인기순 탭탭")
-                } label: {
-                    Text("인기순")
-                        .customFontStyle(size: 14, color: .gray8)
-                        .padding(.trailing, 20)
+                HStack(spacing: 0) {
+                    self.filterCategoryButtonView(selectedTab: .yearQuarter)
+                        .padding(.trailing, 8)
+                    
+                    self.filterCategoryButtonView(selectedTab: .genre)
+                        .padding(.trailing, 8)
+                    
+                    self.filterCategoryButtonView(selectedTab: .type)
+                    
                 }
-            }
-            .padding(.vertical, 20)
-            
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(viewModel.exploreItems, id: \.animeId) { item in
-                        animationCell(item: item) {
-                            self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
-                        }
-                        .onAppear {
-                            if item == viewModel.exploreItems.last {
-                                DLog("explore 데이터 확인 - \(item) -- \(viewModel.exploreItems.last)")
-                               viewModel.fetchFiletedExploreData()
+                .padding(.horizontal, 20)
+                
+                if viewModel.selectedItems.isEmpty == false {
+                    self.selectredCategoryView(selectedItems: viewModel.selectedItems)
+                }
+                
+                HStack(spacing: 0) {
+                    Spacer()
+                    
+                    Button {
+                        DLog("인기순 탭탭")
+                        self.viewModel.isShowSortOptionView.toggle()
+                    } label: {
+                        Text("인기순")
+                            .customFontStyle(size: 14, color: .gray8)
+                            .padding(.trailing, 20)
+                    }
+                }
+                .padding(.vertical, 20)
+                
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 24) {
+                        ForEach(viewModel.exploreItems, id: \.animeId) { item in
+                            animationCell(item: item) {
+                                self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
+                            }
+                            .onAppear {
+                                if item == viewModel.exploreItems.last {
+                                    DLog("explore 데이터 확인 - \(item) -- \(viewModel.exploreItems.last)")
+                                    viewModel.fetchFiletedExploreData()
+                                }
                             }
                         }
                     }
                 }
+                .padding(.horizontal, 20)
             }
-            .padding(.horizontal, 20)
-        }
-        .sheet(isPresented: $isPresentYearFilter) {
-            filterSelectedHalfModalView()
-                .presentationDetents([.height(self.sheetHeight)])
-//                .onHeightChange { newHeight in
-//                    self.sheetHeight = newHeight
-//                }
+            .sheet(isPresented: $isPresentYearFilter) {
+                filterSelectedHalfModalView()
+                    .presentationDetents([.height(self.sheetHeight)])
+                //                .onHeightChange { newHeight in
+                //                    self.sheetHeight = newHeight
+                //                }
+                
+            }
+            .background(Color.white)
+            .navigationBarBackButtonHidden(true)
+            .onAppear {
+                // TODO: 무한스크롤은 와안성
+                //viewModel.getExploreItems(category: .popularity)
+                if fromHomeupcoming {
+                    self.fromHomeupcoming = false
+                } else {
+                    viewModel.fetchFiletedExploreData()
+                }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .didSelectSeason)) { notification in
+                if let userInfo = notification.userInfo,
+                   let season = userInfo["season"] as? Int,
+                   let year = userInfo["seasonYear"] as? Int {
+                    self.viewModel.selectedSeason = String(season)
+                    self.viewModel.selectedYear = String(year)
+                    viewModel.fetchFiletedExploreData()
+                    DLog("📥 받음: season=\(season), year=\(year)")
+                    self.fromHomeupcoming = true
+                }
+            }
             
-        }
-        .navigationBarBackButtonHidden(true)
-        .onAppear {
-            // TODO: 무한스크롤은 와안성
-            //viewModel.getExploreItems(category: .popularity)
-            if fromHomeupcoming {
-                self.fromHomeupcoming = false
-            } else {
-                viewModel.fetchFiletedExploreData()
+            if viewModel.isShowSortOptionView {
+                getSortOptionView(sort: viewModel.selectedCategory)
+                    .padding(.trailing, 20)
+                    .offset(y: 160)
+                    .zIndex(2)
+                    .animation(.easeInOut, value: viewModel.isShowSortOptionView)
             }
-        }
-        .onReceive(NotificationCenter.default.publisher(for: .didSelectSeason)) { notification in
-            if let userInfo = notification.userInfo,
-               let season = userInfo["season"] as? Int,
-               let year = userInfo["seasonYear"] as? Int {
-                self.viewModel.selectedSeason = String(season)
-                self.viewModel.selectedYear = String(year)
-                viewModel.fetchFiletedExploreData()
-                DLog("📥 받음: season=\(season), year=\(year)")
-                self.fromHomeupcoming = true
-            }
+            
+            
         }
         
     }
@@ -238,7 +252,6 @@ struct ExploreView: View {
                 }
                 
                 
-                
                 Button {
                     self.selectedTab = .type
                 } label: {
@@ -278,6 +291,7 @@ struct ExploreView: View {
                     Picker("", selection: $viewModel.selectedYear) {
                         ForEach(currentList, id: \.self) {
                             Text($0)
+                                .customFontStyle(size: 14, color: .anipickBlack)
                         }
                     }
                     .pickerStyle(.wheel)
@@ -285,6 +299,7 @@ struct ExploreView: View {
                     Picker("", selection: $viewModel.selectedSeason) {
                         ForEach(quarterList, id: \.self) {
                             Text($0)
+                                .customFontStyle(size: 14, color: .anipickBlack)
                         }
                     }
                     .pickerStyle(.wheel)
@@ -316,6 +331,7 @@ struct ExploreView: View {
                     }
                 }
                 .padding(20)
+                .background(.white)
                 
             } else if selectedTab == .type {
                 ScrollView {
@@ -382,31 +398,39 @@ struct ExploreView: View {
             .padding(.trailing, 20)
         }
         .padding(.vertical, 20)
+        .background(.white)
     }
     
     private func animationCell(item: Anime, action: @escaping () -> Void) -> some View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
                     if let url = item.coverImageUrl {
                         AsyncImage(url: URL(string: url)) { phase in
                             switch phase {
                             case .empty:
-                                RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.gray.opacity(0.2))
+                                Image(.animeThumbnail)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .clipped()
                             case .success(let image):
                                 image
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
                                     .clipped()
                             case .failure:
-                                Image(systemName: "photo")
+                                Image(.animeThumbnail)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .clipped()
                             @unknown default:
                                 EmptyView()
                             }
@@ -416,11 +440,16 @@ struct ExploreView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 Text(item.title ?? "--")
-                    .font(.system(size: 14))
+                    .customFontStyle(size: 14, color: .anipickBlack)
                     .lineLimit(2)
                     .padding(.top, 6)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .multilineTextAlignment(.leading)
+                
+                Spacer()
             }
         }
+        .buttonStyle(.plain)
     }
     
     private func headerView() -> some View {
@@ -457,6 +486,33 @@ struct ExploreView: View {
                 .background(.gray7)
         }
     }
+    
+    private func getSortOptionView(sort: ExploreSortCategory) -> some View {
+        return VStack(spacing: 0) {
+            ForEach(ExploreSortCategory.allCases, id: \.self) { option in
+                Button {
+                    self.viewModel.selectedCategory = option
+                    self.viewModel.tappedSortButton()
+                } label: {
+                    Text(option.title)
+                        .customFontStyle(size: 14, color: .anipickBlack)
+                        .frame(maxWidth: .infinity, alignment: .center)
+                        .background(Color.white)
+                        .padding(.vertical, 13)
+                }
+                Rectangle()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 1)
+                    .foregroundColor(.gray7)
+                    .padding(.horizontal, 15)
+            }
+        }
+        .background(Color.white)
+        .cornerRadius(12)
+        .shadow(radius: 4)
+        .frame(width: 91)
+    }
+    
 }
 
 private struct AnimationCellView: View {
@@ -469,8 +525,11 @@ private struct AnimationCellView: View {
                     AsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: .infinity)
+                                .clipped()
                         case .success(let image):
                             image
                                 .resizable()
@@ -482,6 +541,7 @@ private struct AnimationCellView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(maxWidth: .infinity)
+                                .clipped()
                         @unknown default:
                             EmptyView()
                         }
@@ -495,6 +555,7 @@ private struct AnimationCellView: View {
                 .lineLimit(2)
                 .padding(.top, 6)
         }
+        .background(Color.white)
     }
 }
 

@@ -233,6 +233,24 @@ extension AppDIContainer {
         return RecommendedAnimeView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
+    
+    static func makeProducerDetailView(studioId: Int) -> some View {
+        let viewModel = ProducerDetailViewModel(navigationManager: navigationManager, studioId: studioId)
+        return ProducerDetailView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeVoiceActorDetailView(animeId: Int) -> some View {
+        let viewModel = VoiceActorViewModel(navigationManager: navigationManager, animeId: animeId)
+        return VoiceActorDetailView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeCharacterAndVoiceActorDetailVIew(animeId: Int) -> some View {
+        let viewModel = PersonDetailViewModel(navigationManager: navigationManager, animeId: animeId)
+        return PersonDetailView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
 }
 
 

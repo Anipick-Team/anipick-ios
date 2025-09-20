@@ -149,6 +149,7 @@ struct MyInfoView: View {
                         isShownChevron: viewModel.isEmptyLikePerson
                     ) {
                         DLog("좋아요한 인물 탭으로 이동")
+                        self.viewModel.moveToLikedPersonListView()
                     }
                     .padding(.bottom, 14)
                     
@@ -181,15 +182,18 @@ struct MyInfoView: View {
             ImagePicker(selectedImage: $selectedImage)
         }
         .padding(.horizontal, 20)
+        .background(Color.white)
         .onAppear {
             viewModel.fetchMyInfo()
+            viewModel.fetchLikePersonList()
+            
             viewModel.getProfileImage() { image in
                 self.profileImage = image
             }
         }
     }
     
-    private func personCell(item: LikedPerson) -> some View {
+    private func personCell(item: LikedRatedPerson) -> some View {
         return VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
                 // 회색 배경 정사각형
@@ -197,8 +201,10 @@ struct MyInfoView: View {
                     AsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
-                            RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.gray.opacity(0.2))
+                            Image(.animeThumbnail)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 105)
                         case .success(let image):
                             image
                                 .resizable()
@@ -260,10 +266,12 @@ struct MyInfoView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
                 Text(item.title ?? "--")
+                    .customFontStyle(size: 14, color: .anipickBlack)
                     .font(.system(size: 14))
                     .lineLimit(2)
                     .padding(.top, 6)
             }
+            .frame(width: 115)
         }
     }
     private func sectionCategoryButton(title: String, isShownChevron: Bool, action: @escaping () -> Void) -> some View {

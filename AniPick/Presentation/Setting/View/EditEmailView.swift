@@ -10,6 +10,7 @@ import SwiftUI
 struct EditEmailView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: EditEmailViewModel
+    @State private var isVisibleIcons: Bool = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -65,12 +66,54 @@ struct EditEmailView: View {
                 Spacer().frame(height: 30)
             }
             
-            TextFieldComponents(
-                titleText: "비밀번호",
-                placeholderText: "텍스트를 입력",
-                textFieldString: $viewModel.passwordString,
-                enableEyeIcon: true
-            )
+            VStack(alignment:.leading, spacing: 0) {
+                HStack(spacing: 0 ) {
+                    Text("비밀번호")
+                        .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
+                        .padding(.bottom, 12)
+                    Spacer()
+                }
+                
+                ZStack {
+                    if isVisibleIcons {
+                        TextField(
+                            "",
+                            text: $viewModel.passwordString,
+                            prompt: Text("비밀번호를 입력해주세요")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.textGray)
+                        )
+                        .foregroundColor(.anipickBlack)
+                        .padding(16)
+                        .background(.textFieldBackground)
+                        .cornerRadius(8)
+                    } else {
+                        SecureField(
+                            "",
+                            text: $viewModel.passwordString,
+                            prompt: Text("비밀번호를 입력해주세요")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(.textGray)
+                        )
+                        .foregroundColor(.anipickBlack)
+                        .padding(16)
+                        .background(.textFieldBackground)
+                        .cornerRadius(8)
+                        
+                    }
+                    
+                    HStack {
+                        Spacer()
+                        
+                        Button {
+                            self.isVisibleIcons.toggle()
+                        } label: {
+                            Image(self.isVisibleIcons ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                                .padding(.trailing, 15)
+                        }
+                    }
+                }
+            }
             .padding(.bottom, 12)
             
             // TODO: 비밀번호 관련 오류 메시지 보내야함
@@ -117,6 +160,7 @@ struct EditEmailView: View {
         }
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
+        .background(Color.white)
     }
     
     private func obfuscateEmail(_ email: String) -> String {

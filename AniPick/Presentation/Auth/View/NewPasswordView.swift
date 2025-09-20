@@ -10,6 +10,8 @@ import SwiftUI
 struct NewPasswordView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject var navigationManager: NavigationManager
+    @State private var isVisibleIcons: Bool = false
+    @State private var isVisibleIconsRepeat: Bool = false
 
     @StateObject var viewModel: ForgetPasswordViewModel
         
@@ -29,22 +31,65 @@ struct NewPasswordView: View {
             
             Spacer().frame(height: 64)
             
+//            ZStack {
+//                SecureField(
+//                    "",
+//                    text: $viewModel.newPassword,
+//                    prompt: Text("새 비밀번호를 입력해주세요")
+//                        .font(.system(size: 16, weight: .medium))
+//                        .foregroundColor(.textGray)
+//                )
+//                .padding(16)
+//                .background(.textFieldBackground)
+//                .cornerRadius(8)
+//                .autocapitalization(.none)
+//                
+//                HStack {
+//                    Spacer()
+//                    Image(.eyeUnvisibleIcons)
+//                        .padding(.trailing, 15)
+//                }
+//            }
+            
             ZStack {
-                SecureField(
-                    "",
-                    text: $viewModel.newPassword,
-                    prompt: Text("새 비밀번호를 입력해주세요")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.textGray)
-                )
-                .padding(16)
-                .background(.textFieldBackground)
-                .cornerRadius(8)
+                if isVisibleIcons {
+                    TextField(
+                        "",
+                        text: $viewModel.newPassword,
+                        prompt: Text("비밀번호를 입력해주세요")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                } else {
+                    SecureField(
+                        "",
+                        text: $viewModel.newPassword,
+                        prompt: Text("비밀번호를 입력해주세요")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+
+                }
                 
                 HStack {
                     Spacer()
-                    Image(.eyeUnvisibleIcons)
-                        .padding(.trailing, 15)
+                    
+                    Button {
+                        self.isVisibleIcons.toggle()
+                    } label: {
+                        Image(self.isVisibleIcons ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                            .padding(.trailing, 15)
+                    }
                 }
             }
             
@@ -57,23 +102,65 @@ struct NewPasswordView: View {
             
             
             ZStack {
-                SecureField(
-                    "",
-                    text: $viewModel.checkNewPassword,
-                    prompt: Text("새 비밀번호를 다시 한 번 입력해주세요")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.textGray)
-                )
-                .padding(16)
-                .background(.textFieldBackground)
-                .cornerRadius(8)
+                if isVisibleIconsRepeat {
+                    TextField(
+                        "",
+                        text: $viewModel.checkNewPassword,
+                        prompt: Text("새 비밀번호를 다시 한 번 입력해주세요")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+                } else {
+                    SecureField(
+                        "",
+                        text: $viewModel.checkNewPassword,
+                        prompt: Text("새 비밀번호를 다시 한 번 입력해주세요")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .autocapitalization(.none)
+                    .foregroundColor(.anipickBlack)
+                    .padding(16)
+                    .background(.textFieldBackground)
+                    .cornerRadius(8)
+
+                }
                 
                 HStack {
                     Spacer()
-                    Image(.eyeUnvisibleIcons)
-                        .padding(.trailing, 15)
+                    
+                    Button {
+                        self.isVisibleIconsRepeat.toggle()
+                    } label: {
+                        Image(self.isVisibleIconsRepeat ? .eyeVisibleIcons : .eyeUnvisibleIcons )
+                            .padding(.trailing, 15)
+                    }
                 }
             }
+            
+//            ZStack {
+//                SecureField(
+//                    "",
+//                    text: $viewModel.checkNewPassword,
+//                    prompt: Text("새 비밀번호를 다시 한 번 입력해주세요")
+//                        .font(.system(size: 16, weight: .medium))
+//                        .foregroundColor(.textGray)
+//                )
+//                .padding(16)
+//                .background(.textFieldBackground)
+//                .cornerRadius(8)
+//                
+//                HStack {
+//                    Spacer()
+//                    Image(.eyeUnvisibleIcons)
+//                        .padding(.trailing, 15)
+//                }
+//            }
 //            TextFieldComponents(
 //                titleText: "새 비밀번호 확인",
 //                placeholderText: "새 비밀번호를 다시 한 번 입력해주세요",
@@ -81,36 +168,36 @@ struct NewPasswordView: View {
 //                enableEyeIcon: true
 //            )
 
-            Spacer().frame(height: 40)
-            
-            VStack(spacing: 0) {
-                HStack(alignment: .center, spacing: 0) {
-                    Spacer()
-                    
-                    Button {
-                        self.navigationManager.push(route: AppRoute.emailSignup)
-                        print("tapped 회원가입")
-                    } label: {
-                        Text("회원가입")
-                    }
-                    
-                    Rectangle()
-                        .frame(width: 1, height: 15)
-                        .padding(.horizontal, 20)
-                    
-                    Button {
-                        self.navigationManager.push(route: AppRoute.findPassword)
-                        print("tapped 비밀번호 찾기")
-                    } label: {
-                        Text("비밀번호 찾기")
-                    }
-                    
-                    Spacer()
-                    
-                }
-                .font(.system(size: 14))
-                .foregroundStyle(.textGray)
-            }
+//            Spacer().frame(height: 40)
+//            
+//            VStack(spacing: 0) {
+//                HStack(alignment: .center, spacing: 0) {
+//                    Spacer()
+//                    
+//                    Button {
+//                        self.navigationManager.push(route: AppRoute.emailSignup)
+//                        print("tapped 회원가입")
+//                    } label: {
+//                        Text("회원가입")
+//                    }
+//                    
+//                    Rectangle()
+//                        .frame(width: 1, height: 15)
+//                        .padding(.horizontal, 20)
+//                    
+//                    Button {
+//                        self.navigationManager.push(route: AppRoute.findPassword)
+//                        print("tapped 비밀번호 찾기")
+//                    } label: {
+//                        Text("비밀번호 찾기")
+//                    }
+//                    
+//                    Spacer()
+//                    
+//                }
+//                .font(.system(size: 14))
+//                .foregroundStyle(.textGray)
+//            }
             
             Spacer()
             
@@ -147,6 +234,7 @@ struct NewPasswordView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
+        .background(Color.white)
         
         
     }

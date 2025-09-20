@@ -34,7 +34,7 @@ struct WatchingListView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.watchingList, id: \.self) { item in
-                        animationCell(item: item) {
+                        self.animationCell(item: item) {
                             self.viewModel.moveToDetailAnime(animeId: item.animeId ?? 0)
                         }
                     }
@@ -44,12 +44,11 @@ struct WatchingListView: View {
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
+        .background(Color.white)
         .onAppear {
             self.viewModel.fetchWatchingList()
         }
     }
-    
-    
     
     private func animationCell(item: ToWatchAnime, action: @escaping () -> Void) -> some View {
         return Button {
@@ -65,17 +64,25 @@ struct WatchingListView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .cornerRadius(8)
+                                
                             case .success(let image):
                                 image
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
-                                    .clipped()
+                                    .frame(height: 162)
+                                    .cornerRadius(8)
+                                
                             case .failure:
                                 Image(.animeThumbnail)
                                     .resizable()
                                     .scaledToFit()
                                     .frame(maxWidth: .infinity)
+                                    .frame(height: 162)
+                                    .cornerRadius(8)
+                                
                             @unknown default:
                                 EmptyView()
                             }
@@ -86,10 +93,16 @@ struct WatchingListView: View {
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 
-                Text(item.title ?? "--")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
+                VStack(spacing: 0) {
+                    Text(item.title ?? "--")
+                        .customFontStyle(size: 14, color: .anipickBlack)
+                        .lineLimit(2)
+                        .padding(.top, 6)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity)
+                    
+                    Spacer()
+                }
             }
         }
     }

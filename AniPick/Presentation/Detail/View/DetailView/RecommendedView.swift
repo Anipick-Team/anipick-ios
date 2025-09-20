@@ -60,10 +60,8 @@ struct RecommendedView: View {
                     }
                 }
             }
-            
-            
-            
         }
+        .background(Color.white)
         .padding(.horizontal, 20)
     }
     
