@@ -253,37 +253,11 @@ struct HomeView: View {
         } label: {
             VStack(alignment: .leading, spacing: 0) {
                 ZStack(alignment: .topLeading) {
-                    if let url = anime.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                // 로딩 중 placeholder
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 128, height: 174)
-                                    .clipped()
-                                
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 128, height: 174)
-                                    .clipped()
-                                
-                            case .failure:
-                                // 실패 시 fallback
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 128, height: 174)
-                                    .clipped()
-                                
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
+                    AnimeImageCommonCell(
+                        imageUrl: anime.coverImageUrl,
+                        width: 128,
+                        height: 174
+                    )
                     
                     // 초록색 배경의 숫자 뱃지
                     ZStack {
@@ -312,47 +286,12 @@ struct HomeView: View {
         return Button {
             action()
         } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    // 회색 배경 정사각형
-                    if let url = anime.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 128, height: 174)
-                                    .clipped()
-                                
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 128, height: 174)
-                                    .clipped()
-                                
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 128, height: 174)
-                                    .clipped()
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                        
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                }
-                
-                Text(anime.title ?? "-")
-                    .customFontStyle(size: 16, color: .anipickBlack)
-                    .frame(width: 128, height: 45, alignment: .leading)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
+            AnimeCommonCellWithTitle(
+                imageUrl: anime.coverImageUrl,
+                width: 128,
+                height: 174,
+                title: anime.title
+            )
         }
     }
 }

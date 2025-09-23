@@ -44,21 +44,6 @@ struct LikeAnimeListView: View {
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
         .background(Color.white)
-//        .onAppear {
-//            viewModel.fetchLikeAnimeList()
-//        }
-        
-//        .toolbar {
-//            ToolbarItem(placement: .topBarLeading) {
-//                Button {
-//                    dismiss()
-//                } label: {
-//                    Image(.chevronLeft)
-//                        .foregroundColor(.black)
-//                }
-//            }
-//        }
-
     }
     
     
@@ -67,40 +52,7 @@ struct LikeAnimeListView: View {
         return Button {
             self.viewModel.moveToPersonDetail(animeId: item.animeId ?? 0)
         } label: {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    if let url = item.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 162)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 162)
-                                    .clipped()
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 162)
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(item.title ?? "--")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
+            AnimeCommonCellWithTitle(imageUrl: item.coverImageUrl, width: nil, height: 162, title: item.title)
         }
     }
     

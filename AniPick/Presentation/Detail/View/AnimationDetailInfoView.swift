@@ -99,7 +99,12 @@ struct AnimationDetailInfoView: View {
             ScrollView(.horizontal) {
                 HStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.seriesInfoList, id: \.self) { item in
-                        self.animationCell(title: item.title ?? "", imageUrl: item.coverImageUrl ?? "")
+                        AnimeCommonCellWithTitle(
+                            imageUrl: item.coverImageUrl,
+                            width: 115,
+                            height: 162,
+                            title: item.title
+                        )
                     }
                 }
             }
@@ -116,7 +121,12 @@ struct AnimationDetailInfoView: View {
             ScrollView(.horizontal) {
                 HStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.recommendAnimeList, id: \.self) { item in
-                        self.animationCell(title: item.title ?? "--", imageUrl: item.coverImageUrl ?? "")
+                        AnimeCommonCellWithTitle(
+                            imageUrl: item.coverImageUrl,
+                            width: 115,
+                            height: 162,
+                            title: item.title
+                        )
                     }
                 }
             }
@@ -209,49 +219,4 @@ struct AnimationDetailInfoView: View {
             }
         }
     }
-    
-    private func animationCell(title: String, imageUrl: String) -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                    AsyncImage(url: URL(string: imageUrl)) { phase in
-                        switch phase {
-                        case .empty:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 162)
-                                .clipped()
-                            
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 162)
-                                .clipped()
-                        case .failure:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 162)
-                                .clipped()
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(title)
-                .customFontStyle(size: 12, color: .anipickBlack)
-                .lineLimit(2)
-                .frame(width: 115, alignment: .leading)
-                .multilineTextAlignment(.leading)
-                .padding(.top, 6)
-                
-        }
-    }
-    
 }

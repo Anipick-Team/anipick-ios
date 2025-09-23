@@ -139,7 +139,7 @@ extension MyInfoViewModel {
     
     
     func fetchFinishedList() {
-        session.request(MyInfoAPI.watchingAnimeList(status: "FINISHED", lastId: self.watchlistLastId))
+        session.request(MyInfoAPI.finishedAnimeList(status: "FINISHED", lastId: self.watchlistLastId))
             .cURLDescription { description in
                 DLog("\(description)")
             }

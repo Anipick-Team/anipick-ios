@@ -161,7 +161,9 @@ struct MyInfoView: View {
                         ScrollView(.horizontal) {
                             HStack(spacing: 8) {
                                 ForEach(viewModel.likedPersonList, id: \.self) { item in
-                                    personCell(item: item)
+                                    personCell(item: item) {
+                                        DLog("좋아요한 인물 cell 탭탭")
+                                    }
                                 }
                             }
                         }
@@ -193,42 +195,19 @@ struct MyInfoView: View {
         }
     }
     
-    private func personCell(item: LikedRatedPerson) -> some View {
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                if let url = item.profileImageUrl {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 105)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 105)
-                                .clipped()
-                        case .failure:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 105)
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
-
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(item.name ?? "--")
-                .customFontStyle(size: 14, color: .anipickBlack)
-                .lineLimit(2)
-                .padding(.top, 6)
+    private func personCell(
+        item: LikedRatedPerson,
+        action: @escaping () -> Void
+    ) -> some View {
+        return Button {
+            action()
+        } label: {
+            AnimeCommonCellWithTitle(
+                imageUrl: item.profileImageUrl,
+                width: 115,
+                height: 144,
+                title: item.name
+            )
         }
     }
     
@@ -236,42 +215,12 @@ struct MyInfoView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    if let url = item.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 115, height: 162)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 115, height: 162)
-                                    .clipped()
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 115, height: 162)
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(item.title ?? "--")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .font(.system(size: 14))
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
-            .frame(width: 115)
+            AnimeCommonCellWithTitle(
+                imageUrl: item.coverImageUrl,
+                width: 115,
+                height: 162,
+                title: item.title
+            )
         }
     }
     private func sectionCategoryButton(title: String, isShownChevron: Bool, action: @escaping () -> Void) -> some View {

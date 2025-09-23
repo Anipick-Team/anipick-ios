@@ -56,42 +56,12 @@ struct ToWatchListView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    if let url = item.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(item.title ?? "--")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
+            AnimeCommonCellWithTitle(
+                imageUrl: item.coverImageUrl,
+                width: nil,
+                height: 162,
+                title: item.title
+            )
         }
     }
     

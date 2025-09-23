@@ -31,7 +31,7 @@ struct ProducerDetailView: View {
             self.viewModel.fetchProducerInfo()
         }
     }
-
+    
     private func makeProducerView(producerList: [(String, [AnimeWithSeasonYear])]) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             ForEach(producerList, id: \.0) { (year, itemList) in
@@ -48,9 +48,14 @@ struct ProducerDetailView: View {
                 }
                 
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(itemList, id: \.self) { item in
+                    ForEach(itemList.indices, id: \.self) { idx in
+                        let item = itemList[idx]
                         animationCell(item: item)
+                            .onAppear {
+                                viewModel.loadMoreIfNeeded(currentIndex: idx)
+                            }
                     }
+
                 }
                 .padding(.horizontal, 20)
                 
@@ -78,42 +83,13 @@ struct ProducerDetailView: View {
             self.viewModel.moveToDetailAnimeView(animeId: item.animeId ?? 0)
         } label: {
             VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                if let url = item.coverImageUrl {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 162)
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 162)
-                        case .failure:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 162)
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
+                AnimeCommonCellWithTitle(
+                    imageUrl: item.coverImageUrl,
+                    width: nil,
+                    height: 162,
+                    title: item.title
+                )
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(item.title ?? "--")
-                        .customFontStyle(size: 14, color: .anipickBlack)
-                        .lineLimit(2)
-                        .padding(.top, 6)
-                        .multilineTextAlignment(.leading)
-                    Spacer(minLength: 0)
-                }
-        }
         }
     }
     

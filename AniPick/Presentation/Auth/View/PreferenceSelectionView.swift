@@ -168,7 +168,7 @@ struct PreferenceSelectionView: View {
                 ForEach(viewModel.animeList, id: \.self) { value in
                     // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
                   //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
-                    animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
+                    self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
                         self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
                     }
                     // TODO: 각 애니메이션 별 star 표시하도록 적용

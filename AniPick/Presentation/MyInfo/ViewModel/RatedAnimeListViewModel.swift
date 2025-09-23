@@ -23,15 +23,11 @@ final class RatedAnimeListViewModel: ObservableObject {
     
     var lastId: Int? = nil
     var lastRating: String? = nil
-    
-    
-    
     let session = Session(interceptor: TokenInterceptor.shared)
 }
 
 extension RatedAnimeListViewModel {
     func fetchRatedAnimeList() {
-        self.ratedReviewList.removeAll()
         session.request(
             MyInfoAPI.ratedAnimeList(
                 lastId: nil,
@@ -47,19 +43,15 @@ extension RatedAnimeListViewModel {
         .responseDecodable(of: MyReviewListResponse.self) { resposne in
             switch resposne.result {
             case .success(let value):
-//                if let result = value.result,
-//                   let reviewList = result.reviews {
+                self.ratedReviewList = []
+                DLog("MyInfo - Rated Review List fetct- \(value)")
                 self.lastId = value.result.cursor.lastId
                 self.lastLikeCount = value.result.count
-               //     self.lastRating = result.cursor?.lastValue
-                    let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
+                let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
 
-                    let filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
-
-                    self.ratedReviewList = filtered
-           //     }
-                DLog("MyInfo - Rated Review List fetct- \(value)")
-       
+                let filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
+                self.ratedReviewList = filtered
+                
             case .failure(let error):
                 DLog("error: \(error)")
             }

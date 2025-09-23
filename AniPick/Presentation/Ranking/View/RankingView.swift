@@ -238,44 +238,11 @@ struct RankingView: View {
                 }
                 .padding(.trailing, 15)
                 
-                ZStack(alignment: .topLeading) {
-                    if let url = item.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                // 로딩 중 placeholder
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 128, height: 182)
-                                    .clipped()
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 128, height: 182)
-                                    .clipped()
-                                
-                            case .failure:
-                                // 실패 시 fallback
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 128, height: 182)
-                                    .clipped()
-                                
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-//                Rectangle()
-//                    .frame(width: 128, height: 182)
-//                    .foregroundStyle(.gray)
-//                    .cornerRadius(8)
+                AnimeImageCommonCell(
+                    imageUrl: item.coverImageUrl,
+                    width: 128,
+                    height: 182
+                )
                 
                 VStack(alignment: .leading, spacing: 0) {
                     Text(item.title ?? "-")
@@ -288,16 +255,6 @@ struct RankingView: View {
                             self.gerneCell(title: item)
                                 .padding(.trailing, 4)
                         }
-                       
-//                        self.gerneCell(title: "액션")
-//                            .padding(.trailing, 4)
-//                        self.gerneCell(title: "SF")
-//                            .padding(.trailing, 4)
-//                        ForEach(0..<3) { _ in
-//                            self.gerneCell(title: "로맨스")
-//                                .padding(.trailing, 4)
-//                        }
-//                        
                     }
                     .padding(.trailing, 4)
                     .padding(.vertical, 4)

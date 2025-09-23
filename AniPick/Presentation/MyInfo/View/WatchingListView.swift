@@ -54,56 +54,12 @@ struct WatchingListView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    if let url = item.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 162)
-                                    .cornerRadius(8)
-                                
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 162)
-                                    .cornerRadius(8)
-                                
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 162)
-                                    .cornerRadius(8)
-                                
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
-                    }
-                    
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                VStack(spacing: 0) {
-                    Text(item.title ?? "--")
-                        .customFontStyle(size: 14, color: .anipickBlack)
-                        .lineLimit(2)
-                        .padding(.top, 6)
-                        .multilineTextAlignment(.leading)
-                        .frame(maxWidth: .infinity)
-                    
-                    Spacer()
-                }
-            }
+            AnimeCommonCellWithTitle(
+                imageUrl: item.coverImageUrl,
+                width: nil,
+                height: 162,
+                title: item.title
+            )
         }
     }
     

@@ -55,41 +55,14 @@ struct LikePersonListView: View {
         return Button {
             self.viewModel.moveToPersonDetailView(personId: item.personId ?? 0)
         } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    if let url = item.profileImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 105)
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 105)
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 105)
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                    
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(item.name ?? "-")
-                    .font(.system(size: 14))
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
+            AnimeCommonCellWithTitle(
+                imageUrl: item.profileImageUrl,
+                width: nil,
+                height: 133,
+                title: item.name
+            )
         }
+        .buttonStyle(.plain)
     }
     
     

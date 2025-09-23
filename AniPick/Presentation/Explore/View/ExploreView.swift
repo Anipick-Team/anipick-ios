@@ -405,49 +405,7 @@ struct ExploreView: View {
         return Button {
             action()
         } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    if let url = item.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 162)
-                                    .clipped()
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 162)
-                                    .clipped()
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 162)
-                                    .clipped()
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(item.title ?? "--")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .multilineTextAlignment(.leading)
-                
-                Spacer()
-            }
+            AnimeCommonCellWithTitle(imageUrl: item.coverImageUrl, width: nil, height: 162, title: item.title)
         }
         .buttonStyle(.plain)
     }
@@ -513,50 +471,6 @@ struct ExploreView: View {
         .frame(width: 91)
     }
     
-}
-
-private struct AnimationCellView: View {
-    let item: Anime
-
-    var body: some View {
-        VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                if let url = item.coverImageUrl {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                        case .failure:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(item.title ?? "--")
-                .font(.system(size: 14))
-                .lineLimit(2)
-                .padding(.top, 6)
-        }
-        .background(Color.white)
-    }
 }
 
 #Preview {

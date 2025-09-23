@@ -89,7 +89,7 @@ struct RatedAnimeListView: View {
                                 DLog("button tapped")
                             }
                             .onAppear {
-                                if item == viewModel.ratedReviewList.last {
+                                if item == viewModel.ratedReviewList.last && viewModel.ratedReviewList.count > 15 {
                                     viewModel.loadMoreAnimeList()
                                 }
                             }

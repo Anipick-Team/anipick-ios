@@ -12,6 +12,7 @@ struct HomeSearchView: View {
     @StateObject var viewModel: HomeSearchViewModel
     
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    let personColumns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 4)
     
     @State private var selectedTab: SearchTab = .initSearch
     @State private var tabWidths: [SearchTab: CGFloat] = [:]
@@ -291,7 +292,7 @@ struct HomeSearchView: View {
                 .padding(.bottom, 20)
             
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 24) {
+                LazyVGrid(columns: personColumns, spacing: 0) {
                     ForEach(info, id: \.self) { item in
                         self.personCell(item: item)
                     }
@@ -347,47 +348,12 @@ struct HomeSearchView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    // 회색 배경 정사각형
-                    if let url = anime.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                // 로딩 중 placeholder
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(anime.title ?? "-")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
+            AnimeCommonCellWithTitle(
+                imageUrl: anime.coverImageUrl,
+                width: nil,
+                height: 162,
+                title: anime.title
+            )
         }
     }
 
@@ -396,89 +362,20 @@ struct HomeSearchView: View {
         return Button {
             action()
         } label: {
-            VStack(spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    // 회색 배경 정사각형
-                    if let url = anime.coverImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                // 로딩 중 placeholder
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                
-                            case .failure:
-                                Image(.animeThumbnail)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(maxWidth: .infinity)
-                                    .clipped()
-                                
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(anime.title ?? "-")
-                    .customFontStyle(size: 14, color: .anipickBlack)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
+            AnimeCommonCellWithTitle(
+                imageUrl: anime.coverImageUrl,
+                width: nil,
+                height: 162,
+                title: anime.title
+            )
         }
     }
     
     private func personCell(item: Person) -> some View {
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                if let url = item.profileImage {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                            
-                        case .failure:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(maxWidth: .infinity)
-                                .clipped()
-                            
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(item.name ?? "--")
-                .customFontStyle(size: 14, color: .anipickBlack)
-                .lineLimit(2)
-                .padding(.top, 6)
+        return Button {
+            DLog("인물탭탭")
+        } label: {
+            AnimeCommonCellWithTitle(imageUrl: item.profileImage, width: nil, height: 105, title: item.name)
         }
     }
     

@@ -28,7 +28,7 @@ enum AnimeAPI: URLRequestConvertible {
     case animeWatchingStatus(animeId: Int,  status: String) // WATCHLIST, WATCHING, FINISHED 중 하나
     case deleteAnimeWatchingStatus(animeId: Int)
     
-    case studioDetailInfo(studioId: Int, lastId: Int?, lastValue: Int?, size: Int)
+    case studioDetailInfo(studioId: Int, lastId: Int?, lastValue: String?, size: Int)
     case charactersDetailInfo(animeId: Int, lastId: Int?, lastValue: Int?, size: Int)
     
     case voiceActorDetailInfo(personId: Int, lastId: Int?, size: Int)
@@ -233,7 +233,7 @@ enum AnimeAPI: URLRequestConvertible {
             return nil
             
             
-        case .studioDetailInfo(let studioId, let lastId, let lastValue, let size):
+        case let .studioDetailInfo(_, lastId, lastValue, size):
             let rawParams: [String: Any?] = [
                 "lastId": lastId,
                 "lastValue": lastValue,
