@@ -14,11 +14,16 @@ struct StarRatingView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                starView()
-                    .padding(.trailing, 6)
-                Text("(\(String(format: "%.1f", starRating))/5.0)")
-                    .font(.system(size: 16))
-                    .foregroundStyle(starRating > 0 ? .point : .gray6)
+                StarRatingComponentView(
+                    starRating: self.starRating,
+                    fontSize: 16,
+                    fontColor: .point,
+                    starSize: 27
+                ) { star in
+                    DLog("starstar - \(star)")
+                    starRating = star
+                }
+                
                 Spacer()
                 
                 Button {
@@ -42,22 +47,6 @@ struct StarRatingView: View {
         }
         .background(Color.white)
         .frame(height: 68)
-    }
-    
-    private func starView() -> some View {
-        return HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { starIdx in
-                Button {
-                    self.starRating = Double(starIdx)
-                } label: {
-                    Image(starIdx <= Int(starRating) ? .fillPickStar : .unfillStar)
-                        .resizable()
-                        .frame(width: 27, height: 27)
-                }
-                .padding(.trailing, 4)
-                
-            }
-        }
     }
 }
 

@@ -19,6 +19,9 @@ class ForgetPasswordViewModel: ObservableObject {
     @Published var timerCount: String = ""
     @Published var validNumButtonText: String = "인증번호 받기"
     @Published var isTappedValidNumButton: Bool = false
+    @Published var editPasswordGuideText: String = ""
+    @Published var passwordGuideText: String = ""
+    
     @Published var emailString: String = "" {
         didSet {
             DLog(emailString)
@@ -26,10 +29,15 @@ class ForgetPasswordViewModel: ObservableObject {
         }
     }
     
-    @Published var newPassword: String = ""
+    @Published var newPassword: String = "" {
+        didSet {
+            validPasswordInputs()
+        }
+    }
     @Published var checkNewPassword: String = "" {
         didSet {
             checkPassword()
+            validNewPasswordInputs()
         }
     }
     
@@ -187,10 +195,40 @@ class ForgetPasswordViewModel: ObservableObject {
             if response.code == 200 {
                 self.navigationManager.push(route: .content(activeTab: .home))
             } else {
+                self.editPasswordGuideText = "비밀번호가 일치하지 않습니다."
                 DLog("비밀번호 변경 실패")
+            
             }
         } catch {
             DLog("resetPassword error - \(error.localizedDescription)")
         }
     }
+    
+    func validPasswordInputs() {
+        if self.newPassword.isEmpty {
+            self.passwordGuideText = ""
+        } else if isValidPassword(self.newPassword) == false {
+            self.passwordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해 주세요."
+        } else {
+            self.passwordGuideText = ""
+        }
+    }
+    
+    func validNewPasswordInputs() {
+        if self.checkNewPassword.isEmpty {
+            self.editPasswordGuideText = ""
+        } else if isValidPassword(self.checkNewPassword) == false {
+            self.editPasswordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해 주세요."
+        } else {
+            self.editPasswordGuideText = ""
+        }
+    }
+    func isValidPassword(_ password: String) -> Bool {
+        // 최소 1개 대문자, 1개 소문자, 1개 숫자, 1개 특수문자 포함, 전체 8~16자
+        let regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,16}$"
+        
+        let predicate = NSPredicate(format: "SELF MATCHES %@", regex)
+        return predicate.evaluate(with: password)
+    }
+
 }

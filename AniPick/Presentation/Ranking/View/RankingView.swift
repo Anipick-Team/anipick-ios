@@ -202,7 +202,7 @@ struct RankingView: View {
                 Button {
                     DLog("완료버튼")
                     self.isPresentGenreModalView.toggle()
-                    self.viewModel.resetData()
+                    self.viewModel.fetchFirstPage()
                 } label: {
                     Text("완료")
                         .frame(width: 60, height: 30)
@@ -219,50 +219,53 @@ struct RankingView: View {
     }
     
     private func rankingAnimationCell(item: RankedAnime) -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: 0) {
-                VStack(spacing: 0) {
-                    Text("\(item.rank ?? 0)")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(.anipickBlack)
-                        .padding(.bottom, 8)
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        // TODO: 오는 데이터값에 따라 색상과 trianle 변경
-//                        Image(.upTrianglePink)
-//                        
-//                        Text("12")
-//                            .font(.system(size: 14))
-//                            .foregroundStyle(.point)
-                    }
-                }
-                .padding(.trailing, 15)
-                
-                AnimeImageCommonCell(
-                    imageUrl: item.coverImageUrl,
-                    width: 128,
-                    height: 182
-                )
-                
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(item.title ?? "-")
-                        .lineLimit(2)
-                        .font(.system(size: 16))
-                        .foregroundStyle(.anipickBlack)
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        ForEach(item.genres ?? [], id: \.self) { item in
-                            self.gerneCell(title: item)
-                                .padding(.trailing, 4)
+        return Button {
+            self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .center, spacing: 0) {
+                    VStack(spacing: 0) {
+                        Text("\(item.rank ?? 0)")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.anipickBlack)
+                            .padding(.bottom, 8)
+                        
+                        HStack(alignment: .center, spacing: 0) {
+                            // TODO: 오는 데이터값에 따라 색상과 trianle 변경
+                            //                        Image(.upTrianglePink)
+                            //
+                            //                        Text("12")
+                            //                            .font(.system(size: 14))
+                            //                            .foregroundStyle(.point)
                         }
                     }
-                    .padding(.trailing, 4)
-                    .padding(.vertical, 4)
+                    .padding(.trailing, 15)
                     
+                    AnimeImageCommonCell(
+                        imageUrl: item.coverImageUrl,
+                        width: 128,
+                        height: 182
+                    )
+                    
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(item.title ?? "-")
+                            .lineLimit(2)
+                            .font(.system(size: 16))
+                            .foregroundStyle(.anipickBlack)
+                        
+                        HStack(alignment: .center, spacing: 0) {
+                            ForEach(item.genres ?? [], id: \.self) { item in
+                                self.gerneCell(title: item)
+                                    .padding(.trailing, 4)
+                            }
+                        }
+                        .padding(.trailing, 4)
+                        .padding(.vertical, 4)
+                        
+                    }
+                    .padding(.horizontal, 16)
                 }
-                .padding(.horizontal, 16)
             }
-            
          
         }
     }
@@ -276,6 +279,7 @@ struct RankingView: View {
                 .foregroundStyle(.anipickPrimary)
                 .background(.anipickPrimary.opacity(0.1))
                 .cornerRadius(8)
+                .lineLimit(1)
         }
     }
     

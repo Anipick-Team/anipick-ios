@@ -150,6 +150,12 @@ final class HomeSearchViewModel: ObservableObject {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
     
+    func moveToProducerDetailView(producerId: Int) {
+        self.navigationManager.push(route: .producerDetail(studioId: producerId))
+    }
     
+    func moveToPersonDetailView(personId: Int) {
+        self.navigationManager.push(route: .voiceActorDetail(animeId: personId))
+    }
  
 }

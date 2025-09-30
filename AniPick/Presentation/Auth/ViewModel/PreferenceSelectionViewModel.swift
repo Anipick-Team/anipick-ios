@@ -19,6 +19,8 @@ final class PreferenceSelectionViewModel: ObservableObject {
     @Published var selectedQuarter: String = ""
     @Published var searchBarString: String = ""
     
+    var lastId: Int? = nil
+    
     @Published var storedRatedAnimeList: [AuthAnimeRatingRequest] = []
     @Published var selectedAnimeList: Set<Int> = []
     @Published var isPresentModelView: Bool = false
@@ -77,7 +79,7 @@ extension PreferenceSelectionViewModel {
                 year: Int(self.selectedYear),
                 season: Int(self.selectedQuarter),
                 genre: self.selectedGenreId,
-                lastId: nil
+                lastId: self.lastId
             )
         )
             .cURLDescription { description in
@@ -88,7 +90,8 @@ extension PreferenceSelectionViewModel {
                 case .success(let value):
                     if let anime = value.result,
                        let animeList = anime.animes {
-                        self.animeList = animeList
+                        self.animeList.append(contentsOf: animeList)
+                        self.lastId = anime.cursor?.lastId
                     }
                     DLog("취향선택 Ani - \(value)")
                 case .failure(let error):

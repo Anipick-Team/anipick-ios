@@ -10,7 +10,7 @@ import SwiftUI
 struct AnimationInfoView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: AnimationInfoViewModel
-    @State private var starRating: Int = 0
+    @State private var starRating: Double = 0.0
     @State private var selectedAnimationStatusTab: AnimationWatchStatus = .empty
     @State private var selectedInfoTab: AnimationInfoTab = .animationInfo
     @State private var selectedSortOption: SortOption = .latest
@@ -230,8 +230,14 @@ struct AnimationInfoView: View {
     private func animationWatchState(animeId: Int, title: AnimationWatchStatus) -> some View {
         Button {
             DLog("\(title.title) 탭탭")
-            self.viewModel.selectedAnimationStatusTab = title
-            self.viewModel.postAnimeWatchingStatus(animeId: animeId, status: title.status)
+            if self.viewModel.selectedAnimationStatusTab == title {
+                self.viewModel.selectedAnimationStatusTab = .empty
+                self.viewModel.deleteAnimeWatchingStatus(animeId: animeId)
+            } else {
+                self.viewModel.selectedAnimationStatusTab = title
+                self.viewModel.postAnimeWatchingStatus(animeId: animeId, status: title.status)
+            }
+            
         } label: {
             Text(title.title)
                 .customFontStyle(size: 14, color: title == self.viewModel.selectedAnimationStatusTab ? .white : .anipickBlack)

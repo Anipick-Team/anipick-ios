@@ -111,7 +111,8 @@ extension MyInfoViewModel {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
                     self.toWatchListCount = value.result.count
-                    self.toWatchList = value.result.animes ?? []
+                    self.toWatchList.append(contentsOf: value.result.animes ?? [])
+                    self.watchlistLastId = value.result.cursor.lastId
                 case .failure(let error):
                     DLog("❌ 실패: \(error)")
                 }
@@ -129,7 +130,8 @@ extension MyInfoViewModel {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
                     self.watchingListCount = value.result.count
-                    self.watchingList = value.result.animes ?? []
+                    self.watchingList.append(contentsOf: value.result.animes ?? [])
+                    self.watchlistLastId = value.result.cursor.lastId
                 case .failure(let error):
                     DLog("❌ 실패: \(error)")
                 }
@@ -148,7 +150,8 @@ extension MyInfoViewModel {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
                     self.finishedListCount = value.result.count
-                    self.finishedList = value.result.animes ?? []
+                    self.finishedList.append(contentsOf: value.result.animes ?? [])
+                    self.watchlistLastId = value.result.cursor.lastId
                 case .failure(let error):
                     DLog("❌ 실패: \(error)")
                 }

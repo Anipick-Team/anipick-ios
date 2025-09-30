@@ -161,9 +161,9 @@ extension HomeViewModel {
     }
     
     func moveToExploreView() {
+        SeasonNotificationManager.post(season: self.seasonString, seasonYear: self.seasonYearString)
         self.navigationManager.push(route: .content(activeTab: .research))
         DLog("화악인 - \(self.seasonString) \(self.seasonYearString)")
-        SeasonNotificationManager.post(season: self.seasonString, seasonYear: self.seasonYearString)
     }
     func moveToAnimeDetailView(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))

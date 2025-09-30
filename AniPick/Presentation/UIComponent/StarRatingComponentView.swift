@@ -10,14 +10,24 @@ import SwiftUI
 struct StarRatingComponentView: View {
     
     @State private var starRating: Double = 0
-    @State private var contentWidth: CGFloat = 100
+    @State private var contentWidth: CGFloat
+    @State private var fontSize: CGFloat
+    @State private var fontColor: Color
+    @State private var starSize: CGFloat
     
-    init(starRating: Double) {
-        self.starRating = starRating
+    
+    let action: (Double) -> Void
+    
+    init(starRating: Double, fontSize: CGFloat, fontColor: Color, starSize: CGFloat, action: @escaping (Double) -> Void) {
+        _starRating = State(initialValue: starRating)  // ✅ 언더바 붙여야 함
+        self.action = action
+        self.fontSize = fontSize
+        self.starSize = starSize
+        self.contentWidth = starSize * 5
+        self.fontColor = fontColor
     }
-    
+
     private let starCount = 5
-    private let starSize: CGFloat = 20
     private let spacing: CGFloat = 0
     private var totalWidth: CGFloat {
         CGFloat(starCount) * starSize + CGFloat(starCount - 1) * spacing
@@ -31,22 +41,22 @@ struct StarRatingComponentView: View {
                     ForEach(1...5, id: \.self) { starIdx in
                         imageName(starIdx: starIdx)
                             .resizable()
-                            .frame(width: 20, height: 20)
+                            .frame(width: self.starSize, height: starSize)
                     }
                 }
                 .gesture(
                     DragGesture(minimumDistance: 0)
                         .onChanged { value in
-                            print(value)
-                            updateRating(with: value.location.x)
+                            DLog("star 평가 with drag - \(value)")
+                            let starRating = updateRating(with: value.location.x)
+                            action(starRating)
                         }
                 )
             }
             
             Text("(\(self.starRating, specifier: "%.1f"))")
+                .customFontStyle(size: self.fontSize, color: self.fontColor)
                 .padding(.leading, 8)
-                .font(.system(size: 14))
-                .foregroundStyle(.point)
                 .lineLimit(1)
                 .fixedSize()          
 
@@ -76,15 +86,14 @@ struct StarRatingComponentView: View {
         }
     }
     
-    private func updateRating(with xPosition: CGFloat) {
+    private func updateRating(with xPosition: CGFloat) -> Double {
         let clampedX = min(max(0, xPosition), totalWidth)
         let rawRating = Double(clampedX / (starSize + spacing))
         let roundedRating = (rawRating * 2).rounded(.toNearestOrEven) / 2.0
         starRating = roundedRating
-        print("🐳 \(starRating)")
+        DLog("🐳 \(starRating)")
+        return starRating
+        
     }
 }
 
-#Preview {
-    StarRatingComponentView(starRating: 3)
-}

@@ -165,21 +165,27 @@ struct PreferenceSelectionView: View {
             
             
             ScrollView {
-                ForEach(viewModel.animeList, id: \.self) { value in
-                    // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
-                  //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
-                    self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
-                        self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
-                    }
-                    // TODO: 각 애니메이션 별 star 표시하도록 적용
-                    if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
-                        StarRatingView() { rating in
-                            self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
+                LazyVStack(spacing: 0) {
+                    ForEach(viewModel.animeList, id: \.self) { value in
+                        // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
+                        //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
+                        self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
                             self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+                        }
+                        .onAppear {
+                            if value.animeId == viewModel.animeList.last?.animeId {
+                                self.viewModel.fetchRecommendAnime()
+                            }
+                        }
+                        // TODO: 각 애니메이션 별 star 표시하도록 적용
+                        if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
+                            StarRatingView() { rating in
+                                self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
+                                self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+                            }
                         }
                     }
                 }
-                
             }
             
             Rectangle()
@@ -416,25 +422,17 @@ struct PreferenceSelectionView: View {
                                 if viewModel.isRatedDoneAnime(animeId: anime.animeId ?? 0) {
                                     let index = self.viewModel.storedRatedAnimeList.firstIndex(where: { $0.animeId == anime.animeId ?? 0 })
                                     var currentStar = self.viewModel.storedRatedAnimeList[index ?? 0].rating
-                                    HStack(spacing: 0) {
-                                        ForEach(1...5, id: \.self) { starIdx in
-                                            Button {
-                                                DLog("별 탭탭 - \(starIdx)")
-                                                eachStarRating = Double(starIdx)
-                                                self.viewModel.tappedEachRatedAnime(animeId: anime.animeId ?? 0, rating: Double(starIdx))
-                                            } label: {
-                                                Image(starIdx <= Int(currentStar) ? .fillPickStar : .unfillStar)
-                                                    .resizable()
-                                                    .frame(width: 20, height: 20)
-                                            }
-                                            .padding(.trailing, 4)
-                                            
+                                    
+                                    StarRatingComponentView(
+                                        starRating: currentStar,
+                                        fontSize: 14,
+                                        fontColor: .point,
+                                        starSize: 20) { star in
+                                            self.viewModel.tappedEachRatedAnime(
+                                                animeId: anime.animeId ?? 0,
+                                                rating: star
+                                            )
                                         }
-                                        
-                                        Text("(\(String(format: "%.1f", currentStar)))")
-                                            .customFontStyle(size: 14, color: .point)
-                                            .padding(.leading, 8)
-                                    }
                                     .padding(.bottom, 4)
                                 }
                                 

@@ -85,6 +85,9 @@ struct AnimationDetailInfoView: View {
                             voiceActorImageUrl: item.voiceActor?.imageUrl ?? "",
                             voiceActorName: item.voiceActor?.name ?? ""
                         )
+                        .onTapGesture {
+                            self.viewModel.moveToVoiceActorDetailView(personId: item.voiceActor?.id ?? 0)
+                        }
                     }
                 }
                 .padding(.horizontal, 12)

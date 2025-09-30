@@ -220,6 +220,9 @@ struct EditPasswordView: View {
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
         .background(Color.white)
+        .onTapGesture {
+            UIApplication.shared.endEditing()
+        }
     }
     
     private func obfuscateEmail(_ email: String) -> String {

@@ -31,6 +31,6 @@ struct RankedAnime: Decodable, Hashable {
     let trend: String?
     let genres: [String]?
     let popularity: Int?
-    let trending: String?
+    let trending: Int?
 }
 

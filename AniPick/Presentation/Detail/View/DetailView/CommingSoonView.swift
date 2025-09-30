@@ -52,15 +52,15 @@ struct CommingSoonView: View {
                 // viewModel의 값 가져와서 판단
                 
                 HStack(spacing: 0) {
-                    Text("19세")
-                        .customFontStyle(size: 16, color: .point)
-                    
-                    Button {
-                        self.viewModel.toggleIncludeAdult()
-                    } label: {
-                        Image(self.viewModel.isIncludeAdult ? .pinkToggle : .toggleDisable)
-                    }
-                    
+//                    Text("19세")
+//                        .customFontStyle(size: 16, color: .point)
+//                    
+//                    Button {
+//                        self.viewModel.toggleIncludeAdult()
+//                    } label: {
+//                        Image(self.viewModel.isIncludeAdult ? .pinkToggle : .toggleDisable)
+//                    }
+//                    
                     Spacer()
                     Button {
                         DLog("sort category 선택창 나오도록 수정")

@@ -9,7 +9,7 @@ import Alamofire
 import Foundation
 
 enum RankingAPI: URLRequestConvertible {
-    case realtime(genre: String?, lastId: Int?, lastValue: Int?, size: Int?)
+    case realtime(genre: String?, lastId: Int?, lastValue: String?, size: Int?)
     case yearAndSeason(year: Int, season: Int, genre: String, lastId: Int, size: Int)
     case allTime(genre: String?, lastId: Int?, lastRank: Int?, size: Int?)
 //

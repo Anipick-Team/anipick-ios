@@ -36,6 +36,11 @@ struct FinishedWatchingListView: View {
                         self.animationCell(item: item) {
                             self.viewModel.moveToDetailAnime(animeId: item.animeId ?? 0)
                         }
+                        .onAppear {
+                            if item.animeId == self.viewModel.finishedList.last?.animeId {
+                                self.viewModel.fetchFinishedList()
+                            }
+                        }
                     }
                 }
             }

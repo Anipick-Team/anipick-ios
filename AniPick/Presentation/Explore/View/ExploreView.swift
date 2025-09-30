@@ -70,7 +70,7 @@ struct ExploreView: View {
                         DLog("인기순 탭탭")
                         self.viewModel.isShowSortOptionView.toggle()
                     } label: {
-                        Text("인기순")
+                        Text(self.viewModel.selectedCategory.title)
                             .customFontStyle(size: 14, color: .gray8)
                             .padding(.trailing, 20)
                     }
@@ -114,6 +114,7 @@ struct ExploreView: View {
                 }
             }
             .onReceive(NotificationCenter.default.publisher(for: .didSelectSeason)) { notification in
+                self.fromHomeupcoming = true
                 if let userInfo = notification.userInfo,
                    let season = userInfo["season"] as? Int,
                    let year = userInfo["seasonYear"] as? Int {
@@ -121,7 +122,7 @@ struct ExploreView: View {
                     self.viewModel.selectedYear = String(year)
                     viewModel.fetchFiletedExploreData()
                     DLog("📥 받음: season=\(season), year=\(year)")
-                    self.fromHomeupcoming = true
+                   
                 }
             }
             
@@ -199,6 +200,7 @@ struct ExploreView: View {
                                     DLog("viewModel에서 해당 값 삭제삭제")
                                     if let index = viewModel.selectedItems.firstIndex(of: item) {
                                         viewModel.removeTagView(index: index)
+                                        self.viewModel.fetchFiletedExploreData()
                                     }
                                 } label: {
                                     Image(.xButtonGreen)
@@ -368,6 +370,13 @@ struct ExploreView: View {
                 Button {
                     DLog("초기화버튼 탭 - 모든 장르 초기화")
                     self.viewModel.selectedAllClear = true
+                    self.isPresentYearFilter.toggle()
+                    viewModel.fetchInitFilteredExploreData()
+                    if viewModel.selectedAllClear {
+                        self.viewModel.allClearSelectedCategory()
+                        self.viewModel.selectedAllClear = false
+                    }
+
                 } label: {
                     Text("초기화")
                         .font(.system(size: 14))

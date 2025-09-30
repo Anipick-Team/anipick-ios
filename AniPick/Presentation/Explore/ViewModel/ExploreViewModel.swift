@@ -70,6 +70,7 @@ extension ExploreViewModel {
         self.isShowSortOptionView.toggle()
         self.exploreItems.removeAll()
         self.getExploreItems(category: self.selectedCategory)
+        self.lastId = nil
     }
     
     // 무한 스크롤 시 불러오는 값
@@ -122,7 +123,7 @@ extension ExploreViewModel {
             season: selectedSeason.isEmpty ? nil : Int(selectedSeason),
             genres: selectedGenres == -1 ? nil : selectedGenres,
             type: selectedType.isEmpty ? nil : selectedType,
-            lastId: lastId,
+            lastId: nil,
             size: nil,
             genreOp: nil,
             lastValue: nil

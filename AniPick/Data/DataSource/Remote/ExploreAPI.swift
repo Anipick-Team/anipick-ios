@@ -17,7 +17,7 @@ enum ExploreSortCategory: String, CaseIterable {
         case .popularity:
             return "인기순"
         case .rating:
-            return "최신순"
+            return "평점순"
         }
     }
 }

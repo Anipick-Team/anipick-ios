@@ -232,21 +232,24 @@ struct HomeSearchView: View {
 
     // SearchStudioQueryResponse
     private func producerCell(studio: Studio) -> some View {
-        return HStack(spacing: 0) {
-            Text(studio.name ?? "--")
-                .font(.system(size: 14))
-                .foregroundStyle(.anipickBlack)
-            
-            Spacer()
-            
-            Button {
-                DLog("제작세 detail로 이동")
-            } label: {
-                Image(.chevronLeftGray)
-                    .resizable()
-                    .frame(width: 18, height: 18)
+        return Button {
+            self.viewModel.moveToProducerDetailView(producerId: studio.studioId ?? 0)
+        } label: {
+            HStack(spacing: 0) {
+                Text(studio.name ?? "--")
+                    .font(.system(size: 14))
+                    .foregroundStyle(.anipickBlack)
+                
+                Spacer()
+                
+                Button {
+                    DLog("제작세 detail로 이동")
+                } label: {
+                    Image(.chevronLeftGray)
+                        .resizable()
+                        .frame(width: 18, height: 18)
+                }
             }
-            
         }
     }
     
@@ -374,6 +377,7 @@ struct HomeSearchView: View {
     private func personCell(item: Person) -> some View {
         return Button {
             DLog("인물탭탭")
+            self.viewModel.moveToPersonDetailView(personId: item.personId ?? 0)
         } label: {
             AnimeCommonCellWithTitle(imageUrl: item.profileImage, width: nil, height: 105, title: item.name)
         }

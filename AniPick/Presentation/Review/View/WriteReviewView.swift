@@ -11,6 +11,8 @@ struct WriteReviewView: View {
     @Environment(\.dismiss) private var dismiss
     @StateObject var viewModel: WriteReviewViewModel
     
+    @State private var ratedStar: Double = 0.0
+    
     var placeholder: String = "리뷰 내용을 입력해주세요."
     
     var body: some View {
@@ -36,11 +38,19 @@ struct WriteReviewView: View {
                 
                 
                 VStack(alignment: .center, spacing: 0) {
-                    self.starView(starRating: $viewModel.starRating)
-                        .padding(.bottom, 16)
-                    
-                    Text(String(format: "%.1f", self.viewModel.starRating))
-                        .customFontStyle(size: 20, color: .gray6, weight: .bold)
+                    StarRatingComponentView(
+                        starRating: viewModel.starRating,
+                        fontSize: 20,
+                        fontColor: .gray6,
+                        starSize: 32
+                    ) { star in
+                        self.viewModel.starRating = star
+                    }
+//                    self.starView(starRating: $viewModel.starRating)
+//                        .padding(.bottom, 16)
+//                    
+//                    Text(String(format: "%.1f", self.viewModel.starRating))
+//                        .customFontStyle(size: 20, color: .gray6, weight: .bold)
                 }
             }
             .padding(.bottom, 12)
@@ -147,24 +157,27 @@ struct WriteReviewView: View {
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
         .background(Color.white)
+        .onTapGesture {
+            UIApplication.shared.endEditing()
+        }
     }
     
     // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기
-    private func starView(starRating: Binding<Double>) -> some View {
-        return HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { starIdx in
-                Button {
-                    starRating.wrappedValue = Double(starIdx)
-                } label: {
-                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
-                        .resizable()
-                        .frame(width: 32, height: 32)
-                }
-                .padding(.trailing, 4)
-                
-            }
-        }
-    }
+//    private func starView(starRating: Binding<Double>) -> some View {
+//        return HStack(spacing: 0) {
+//            ForEach(1...5, id: \.self) { starIdx in
+//                Button {
+//                    starRating.wrappedValue = Double(starIdx)
+//                } label: {
+//                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
+//                        .resizable()
+//                        .frame(width: 32, height: 32)
+//                }
+//                .padding(.trailing, 4)
+//                
+//            }
+//        }
+//    }
     
     @ViewBuilder
     private func sectionDivder() -> some View {

@@ -96,10 +96,17 @@ struct EmailSignupView: View {
                                 }
                             }
 
-                        Text("8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요.")
-                            .customFontStyle(size: 12, color: .gray8)
-                            .padding(.top, 8)
-                            .padding(.horizontal, 4)
+                            if viewModel.passwordString.isEmpty {
+                                Text("8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요.")
+                                    .customFontStyle(size: 12, color: .gray8)
+                                    .padding(.top, 8)
+                                    .padding(.horizontal, 4)
+                            } else {
+                                Text(viewModel.passwordGuideText)
+                                    .customFontStyle(size: 12, color: .point)
+                                    .padding(.top, 8)
+                                    .padding(.horizontal, 4)
+                            }
                     }
                     
                     Spacer().frame(height: 64)
@@ -155,6 +162,7 @@ struct EmailSignupView: View {
                             Button {
                                 DLog("Tapped 이용약관 동의")
                                 viewModel.toggleTermsOfUse()
+                                viewModel.moveToTermsOfUse()
                             } label: {
                                 HStack(spacing: 0) {
                                     Image(viewModel.isAgreeTermsOfUse ? .check : .uncheck)
@@ -174,6 +182,7 @@ struct EmailSignupView: View {
                             Button {
                                 DLog("Tapped 개인정보처리방침")
                                 viewModel.togglePrivacyPolicy()
+                                viewModel.moveToPrivacyPolicy()
                             } label: {
                                 HStack(spacing: 0) {
                                     Image(viewModel.isAgreePrivacyPolicy ? .check : .uncheck)
@@ -225,6 +234,8 @@ struct EmailSignupView: View {
                     }
                 }
             }
+            .toolbarBackground(Color.white, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
             .background(Color.white)

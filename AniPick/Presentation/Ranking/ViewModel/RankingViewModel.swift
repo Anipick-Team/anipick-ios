@@ -118,8 +118,8 @@ extension RankingViewModel {
                 RankingAPI.realtime(
                     genre: self.selectedGenre == "장르" ? nil : self.selectedGenre,
                     lastId: self.lastId,
-                    lastValue: nil,
-                    size: 30
+                    lastValue: self.lastValue,
+                    size: 20
                 )
             )
             .cURLDescription { DLog("\($0)") }
@@ -134,11 +134,16 @@ extension RankingViewModel {
                     // TODO: lastId를 넣었는데도 rank 1 이 나옴
                     // 일단 무한 스크롤 대기
                     self.lastId = value.result.cursor.lastId
+                    self.lastValue = value.result.cursor.lastValue
 
                 case .failure(let error):
                     DLog("랭킹 error - \(error)")
                 }
             }
+    }
+    
+    func moveToAnimeDetailView(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
     
 }

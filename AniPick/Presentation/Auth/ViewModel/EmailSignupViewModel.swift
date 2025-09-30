@@ -15,6 +15,7 @@ class EmailSignupViewModel: ObservableObject {
     @Published var isAgreePrivacyPolicy: Bool = false
     
     @Published var emailGuideText: String = ""
+    @Published var passwordGuideText: String = ""
     
     @Published var emailString: String = "" {
         didSet {
@@ -26,6 +27,7 @@ class EmailSignupViewModel: ObservableObject {
         didSet {
             validateInputs()
             isPasswordValid()
+            validNewPasswordInputs()
         }
     }
     
@@ -102,6 +104,16 @@ extension EmailSignupViewModel {
         self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty && self.isAgreeAll
     }
 
+    func validNewPasswordInputs() {
+        if self.passwordString.isEmpty {
+            self.passwordGuideText = ""
+        } else if isValidPassword() == false {
+            self.passwordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해 주세요."
+        } else {
+            self.passwordGuideText = ""
+        }
+    }
+
     
     func isValidPassword() -> Bool {
         var password = self.passwordString
@@ -153,6 +165,16 @@ extension EmailSignupViewModel {
     func toggleTermsOfUse() {
         self.isAgreeTermsOfUse.toggle()
         self.updateAllAgreement()
+    }
+    
+    func moveToTermsOfUse() {
+        let url = URL(string: "https://anipick.p-e.kr/terms.html")!
+        UIApplication.shared.open(url)
+    }
+    
+    func moveToPrivacyPolicy() {
+        let url = URL(string: "https://anipick.p-e.kr/privacy.html")!
+        UIApplication.shared.open(url)
     }
     
     func togglePrivacyPolicy() {

@@ -19,7 +19,6 @@ struct AnimeImageCommonCell: View {
                     AsyncImage(url: URL(string: url)) { phase in
                         switch phase {
                         case .empty:
-                            Image(.animeThumbnail)
                             placeholder
                         case .success(let image):
                             imageView(image)

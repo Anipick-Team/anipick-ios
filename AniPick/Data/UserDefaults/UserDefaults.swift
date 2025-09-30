@@ -52,7 +52,7 @@ extension UserDefaultsManager {
     
     // 값이 있으면 sns로 가입된 것, 빈 값이면 이메일로그인
     func setSNSAccount(sns: String) {
-        defaults.string(forKey: UserDefaultKey.sns.rawValue)
+        defaults.set(sns, forKey: UserDefaultKey.sns.rawValue)
     }
     
     func getSNSAccount() -> String {

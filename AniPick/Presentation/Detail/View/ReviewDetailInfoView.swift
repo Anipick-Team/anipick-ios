@@ -12,9 +12,11 @@ struct ReviewDetailInfoView: View {
     @Binding var selectedSortOption: SortOption
     @Binding var isShowOnlyReview: Bool
     @Binding var isShowSortOptionView: Bool
-    @Binding var starRating: Int
+    @Binding var starRating: Double
+   // @State private var ratedStar: Double = 0.0
     
     @State private var likeCount: Int = 3
+    @State private var lineLimit: Int? = 3
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -32,25 +34,36 @@ struct ReviewDetailInfoView: View {
                         
                         
                         VStack(alignment: .center, spacing: 0) {
-                            self.starView(starRating: self.$viewModel.myReviewCount)
-                                .padding(.bottom, 16)
-                            
-                            Text("(\(self.viewModel.myReviewCount, specifier: "%.1f")/5.0)")
-                                .customFontStyle(size: 20, color: .gray6, weight: .bold)
+                            StarRatingComponentView(
+                                starRating: self.viewModel.myReviewCount,
+                                fontSize: 20,
+                                fontColor: .gray6,
+                                starSize: 32
+                            ) { star in
+                                self.starRating = star
+                                viewModel.registerStarRating(ratedStar: star)
+                                // self.starRating = star
+                            }
+                            //                            self.starView(starRating: self.$viewModel.myReviewCount)
+//                                .padding(.bottom, 16)
+//                            
+//                            Text("(\(self.viewModel.myReviewCount, specifier: "%.1f")/5.0)")
+//                                .customFontStyle(size: 20, color: .gray6, weight: .bold)
                         }
                     }
                     .padding(.bottom, 12)
                     
                     Button {
                         DLog("상세 리뷰 작성하기로 이동")
-                        viewModel.registerStarRating()
+                        self.viewModel.myReviewCount = self.starRating
+                        viewModel.registerStarRating(ratedStar: self.starRating)
                         viewModel.moveToWriteReview()
                     } label: {
                         Text("상세 리뷰 작성하기")
                             .foregroundColor(Color.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 50)
-                            .background(viewModel.myReviewCount > 0 ? .anipickPrimary : Color.gray6)
+                            .background(self.starRating > 0 ? .anipickPrimary : Color.gray6)
                     }
                     .cornerRadius(8)
                 } else {
@@ -61,9 +74,17 @@ struct ReviewDetailInfoView: View {
                         
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
-                                self.smallStarView(starRating: self.viewModel.storedMyReviewRate)
-                                Text(String(format: "%.1f", self.viewModel.storedMyReviewRate))
-                                    .customFontStyle(size: 14, color: .gray8)
+                                StarRatingComponentView(
+                                    starRating: self.viewModel.storedMyReviewRate,
+                                    fontSize: 14,
+                                    fontColor: .gray8,
+                                    starSize: 20
+                                ) { star in
+                                    self.starRating = star
+                                }
+//                                self.smallStarView(starRating: self.viewModel.storedMyReviewRate)
+//                                Text(String(format: "%.1f", self.viewModel.storedMyReviewRate))
+//                                    .customFontStyle(size: 14, color: .gray8)
                                 
                                 Spacer()
                                 
@@ -75,9 +96,30 @@ struct ReviewDetailInfoView: View {
                             // 리뷰 내용
                             Text(viewModel.reviewContent)
                                 .customFontStyle(size: 16, color: .anipickBlack, weight: .semibold)
+                                .lineLimit(self.lineLimit)
                                 .padding(.bottom, 16)
                             
                             // 좋아요 + 더보기
+                            
+                            Button {
+                                DLog("더보기 버튼 탭탭")
+                                if self.lineLimit == 3 {
+                                    self.lineLimit = nil
+                                } else {
+                                    self.lineLimit = 3
+                                }
+                            } label: {
+                                HStack(alignment: .center, spacing: 0) {
+                                    Text("더보기")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(.anipickPrimary)
+                                        .padding(.trailing, 4)
+                                    
+                                    Image(.chevronDownPrimary)
+                                }
+                            }
+                            .padding(.bottom, 4)
+                            
                             HStack {
                                 HStack(spacing: 4) {
                                     Image(systemName: "heart")
@@ -205,39 +247,76 @@ struct ReviewDetailInfoView: View {
     }
     
     
-    private func smallStarView(starRating: Double) -> some View {
-        return HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { starIdx in
-                Button {
-                    self.starRating = starIdx
-                } label: {
-                    Image(starIdx <= Int(starRating) ? .fillPickStar : .unfillStar)
-                        .resizable()
-                        .frame(width: 20, height: 20)
-                }
-                .padding(.trailing, 4)
-                
-            }
-        }
-    }
+//    private func smallStarView(starRating: Double) -> some View {
+//        return HStack(spacing: 0) {
+//            ForEach(1...5, id: \.self) { starIdx in
+//                Button {
+//                    self.starRating = starIdx
+//                } label: {
+//                    Image(starIdx <= Int(starRating) ? .fillPickStar : .unfillStar)
+//                        .resizable()
+//                        .frame(width: 20, height: 20)
+//                }
+//                .padding(.trailing, 4)
+//                
+//            }
+//        }
+//    }
+//    
+//    // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기
+//    private func starView(starRating: Binding<Double>) -> some View {
+//        return HStack(spacing: 0) {
+//            ForEach(1...5, id: \.self) { starIdx in
+//                imageName(starIdx: starIdx)
+//                    .resizable()
+//                    .frame(width: 32, height: 32)
+//            }
+//        }
+//        .gesture(
+//            DragGesture(minimumDistance: 0)
+//                .onChanged { value in
+//                    DLog("star 평가 with drag - \(value)")
+//                    let starRating = updateRating(with: value.location.x)
+//                    starRating.wrappedValue = Double(starIdx)
+//                    viewModel.registerStarRating()
+//                }
+//        )
+//    }
+//        
+//        HStack(spacing: 0) {
+//            ForEach(1...5, id: \.self) { starIdx in
+//                Button {
+//                    starRating.wrappedValue = Double(starIdx)
+//                    viewModel.registerStarRating()
+//                } label: {
+//                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
+//                        .resizable()
+//                        .frame(width: 32, height: 32)
+//                }
+//                .padding(.trailing, 4)
+//                
+//            }
+//        }
     
-    // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기
-    private func starView(starRating: Binding<Double>) -> some View {
-        return HStack(spacing: 0) {
-            ForEach(1...5, id: \.self) { starIdx in
-                Button {
-                    starRating.wrappedValue = Double(starIdx)
-                    viewModel.registerStarRating()
-                } label: {
-                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
-                        .resizable()
-                        .frame(width: 32, height: 32)
-                }
-                .padding(.trailing, 4)
-                
-            }
-        }
-    }
+//    private func imageName(starIdx: Int) -> Image {
+//        if starRating >= Double(starIdx) {
+//            return Image(.fillPickStar)
+//        } else if starRating >= Double(starIdx) - 0.5 {
+//            return Image(.halfStar)
+//        } else {
+//            return Image(.unfillStar)
+//        }
+//    }
+//    
+//    private func updateRating(with xPosition: CGFloat) -> Double {
+//        let clampedX = min(max(0, xPosition), totalWidth)
+//        let rawRating = Double(clampedX / (starSize + spacing))
+//        let roundedRating = (rawRating * 2).rounded(.toNearestOrEven) / 2.0
+//        starRating = roundedRating
+//        DLog("🐳 \(starRating)")
+//        return starRating
+//        
+//    }
 }
 
 //#Preview {

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 class EmailLoginViewModel: ObservableObject {
     @Published var emailString: String = "" {
         didSet {
@@ -14,17 +15,19 @@ class EmailLoginViewModel: ObservableObject {
             validateEmailInputs()
         }
     }
-    
-    @Published var emailGuideText: String = ""
-    
 
     @Published var passwordString: String = "" {
         didSet {
-            print(passwordString)
+            DLog(passwordString)
+            validPasswordInputs()
             validateInputs()
         }
     }
     
+    @Published var emailGuideText: String = ""
+    @Published var passwordGuideText: String = ""
+    @Published var commonGuideText: String = ""
+
     @Published var isEnableLoginButton: Bool = false
     
     private let authUsecase: AuthUsecaseProtocol
@@ -47,7 +50,7 @@ extension EmailLoginViewModel {
             )
             let response = try await authUsecase.postEmailLogin(request: request)
             DLog("loginWithEmail - \(response)")
-            
+            self.clearGuideText()
             if response.code == 200 {
                 if let result = response.result {
                     UserDefaultsManager.shared.setAccessToken(accessToken: result.token?.accessToken ?? "")
@@ -59,6 +62,14 @@ extension EmailLoginViewModel {
                     UserDefaultsManager.shared.setSNSAccount(sns: "")
                     self.navigationManager.push(route: AppRoute.content(activeTab: .home))
                 }
+            } else if response.code == 110 {
+                self.passwordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요."
+            } else if response.code == 104 || response.code == 106 {
+                self.commonGuideText = "이메일이나 비밀번호를 확인해주세요."
+            } else if response.code == 105 {
+                self.passwordGuideText = "비밀번호를 입력해주세요."
+            }  else if response.code == 112 {
+                self.emailGuideText = "가입된 계정이 없습니다. 이메일을 다시 확인해주세요."
             }
             
         } catch {
@@ -66,6 +77,11 @@ extension EmailLoginViewModel {
         }
     }
 
+    private func clearGuideText() {
+        self.emailGuideText = ""
+        self.commonGuideText = ""
+        self.passwordGuideText = ""
+    }
     private func moveToHomeView() {
         self.navigationManager.push(route: AppRoute.content(activeTab: .home))
     }
@@ -81,6 +97,16 @@ extension EmailLoginViewModel {
             self.emailGuideText = ""
         }
     }
+    
+    func validPasswordInputs() {
+        if self.passwordString.isEmpty {
+            self.passwordGuideText = "비밀번호를 입력해주세요."
+        } else if isValidPassword(self.passwordString) == false {
+            self.passwordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해 주세요."
+        } else {
+            self.passwordGuideText = ""
+        }
+    }
 
     private func isValidEmail(_ email: String) -> Bool {
         let trimmed = email.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -92,4 +118,13 @@ extension EmailLoginViewModel {
         print("validateInputs 호출호출!")
         self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty
     }
+    
+    func isValidPassword(_ password: String) -> Bool {
+        // 최소 1개 대문자, 1개 소문자, 1개 숫자, 1개 특수문자 포함, 전체 8~16자
+        let regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,16}$"
+        
+        let predicate = NSPredicate(format: "SELF MATCHES %@", regex)
+        return predicate.evaluate(with: password)
+    }
+
 }

@@ -81,6 +81,10 @@ struct EmailLoginView: View {
                 }
             }
         
+            Text(viewModel.passwordGuideText)
+                .customFontStyle(size: 14, color: .point)
+                .padding(.top, 6)
+            
             Spacer().frame(height: 40)
             
             VStack(spacing: 0) {
@@ -111,6 +115,14 @@ struct EmailLoginView: View {
                 .font(.system(size: 14))
                 .foregroundStyle(.textGray)
             }
+            
+            HStack(spacing: 0) {
+                Spacer()
+                Text(viewModel.commonGuideText)
+                    .customFontStyle(size: 14, color: .point)
+                Spacer()
+            }
+            .padding(.vertical, 16)
             
             Spacer()
             
@@ -148,6 +160,9 @@ struct EmailLoginView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
         .background(Color.white)
+        .onTapGesture {
+            UIApplication.shared.endEditing()
+        }
         
         
     }

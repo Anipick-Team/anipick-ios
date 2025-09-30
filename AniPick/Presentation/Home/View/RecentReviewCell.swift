@@ -26,50 +26,49 @@ struct RecentReviewCell: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(alignment: .center, spacing: 0 ) {
-                if let url = item.animeCoverImageUrl {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        case .success(let image):
-                            image
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        case .failure:
-                            Image(.animeThumbnail)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 72)
-                                .clipShape(RoundedRectangle(cornerRadius: 8))
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
-                }
-                
-                // TODO: animation name
-                Text(item.animeTitle ?? "--")
-                    .customFontStyle(size: 16, color: .anipickBlack)
-                    .padding(.leading, 16)
-                
-                Spacer()
-            }
-            
-            Rectangle()
-                .frame(height: 1)
-                .frame(maxWidth: .infinity)
-                .foregroundStyle(.gray7)
-                .padding(.vertical, 19)
+//            HStack(alignment: .center, spacing: 0 ) {
+//                if let url = item.animeCoverImageUrl {
+//                    AsyncImage(url: URL(string: url)) { phase in
+//                        switch phase {
+//                        case .empty:
+//                            Image(.animeThumbnail)
+//                                .resizable()
+//                                .scaledToFit()
+//                                .frame(height: 72)
+//                                .clipShape(RoundedRectangle(cornerRadius: 8))
+//                        case .success(let image):
+//                            image
+//                                .resizable()
+//                                .scaledToFit()
+//                                .frame(height: 72)
+//                                .clipShape(RoundedRectangle(cornerRadius: 8))
+//                        case .failure:
+//                            Image(.animeThumbnail)
+//                                .resizable()
+//                                .scaledToFit()
+//                                .frame(height: 72)
+//                                .clipShape(RoundedRectangle(cornerRadius: 8))
+//                        @unknown default:
+//                            EmptyView()
+//                        }
+//                    }
+//                }
+//                
+//                // TODO: animation name
+//                Text(item.animeTitle ?? "--")
+//                    .customFontStyle(size: 16, color: .anipickBlack)
+//                    .padding(.leading, 16)
+//                
+//                Spacer()
+//            }
+//            
+//            Rectangle()
+//                .frame(height: 1)
+//                .frame(maxWidth: .infinity)
+//                .foregroundStyle(.gray7)
+//                .padding(.vertical, 19)
             
             HStack(alignment: .center, spacing: 0) {
-              //  StarRatingComponentView(starRating: item.rating ?? 0.0)
                 self.starRatingView(starRating: item.rating ?? 0.0)
                 
                 Spacer()
@@ -79,23 +78,19 @@ struct RecentReviewCell: View {
                     .foregroundStyle(.gray)
                     .padding(.trailing, 8)
                 
-                // TODO: 닉네임 넣어야함!
                 Text(item.nickname ?? "--")
                     .foregroundStyle(.anipickBlack)
                     .font(.system(size: 12))
                 
             }
             
-            // TODO: 리뷰 쓴 날짜 넣어야함
             Text(item.createdAt ?? "--")
                 .foregroundStyle(.gray6)
                 .font(.system(size: 12))
             
-            
-            
             Spacer().frame(height: 16)
             
-            Text(item.reviewContent ?? "--")
+            Text(item.content ?? "--")
                 .lineLimit(self.reviewContentLimit)
                 .font(.system(size: 16))
                 .foregroundStyle(.anipickBlack)

@@ -119,6 +119,9 @@ struct ForgetPasswordView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 20)
         .background(Color.white)
+        .onTapGesture {
+            UIApplication.shared.endEditing()
+        }
         
     }
 }

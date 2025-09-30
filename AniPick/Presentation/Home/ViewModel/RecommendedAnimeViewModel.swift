@@ -49,6 +49,7 @@ extension RecommendedAnimeViewModel {
                             self.recommedationAnimes.append(contentsOf: recommend)
                             self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
                             self.lastId = value.result?.cursor?.lastId
+                            self.lastValue = value.result?.cursor?.lastValue
                         }
                     case .failure(let error):
                         DLog("fetch recommedation detail with anim error \(error)")

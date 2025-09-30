@@ -10,7 +10,7 @@ import WebKit
 
 struct InquiryView: View {
     var body: some View {
-        WebView(url: URL(string: "https://spiral-cowl-f89.notion.site/AniPick-1d3b3eed42088025b329eb107cd42ae1")!)
+        WebView(url: URL(string: "https://anipick.p-e.kr/terms.html")!)
             .navigationTitle("이용약관")
             .navigationBarTitleDisplayMode(.inline)
     }

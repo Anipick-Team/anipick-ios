@@ -101,5 +101,6 @@ struct AppEntryView: View {
                 }
             }
         }
+        .background(Color.white)
     }
 }

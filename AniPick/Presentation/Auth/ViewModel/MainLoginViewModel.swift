@@ -141,7 +141,11 @@ extension MainLoginViewModel {
                 UserDefaultsManager.shared.setAccessToken(accessToken: response.result?.token?.accessToken ?? "")
                 UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "")
-                self.navigationManager.push(route: .preferenceSelection)
+                if response.result?.reviewCompletedYn ?? true {
+                    self.navigationManager.push(route: .content(activeTab: .home))
+                } else {
+                    self.navigationManager.push(route: .preferenceSelection)
+                }
             }
             // TODO: 소셜로그인 response를 받아서 어떻게 처리할 것인지 layer 나누고 처리해야함
             // TODO: UserName, id, accessToken, refreshToken -  UserDefaults에 저장

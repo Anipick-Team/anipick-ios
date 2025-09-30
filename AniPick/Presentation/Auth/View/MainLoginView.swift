@@ -106,7 +106,8 @@ struct MainLoginView: View {
                 
             }
             .navigationBarBackButtonHidden(true)
-            .background(Color.white)
+            .background(Color.white.ignoresSafeArea())
+
     }
     
     private func configure(_ request: ASAuthorizationAppleIDRequest) {

@@ -238,8 +238,8 @@ extension AnimationInfoViewModel {
             }
     }
     
-    func registerStarRating() {
-        session.request(AnimeAPI.registerRating(animeId: self.animeId, rating: self.myReviewCount))
+    func registerStarRating(ratedStar: Double) {
+        session.request(AnimeAPI.registerRating(animeId: self.animeId, rating: ratedStar))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -339,5 +339,9 @@ extension AnimationInfoViewModel {
     func moveToVoiceActorDetailView(animeId: Int) {
       //  self.navigationManager.push(route: .voiceActorDetail(animeId: animeId))
         self.navigationManager.push(route: .characterAndVoiceActorDetail(animeId: animeId))
+    }
+    
+    func moveToVoiceActorDetailView(personId: Int) {
+        self.navigationManager.push(route: .voiceActorDetail(animeId: personId))
     }
 }
