@@ -34,7 +34,7 @@ extension RatedAnimeListViewModel {
                 lastLikeCount: nil,
                 lastRating: nil,
                 sort: self.sortCategory.rawValue,
-                reviewOnly: self.isShowOnlyReview
+                reviewOnly: false
             )
         )
         .cURLDescription { description in
@@ -49,7 +49,12 @@ extension RatedAnimeListViewModel {
                 self.lastLikeCount = value.result.count
                 let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
 
-                let filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
+                var filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
+                
+                if self.isShowOnlyReview {
+                    filtered = filtered.filter { $0.reviewContent != nil && !$0.reviewContent!.isEmpty }
+                }
+                
                 self.ratedReviewList = filtered
                 
             case .failure(let error):
@@ -65,7 +70,7 @@ extension RatedAnimeListViewModel {
                 lastLikeCount: self.lastLikeCount,
                 lastRating: self.lastRating,
                 sort: self.sortCategory.rawValue,
-                reviewOnly: self.isShowOnlyReview
+                reviewOnly: false
             )
         )
         .cURLDescription { description in
@@ -74,20 +79,15 @@ extension RatedAnimeListViewModel {
         .responseDecodable(of: MyReviewListResponse.self) { resposne in
             switch resposne.result {
             case .success(let value):
-//                if let result = value.result,
-//                   let reviewList = result.reviews {
                 self.lastId = value.result.cursor.lastId
                 self.lastLikeCount = value.result.count
-              //  self.lastRating = value.result.cursor.lastValue
-                    
-                    let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
-
-                let filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
-
-                    self.ratedReviewList += filtered
-             //   }
+                let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
+                var filtered = value.result.reviews.filter { !existingIds.contains($0.reviewId) }
+                if self.isShowOnlyReview {
+                    filtered = filtered.filter { $0.reviewContent != nil && !$0.reviewContent!.isEmpty }
+                }
+                self.ratedReviewList += filtered
                 DLog("MyInfo - Rated Review List loadmore - \(value)")
-       
             case .failure(let error):
                 DLog("error: \(error)")
             }
