@@ -34,12 +34,25 @@
     "%.1f" : {
 
     },
+    "%@" : {
+
+    },
     "%@(%lld개)" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@(%2$lld개)"
+          }
+        }
+      }
+    },
+    "%@/%@분기" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@/%2$@분기"
           }
         }
       }

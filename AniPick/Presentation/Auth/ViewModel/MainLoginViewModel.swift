@@ -36,7 +36,7 @@ class MainLoginViewModel: ObservableObject {
         self.navigationManager = navigationManager
     }
     
-    private let baseUrl = "http://118.36.154.101:8080"
+    private let baseUrl = "http://anipick.p-e.kr:8080"
 
 }
 
@@ -310,35 +310,35 @@ extension MainLoginViewModel {
         }
     }
     
-    func vaildateNumber() {
-        let url = baseUrl + "/api/auth/email/verify"
-        
-        let parameter: [String: Any] = [
-            "email": "slpm3957@naver.com",
-            "code": "a3bb85"
-        ]
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json"
-        ]
-        
-        AF.request(
-            url,
-            method: .post,
-            parameters: parameter,
-            encoding: JSONEncoding.default,
-            headers: headers
-        )
-        .responseDecodable(of: BaseResponse.self) { response in
-            switch response.result {
-            case .success(let value):
-                print("✅ 성공: \(value)")
-            case .failure(let error):
-                print("❌ 실패: \(error)")
-            }
-        }
-    }
-    
+//    func vaildateNumber() {
+//        let url = baseUrl + "/api/auth/email/verify"
+//        
+//        let parameter: [String: Any] = [
+//            "email": "slpm3957@naver.com",
+//            "code": "a3bb85"
+//        ]
+//        
+//        let headers: HTTPHeaders = [
+//            "Content-Type": "application/json"
+//        ]
+//        
+//        AF.request(
+//            url,
+//            method: .post,
+//            parameters: parameter,
+//            encoding: JSONEncoding.default,
+//            headers: headers
+//        )
+//        .responseDecodable(of: BaseResponse.self) { response in
+//            switch response.result {
+//            case .success(let value):
+//                print("✅ 성공: \(value)")
+//            case .failure(let error):
+//                print("❌ 실패: \(error)")
+//            }
+//        }
+//    }
+//    
 
     
 
@@ -406,6 +406,8 @@ extension MainLoginViewModel {
                 DLog("User ID: \(userIdentifier)")
                 DLog("Full Name: \(String(describing: fullName))")
                 DLog("Email: \(String(describing: email))")
+                
+                // TODO: 이메일 전체로 보내기
                 if let email = appleIDCredential.email {
                     let usernamePart = email.components(separatedBy: "@").first ?? ""
                     DLog("Username part: \(usernamePart)")

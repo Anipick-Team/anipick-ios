@@ -7,7 +7,6 @@
 
 import SwiftUI
 
-
 enum RankingFilter: String {
     case realTime = "실시간"
     case yearQuater = "년도/분기"
@@ -15,10 +14,14 @@ enum RankingFilter: String {
 }
 
 struct RankingView: View {
-    @State private var selectedGenre: String = "미스터리"
     @StateObject var viewModel: RankingViewModel
     
     @State private var isPresentGenreModalView: Bool = false
+    @State private var isPresentYearSeasonModalView: Bool = false
+    
+    @State private var selectedTmpYear: String = ""
+    @State private var selectedTmpSeason: String = "1"
+    
     @State private var sheetHeight: CGFloat = 300
     @State private var genreList = UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
     
@@ -120,23 +123,21 @@ struct RankingView: View {
         }
         .background(Color.white)
         .onAppear {
-          //  self.viewModel.fetchRankingDataList()
             if viewModel.rankingAnimeList.isEmpty {
                 viewModel.fetchFirstPage()
-             //   viewModel.resetData()
             }
         }
         .sheet(isPresented: self.$isPresentGenreModalView) {
             self.makeGenreModalView()
                 .presentationDetents([.height(self.sheetHeight)])
-//                .onHeightChange { newHeight in
-//                    self.sheetHeight = newHeight
-//                }
+        }
+        .sheet(isPresented: self.$isPresentYearSeasonModalView) {
+            self.makeYearSeaonModalView()
+                .presentationDetents([.height(self.sheetHeight)])
         }
     }
     
     private func makeGenreModalView() -> some View {
-        
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 
@@ -218,6 +219,85 @@ struct RankingView: View {
         .frame(height: self.sheetHeight)
     }
     
+    private func makeYearSeaonModalView() -> some View {
+        let yearList = UserDefaultsManager.shared.getMetaDataForSeasonYear().map { String($0) }
+        let quarterList = ["1", "2", "3", "4"]
+        
+        return VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                Text("년도/분기")
+                    .customFontStyle(size: 16, color: .anipickBlack)
+                    .padding(.horizontal, 12)
+                
+                Spacer()
+                
+                Button {
+                    print("닫기 탭탭")
+                    self.isPresentYearSeasonModalView.toggle()
+                } label: {
+                    Image(.xButton)
+                        .frame(width: 12, height: 12)
+                }
+                
+            }
+            .padding(.top, 12)
+            .padding(.horizontal, 12)
+            
+            HStack(spacing: 0) {
+                Picker("", selection: self.$selectedTmpYear) {
+                    ForEach(yearList, id: \.self) {
+                        Text($0)
+                            .customFontStyle(size: 18, color: .anipickSecondary)
+                    }
+                }
+                .pickerStyle(.wheel)
+                
+                Picker("", selection: self.$selectedTmpSeason) {
+                    ForEach(quarterList, id: \.self) {
+                        Text("\($0)")
+                            .customFontStyle(size: 18, color: .anipickSecondary)
+                    }
+                }
+                .pickerStyle(.wheel)
+            }
+            
+            Spacer()
+            
+            HStack(spacing: 0) {
+                Spacer()
+                
+                Button {
+                    DLog("초기화버튼 탭")
+                    self.viewModel.resetData()
+                } label: {
+                    Text("초기화")
+                        .font(.system(size: 14))
+                        .foregroundStyle(.textGray)
+                }
+                
+                Spacer().frame(width: 16)
+                
+                Button {
+                    DLog("완료버튼")
+                    self.viewModel.selectedYear = self.selectedTmpYear
+                    self.viewModel.selectedSeason = self.selectedTmpSeason
+                    self.isPresentYearSeasonModalView.toggle()
+                    self.viewModel.fetchFirstPage()
+                } label: {
+                    Text("완료")
+                        .frame(width: 60, height: 30)
+                        .foregroundStyle(.white)
+                        .font(.system(size: 12))
+                        .background(.anipickPrimary)
+                        .cornerRadius(4)
+                }
+            }
+            .padding(.trailing, 20)
+        }
+        .background(Color.white.ignoresSafeArea())
+        .frame(height: self.sheetHeight)
+    }
+    
     private func rankingAnimationCell(item: RankedAnime) -> some View {
         return Button {
             self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
@@ -229,6 +309,7 @@ struct RankingView: View {
                             .font(.system(size: 20, weight: .semibold))
                             .foregroundStyle(.anipickBlack)
                             .padding(.bottom, 8)
+                        
                         
                         HStack(alignment: .center, spacing: 0) {
                             // TODO: 오는 데이터값에 따라 색상과 trianle 변경
@@ -252,6 +333,7 @@ struct RankingView: View {
                             .lineLimit(2)
                             .font(.system(size: 16))
                             .foregroundStyle(.anipickBlack)
+                            .multilineTextAlignment(.leading)
                         
                         HStack(alignment: .center, spacing: 0) {
                             ForEach(item.genres ?? [], id: \.self) { item in
@@ -286,15 +368,31 @@ struct RankingView: View {
     private func filterCell(myFilter: RankingFilter) -> some View {
         return Button {
             self.viewModel.isSelectedFilter = myFilter
+            if myFilter == .yearQuater {
+                self.isPresentYearSeasonModalView.toggle()
+            }
             viewModel.fetchFirstPage()
+            self.viewModel.selectedYear = ""
+            self.viewModel.selectedSeason = ""
         } label: {
             VStack(alignment: .leading, spacing: 0) {
-                Text(myFilter.rawValue)
-                    .padding(.vertical, 7)
-                    .padding(.horizontal, 12)
-                    .customFontStyle(size: 13, color: self.viewModel.isSelectedFilter == myFilter ? .gray5 : .white)
-                    .background(self.viewModel.isSelectedFilter == myFilter ? .anipickPrimary : .gray6)
-                    .cornerRadius(32)
+                if self.viewModel.isSelectedFilter == .yearQuater && myFilter == .yearQuater {
+                    let year = self.viewModel.selectedYear.isEmpty ? "년도" : self.viewModel.selectedYear
+                    let season = self.viewModel.selectedSeason.isEmpty ? "" : self.viewModel.selectedSeason
+                    Text("\(year)/\(season)분기")
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 12)
+                        .customFontStyle(size: 13, color: self.viewModel.isSelectedFilter == myFilter ? .gray5 : .white)
+                        .background(self.viewModel.isSelectedFilter == myFilter ? .anipickPrimary : .gray6)
+                        .cornerRadius(32)
+                } else {
+                    Text(myFilter.rawValue)
+                        .padding(.vertical, 7)
+                        .padding(.horizontal, 12)
+                        .customFontStyle(size: 13, color: self.viewModel.isSelectedFilter == myFilter ? .gray5 : .white)
+                        .background(self.viewModel.isSelectedFilter == myFilter ? .anipickPrimary : .gray6)
+                        .cornerRadius(32)
+                }
             }
         }
     }

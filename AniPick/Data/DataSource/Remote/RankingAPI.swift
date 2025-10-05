@@ -10,7 +10,7 @@ import Foundation
 
 enum RankingAPI: URLRequestConvertible {
     case realtime(genre: String?, lastId: Int?, lastValue: String?, size: Int?)
-    case yearAndSeason(year: Int, season: Int, genre: String, lastId: Int, size: Int)
+    case yearAndSeason(year: Int, season: Int, genre: String?, lastId: Int?, lastRank: Int?, size: Int)
     case allTime(genre: String?, lastId: Int?, lastRank: Int?, size: Int?)
 //
 //    init(realtime genre: String? = nil, lastId: Int? = nil, lastValue: Int? = nil, size: Int? = nil) {
@@ -29,8 +29,8 @@ enum RankingAPI: URLRequestConvertible {
         switch self {
         case .realtime:
             return "api/rankings/real-time"
-        case let .yearAndSeason(year, season, genre, lastId, size):
-            return "api/rankgins/year-season?genre=\(genre)&lastId=\(lastId)&size=\(size)"
+        case .yearAndSeason:
+            return "api/rankings/year-season"
         case let .allTime(genre, lastId, lastRank, size):
             return "api/rankings/all-time"
         }
@@ -58,8 +58,16 @@ enum RankingAPI: URLRequestConvertible {
            ]
             return rawParams.compactMapValues { $0 }
             
-        case let .yearAndSeason(year, season, genre, lastId, size):
-            return nil
+        case let .yearAndSeason(year, season, genre, lastId, lastRank, size):
+            let rawParams: [String: Any?]  = [
+                "year": year,
+                "season": season,
+                "genre": genre,
+                "lastId": lastId,
+                "lastRank": lastRank,
+                "size": size
+           ]
+            return rawParams.compactMapValues { $0 }
         case let .allTime(genre, lastId, lastRank, size):
             let rawParams: [String: Any?]  = [
                 "genre": genre,

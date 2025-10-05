@@ -90,11 +90,19 @@ struct RecentReviewCell: View {
             
             Spacer().frame(height: 16)
             
-            Text(item.content ?? "--")
-                .lineLimit(self.reviewContentLimit)
-                .font(.system(size: 16))
-                .foregroundStyle(.anipickBlack)
-                .padding(.bottom, 4)
+            if let content = item.content {
+                Text(content ?? "--")
+                    .lineLimit(self.reviewContentLimit)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.anipickBlack)
+                    .padding(.bottom, 4)
+            } else {
+                Text(item.reviewContent ?? "--")
+                    .lineLimit(self.reviewContentLimit)
+                    .font(.system(size: 16))
+                    .foregroundStyle(.anipickBlack)
+                    .padding(.bottom, 4)
+            }
             
             Button {
                 DLog("더보기 버튼 탭탭")

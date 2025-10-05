@@ -13,6 +13,7 @@ struct AnimeImageCommonCell: View {
     let height: CGFloat?
     
     var body: some View {
+        
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
                 if let url = imageUrl {
