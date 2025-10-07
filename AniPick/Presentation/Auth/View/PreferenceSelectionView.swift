@@ -219,7 +219,9 @@ struct PreferenceSelectionView: View {
                    viewModel.fetchRecommendAnime()
                }
         }
-        
+        .onTapGesture {
+            UIApplication.shared.endEditing()
+        }
     }
     
     

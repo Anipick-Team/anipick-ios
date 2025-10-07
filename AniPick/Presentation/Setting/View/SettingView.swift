@@ -11,6 +11,7 @@ struct SettingView: View {
     @Environment(\.dismiss) private var dismiss
     
     @StateObject var viewModel: SettingViewModel
+    @State private var isSNS: String = UserDefaultsManager.shared.getSNSAccount()
     
     var body: some View {
         ZStack {
@@ -36,7 +37,7 @@ struct SettingView: View {
                             titleColor: nil,
                             subtitle: viewModel.email,
                             subtitleColor: nil,
-                            isShowChevron: true
+                            isShowChevron: self.isSNS.isEmpty
                         ),
                         // TODO: SNS 간편 가입된 계정인지 확인 필요
                         SettingInfoData(
@@ -44,7 +45,7 @@ struct SettingView: View {
                             titleColor: nil,
                             subtitle: viewModel.isSNSAccount ? "sns 간편가입된 계정입니다." : "",
                             subtitleColor: .gray6,
-                            isShowChevron: true
+                            isShowChevron: self.isSNS.isEmpty
                         ),
                         SettingInfoData(
                             title: SettingCategory.linkedSNS,
@@ -129,6 +130,15 @@ struct SettingView: View {
                     viewModel.tappedLogout()
                     UserDefaultsManager.shared.logoutAllClearInfo()
                 }
+            }
+            
+            if viewModel.isShowSNSPopup {
+                SNSSignupPopupView {
+                    viewModel.isShowSNSPopup = false
+                } okAction: {
+                    self.viewModel.moveToBack()
+                }
+
             }
         }
         .background(Color.white)

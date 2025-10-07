@@ -25,7 +25,7 @@ enum ExploreSortCategory: String, CaseIterable {
 struct ExploreReqeustItem: Codable {
     let year: Int?
     let season: Int?
-    let genres: Int? // id 값으로 구분
+    let genres: [Int]? // id 값으로 구분
     let type: String? // TV, OVA, MOVIE
     let lastId: Int? //다음 페이지시 추가됨
     let size: Int? // 기본 18

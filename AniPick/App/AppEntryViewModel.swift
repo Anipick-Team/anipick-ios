@@ -9,7 +9,6 @@ import SwiftUI
 import Alamofire
 
 final class AppEntryViewModel: ObservableObject {
-    @Published var authStatus: AuthStatus = .notLoggedIn
     let session = Session(interceptor: TokenInterceptor.shared)
     func checkAuthentication() {
         

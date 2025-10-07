@@ -62,7 +62,7 @@ enum AuthAPI {
         case .verifyEmailVerificationCode:
             return .post
         case .resetPassword:
-            return .post
+            return .patch
         }
     }
     

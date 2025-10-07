@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-enum Tab {
+enum Tab: Hashable {
     case home
     case ranking
     case research

@@ -342,37 +342,37 @@ extension MainLoginViewModel {
 
     
 
-    
-    func resetPassword() {
-        let url = baseUrl + "/api/auth/password/reset"
-        
-        let parameter: [String: Any] = [
-            "email": "slpm3957@naver.com",
-            "newPassword": "newIosPassword1!",
-            "checkNewPassword" : "newIosPassword1!"
-        ]
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json"
-        ]
-        
-        AF.request(
-            url,
-            method: .patch,
-            parameters: parameter,
-            encoding: JSONEncoding.default,
-            headers: headers
-        )
-        .responseDecodable(of: BaseResponse.self) { response in
-            switch response.result {
-            case .success(let value):
-                print("✅ 성공: \(value)")
-            case .failure(let error):
-                print("❌ 실패: \(error)")
-            }
-        }
-    }
-    
+    // TODO: delete me
+//    func resetPassword() {
+//        let url = baseUrl + "/api/auth/password/reset"
+//        
+//        let parameter: [String: Any] = [
+//            "email": "slpm3957@naver.com",
+//            "newPassword": "newIosPassword1!",
+//            "checkNewPassword" : "newIosPassword1!"
+//        ]
+//        
+//        let headers: HTTPHeaders = [
+//            "Content-Type": "application/json"
+//        ]
+//        
+//        AF.request(
+//            url,
+//            method: .patch,
+//            parameters: parameter,
+//            encoding: JSONEncoding.default,
+//            headers: headers
+//        )
+//        .responseDecodable(of: BaseResponse.self) { response in
+//            switch response.result {
+//            case .success(let value):
+//                print("✅ 성공: \(value)")
+//            case .failure(let error):
+//                print("❌ 실패: \(error)")
+//            }
+//        }
+//    }
+//    
     
     
     func tappedLoginButton(provider: LoginButtonProvider) async {

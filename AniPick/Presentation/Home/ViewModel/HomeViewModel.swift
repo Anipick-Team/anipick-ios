@@ -150,12 +150,6 @@ extension HomeViewModel {
             }
     }
     
-    
-    
-    
-    
-    
-    
     func moveToSearchView() {
         self.navigationManager.push(route: AppRoute.homeSearch)
     }

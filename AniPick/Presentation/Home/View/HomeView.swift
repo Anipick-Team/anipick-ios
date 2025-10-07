@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @State private var nickname: String = ""
     @StateObject var viewModel: HomeViewModel
+    @EnvironmentObject var appState: AppState
     
     var body: some View {
         VStack(spacing: 0) {
@@ -124,6 +125,11 @@ struct HomeView: View {
                 // TODO: 얘가 기본 default값 UI
                 self.sectionView(title: "\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기 방영예정", items: viewModel.upcomingAnimes) {
                     self.viewModel.moveToExploreView()
+                    
+                    appState.pushExplore(
+                        year: String(self.viewModel.seasonYearString),
+                        season: String(self.viewModel.seasonString)
+                        )
                 }
                 
                 sectionDivider()

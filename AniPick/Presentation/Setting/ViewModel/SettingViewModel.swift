@@ -12,6 +12,7 @@ final class SettingViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     @Published var newNickname: String = ""
     @Published var isShowLogoutPopup: Bool = false
+    @Published var isShowSNSPopup: Bool = false
     
     @Published var nickname: String = ""
     @Published var email: String = ""
@@ -99,14 +100,27 @@ final class SettingViewModel: ObservableObject {
         DLog("설정에서 닉네임 및 이메일 확인 - \(self.nickname) - \(self.email)")
     }
     
+    func moveToBack() {
+        self.navigationManager.pop()
+    }
+    
     func actionBySettingCategory(category: SettingCategory) {
         switch category {
         case .editNickname:
             self.moveToDetailSettingView(route: .editNickname)
         case .editEmail:
-            self.moveToDetailSettingView(route: .editEmail)
+            let isSns = UserDefaultsManager.shared.getSNSAccount()
+            if isSns.isEmpty {
+                self.moveToDetailSettingView(route: .editEmail)
+            } else {
+                self.isShowSNSPopup.toggle()
+            }
+            
         case .editPassword:
-            self.moveToDetailSettingView(route: .editPassword)
+            let isSns = UserDefaultsManager.shared.getSNSAccount()
+            if isSns.isEmpty {
+                self.moveToDetailSettingView(route: .editPassword)
+            }
         case .linkedSNS:
             DLog("sns임!!")
         case .appVersion:
