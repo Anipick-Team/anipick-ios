@@ -79,7 +79,7 @@ struct CommingSoonView: View {
                 }
                 .padding(20)
                 
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 24) {
                         ForEach(viewModel.commingSoonAnimeList, id: \.self) { item in
                             self.animationCell(item: item) {

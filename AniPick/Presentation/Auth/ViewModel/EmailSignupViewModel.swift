@@ -118,7 +118,8 @@ extension EmailSignupViewModel {
     func isValidPassword() -> Bool {
         var password = self.passwordString
         let trimmed = password.trimmingCharacters(in: .whitespacesAndNewlines)
-        let regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,16}$"
+         // let regex = "^(?=.*[A-Z])(?=.*[a-z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,16}$"
+        let regex = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,16}$"
         let result = NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: trimmed)
         
         return result

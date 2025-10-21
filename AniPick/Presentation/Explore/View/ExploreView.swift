@@ -7,11 +7,13 @@
 
 import SwiftUI
 
-enum ExploreFilterTab: String, CaseIterable {
+enum ExploreFilterTab: String, CaseIterable, Identifiable {
     case yearQuarter = "년도/분기"
     case season = "분기"
     case genre = "장르"
     case type = "타입"
+
+    var id: String { self.rawValue }
 }
 
 struct ExploreView: View {
@@ -19,8 +21,11 @@ struct ExploreView: View {
     @EnvironmentObject var appState: AppState
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
-    @State private var selectedTab: ExploreFilterTab = .genre
+    @State private var selectedTab: ExploreFilterTab = .yearQuarter
     @State private var isPresentYearFilter: Bool = false
+    
+    @State private var activeFilterTab: ExploreFilterTab? = nil   // NEW
+
     
     @State private var isPresentGenreFilter: Bool = false
     
@@ -94,62 +99,53 @@ struct ExploreView: View {
                 }
                 .padding(.vertical, 20)
                 
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 24) {
-                        ForEach(viewModel.exploreItems, id: \.animeId) { item in
-                            animationCell(item: item) {
-                                self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
-                            }
-                            .onAppear {
-                                if item == viewModel.exploreItems.last {
-                                    DLog("explore 데이터 확인 - \(item) -- \(String(describing: viewModel.exploreItems.last))")
-                                    viewModel.fetchFiletedExploreData()
+                ScrollView(showsIndicators: false) {
+
+                    GeometryReader { geo in
+                        Color.clear
+                            .preference(key: ScrollOffsetPreferenceKey.self,
+                                        value: geo.frame(in: .named("explore")).minY)
+                    }
+                    .frame(height: 0)
+                    
+                        LazyVGrid(columns: columns, spacing: 24) {
+                            ForEach(viewModel.exploreItems, id: \.animeId) { item in
+                                animationCell(item: item) {
+                                    self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
+                                }
+                                .onAppear {
+                                    if item == viewModel.exploreItems.last {
+                                        DLog("explore 데이터 확인 - \(item) -- \(String(describing: viewModel.exploreItems.last))")
+                                        viewModel.fetchFiletedExploreData()
+                                    }
                                 }
                             }
                         }
-                    }
                 }
                 .padding(.horizontal, 20)
             }
+            .onChange(of: selectedTab) { newValue in
+                DLog("선택된 Tab - \(newValue)")
+                if newValue == .yearQuarter || newValue == .genre || newValue == .type {
+                    self.isPresentYearFilter = true
+                }
+            }
             .sheet(isPresented: $isPresentYearFilter) {
                 filterSelectedHalfModalView()
+                    .id(selectedTab)
                     .presentationDetents([.height(self.sheetHeight)])
-                //                .onHeightChange { newHeight in
-                //                    self.sheetHeight = newHeight
-                //                }
                 
             }
             .background(Color.white)
             .navigationBarBackButtonHidden(true)
             .onAppear {
-                // TODO: 무한스크롤은 와안성
-//                if fromHomeupcoming {
-//                    self.fromHomeupcoming = false
-//                } else {
                 self.applyIncomingFilterIfNeeded()
                 viewModel.fetchFiletedExploreData()
-              //  }
             }
             .onChange(of: appState.pendingExploreFilter) { _ in
                 DLog("appState onChange 감지")
                 applyIncomingFilterIfNeeded()
             }
-//            .onReceive(NotificationCenter.default.publisher(for: .didSelectSeason)) { notification in
-//                self.fromHomeupcoming = true
-//                if let userInfo = notification.userInfo,
-//                   let season = userInfo["season"] as? Int,
-//                   let year = userInfo["seasonYear"] as? Int {
-//                    DLog("📥 받음: season=\(season), year=\(year)")
-//                    let yearItem = ExploreSelectedTag(category: .yearQuarter, value: String(year))
-//                    let seasonItem = ExploreSelectedTag(category: .season, value: String(season))
-//                    self.insertTagIfNotExist(yearItem)
-//                    self.insertTagIfNotExist(seasonItem)
-////                    self.viewModel.selectedSeason = String(season)
-////                    self.viewModel.selectedYear = String(year)
-//                    viewModel.fetchFiletedExploreData()
-//                }
-//            }
-            
             if viewModel.isShowSortOptionView {
                 getSortOptionView(sort: viewModel.selectedCategory)
                     .padding(.trailing, 20)
@@ -157,6 +153,20 @@ struct ExploreView: View {
                     .zIndex(2)
                     .animation(.easeInOut, value: viewModel.isShowSortOptionView)
             }
+        }
+        .coordinateSpace(name: "explore")
+        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
+            DLog("스크롤 Y offset: \(y)")
+            handleScroll(yOffset: y)
+        }
+
+    }
+    
+    func handleScroll(yOffset: CGFloat) {
+        if yOffset < -50 {
+            showFilterBar = false
+        } else {
+            showFilterBar = true
         }
     }
     
@@ -185,7 +195,10 @@ struct ExploreView: View {
             Button {
                 DLog("\(selectedTab.rawValue) tapped")
                 self.selectedTab = selectedTab
-                self.isPresentYearFilter.toggle()
+                self.activeFilterTab = selectedTab
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    self.isPresentYearFilter = true
+                }
             } label: {
                 HStack(alignment: .center, spacing: 0) {
                     Text(selectedTab.rawValue)
@@ -218,7 +231,7 @@ struct ExploreView: View {
                 
                 Spacer().frame(height: 12)
                 
-                ScrollView(.horizontal) {
+                ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 0) {
                         ForEach(self.viewModel.selectedTagList, id: \.self) { item in
                             HStack(spacing: 0) {
@@ -277,6 +290,7 @@ struct ExploreView: View {
             .padding(.vertical, 16)
         
     }
+
     
     private func filterSelectedHalfModalView() -> some View {
         return VStack(alignment: .leading, spacing: 0) {
@@ -455,7 +469,8 @@ struct ExploreView: View {
                 Spacer()
                 
                 Button {
-                    print("searchButton Tapped")
+                    DLog("searchButton Tapped")
+                    self.viewModel.moveToSearchView()
                 } label: {
                     Image(.searchIconsGray)
                         .resizable()
@@ -552,7 +567,7 @@ extension ExploreView {
             .padding(.trailing, 8)
             
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 FlowLayout() {
                     ForEach(currentList, id: \.self) { item in
                         Button {
@@ -588,7 +603,7 @@ extension ExploreView {
     }
     
     private func makeTypeView() -> some View {
-        return ScrollView {
+        return ScrollView(showsIndicators: false) {
             FlowLayout() {
                 ForEach(currentList, id: \.self) { item in
                     Button {

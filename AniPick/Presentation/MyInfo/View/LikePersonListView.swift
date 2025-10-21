@@ -31,7 +31,7 @@ struct LikePersonListView: View {
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.bottom, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.likedPersonList, id: \.self) { item in
                         // TODO: API 에서 데이터 가져와서 보여줘야함

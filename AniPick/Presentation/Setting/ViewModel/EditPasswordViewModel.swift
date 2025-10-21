@@ -54,6 +54,7 @@ extension EditPasswordViewModel {
         
         let stringCount = newPassword.count >= 10
         
+        // TODO: 정규식으로 교체
         // hasLetter - 영문자가 하나라도 포함되어 있으면 true
         let hasLetter = newPassword.range(of: "[a-zA-Z]", options: .regularExpression) != nil
         // hasNumber - 숫자가 하나라도 포함되어 있으면 true

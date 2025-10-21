@@ -102,7 +102,7 @@ struct VoiceActorDetailView: View {
                     .customFontStyle(size: 14, color: .gray8, weight: .semibold)
                     .padding(.bottom, 12)
                 
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 24) {
                         ForEach(viewModel.workList, id: \.self) { item in
                             // TODO: API 에서 데이터 가져와서 보여줘야함

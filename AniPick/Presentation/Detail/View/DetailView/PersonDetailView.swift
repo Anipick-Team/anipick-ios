@@ -26,7 +26,7 @@ struct PersonDetailView: View {
             
             Spacer().frame(height: 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 0) {
                     ForEach(viewModel.castList, id: \.self) { item in
                         // TODO: API 에서 데이터 가져와서 보여줘야함

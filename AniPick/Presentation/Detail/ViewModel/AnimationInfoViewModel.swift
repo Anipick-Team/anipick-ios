@@ -25,19 +25,18 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var recommendationInfo: [Anime] = []
     
     @Published var hasMyReview: Bool = false
-    @Published var reviewContent: String = "리유부우우우ㅜ웅"
-    @Published var myReviewCount: Double = 0.0
+    @Published var reviewContent: String = ""
+   // @Published var myReviewCount: Double = 0.0
     @Published var averageRating: String = ""
     @Published var reviewCount: Int = 0
     @Published var MyReview: MyReviewItem? = nil
     @Published var myReviewCreatedAt: String = ""
     @Published var selectedAnimationStatusTab: AnimationWatchStatus = .empty
     @Published var storedMyReviewRate: Double = 0.0
+    @Published var myLikeCount: Int = 0
+    
     
     let session = Session(interceptor: TokenInterceptor.shared)
-    
-    
-    
     
     init(animeId: Int, navigationManager: NavigationManager) {
         self.animeId = animeId
@@ -70,7 +69,6 @@ extension AnimationInfoViewModel {
                 case let .success(value):
                     DLog("anime Detail - \(response)")
                     self.animeDetailInfo = value.result
-                    //   self.hasMyReview = value.result.isLiked ?? false
                     self.averageRating = value.result.averageRating ?? "-"
                     self.reviewCount = value.result.reviewCount ?? 0
                     //    self.reviewContent = value.result.description ?? ""
@@ -228,6 +226,7 @@ extension AnimationInfoViewModel {
                             self.reviewContent = result.content ?? ""
                             self.myReviewCreatedAt = result.createdAt ?? ""
                             self.storedMyReviewRate = result.rating ?? 0
+                            self.myLikeCount = result.likeCount ?? 0
                         } else {
                             self.hasMyReview = false
                         }
@@ -320,7 +319,7 @@ extension AnimationInfoViewModel {
     }
     
     func moveToWriteReview() {
-        self.navigationManager.push(route: .review(starRating: self.myReviewCount, animeId: self.animeId))
+        self.navigationManager.push(route: .review(starRating: self.storedMyReviewRate, animeId: self.animeId))
     }
     
     func setLastVisitedAnimeId() {

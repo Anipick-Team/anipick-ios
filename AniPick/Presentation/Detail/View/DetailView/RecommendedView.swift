@@ -52,7 +52,7 @@ struct RecommendedView: View {
             
             Spacer().frame(height: 24)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(0..<5) { _ in
                         // TODO: API 에서 데이터 가져와서 보여줘야함

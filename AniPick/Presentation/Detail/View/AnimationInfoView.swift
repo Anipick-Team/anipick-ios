@@ -16,7 +16,7 @@ struct AnimationInfoView: View {
     @State private var selectedSortOption: SortOption = .latest
       
     var body: some View {
-        ScrollView {
+        ScrollView(showsIndicators: false) {
             VStack(spacing: 0) {
                 ZStack(alignment: .topTrailing) {
                     if let bannerUrl = viewModel.animeDetailInfo?.bannerImageUrl {

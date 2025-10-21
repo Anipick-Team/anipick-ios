@@ -42,7 +42,7 @@ struct HomeView: View {
                 .foregroundStyle(.gray6)
                 .padding(.horizontal, -20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     HStack(spacing: 0) {
                         Text("실시간 인기 애니메이션")
@@ -63,7 +63,7 @@ struct HomeView: View {
                     
                     Spacer().frame(height: 16)
                     
-                    ScrollView(.horizontal) {
+                    ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 0) {
                             let animes = viewModel.trendingAnimes
                             ForEach(animes, id: \.self) { item in
@@ -108,7 +108,7 @@ struct HomeView: View {
                     .padding(.bottom, 16)
                     
                     
-                    ScrollView(.horizontal) {
+                    ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 0) {
                             self.recentReviewCell()
                                 .padding(.trailing, 12)
@@ -185,7 +185,7 @@ struct HomeView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 16)
             
-            ScrollView(.horizontal) {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(items, id: \.self) { item in
                         self.animationCell(anime: item) {

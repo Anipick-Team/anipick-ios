@@ -9,22 +9,24 @@ import SwiftUI
 
 struct ReviewDetailInfoView: View {
     @StateObject var viewModel: AnimationInfoViewModel
+    
+    @State private var menuFrame: CGRect = .zero
+
     @Binding var selectedSortOption: SortOption
     @Binding var isShowOnlyReview: Bool
     @Binding var isShowSortOptionView: Bool
+    @State private var isShowBlockPopupView: Bool = false
     @Binding var starRating: Double
-   // @State private var ratedStar: Double = 0.0
-    
-    @State private var likeCount: Int = 3
     @State private var lineLimit: Int? = 3
+    
+    @State private var selectedPopupItemReviewId: Int = 0
+    @State private var selectedBlockUserId: Int = 0
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
-                // TODO: main body가 너무 길어짐. 따로 함수뷰로 분리 필요
-                // TODO: 조건문 반대로 바꾸기
-                if viewModel.hasMyReview == false {
-              //  if viewModel.reviewContent.isEmpty {
+                if viewModel.reviewContent.isEmpty {
+              //  if viewModel.hasMyReview == false {
                     ZStack {
                         Rectangle()
                             .frame(height: 123)
@@ -32,30 +34,23 @@ struct ReviewDetailInfoView: View {
                             .cornerRadius(8)
                             .foregroundColor(.gray7)
                         
-                        
                         VStack(alignment: .center, spacing: 0) {
                             StarRatingComponentView(
-                                starRating: self.viewModel.myReviewCount,
+                                starRating: self.viewModel.storedMyReviewRate,
                                 fontSize: 20,
                                 fontColor: .gray6,
                                 starSize: 32
                             ) { star in
                                 self.starRating = star
                                 viewModel.registerStarRating(ratedStar: star)
-                                // self.starRating = star
                             }
-                            //                            self.starView(starRating: self.$viewModel.myReviewCount)
-//                                .padding(.bottom, 16)
-//                            
-//                            Text("(\(self.viewModel.myReviewCount, specifier: "%.1f")/5.0)")
-//                                .customFontStyle(size: 20, color: .gray6, weight: .bold)
                         }
                     }
                     .padding(.bottom, 12)
                     
                     Button {
                         DLog("상세 리뷰 작성하기로 이동")
-                        self.viewModel.myReviewCount = self.starRating
+                        self.viewModel.storedMyReviewRate = self.starRating
                         viewModel.registerStarRating(ratedStar: self.starRating)
                         viewModel.moveToWriteReview()
                     } label: {
@@ -82,9 +77,6 @@ struct ReviewDetailInfoView: View {
                                 ) { star in
                                     self.starRating = star
                                 }
-//                                self.smallStarView(starRating: self.viewModel.storedMyReviewRate)
-//                                Text(String(format: "%.1f", self.viewModel.storedMyReviewRate))
-//                                    .customFontStyle(size: 14, color: .gray8)
                                 
                                 Spacer()
                                 
@@ -127,7 +119,7 @@ struct ReviewDetailInfoView: View {
                                         .frame(width: 14, height: 14)
                                         .foregroundColor(.gray)
                                     
-                                    Text("\(likeCount)")
+                                    Text("\(viewModel.myLikeCount)")
                                         .customFontStyle(size: 14, color: .gray6)
                                 }
                                 
@@ -160,12 +152,8 @@ struct ReviewDetailInfoView: View {
                         .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
                         .padding(.trailing, 8)
                     
-        //            VStack(alignment: .leading, spacing: 0) {
-                        // Spacer()
-                        Text("\(viewModel.reviewCount)개")
-                            .customFontStyle(size: 14, color: .gray6)
-                 //   }
-                    
+                    Text("\(viewModel.reviewCount)개")
+                        .customFontStyle(size: 14, color: .gray6)
                     
                     Spacer()
                     
@@ -208,7 +196,10 @@ struct ReviewDetailInfoView: View {
                     
                     ForEach(viewModel.reviewList, id: \.self) { item in
                         RecentReviewCell(item: item) { id, buttonFrame in
-                            DLog("button tapped")
+                            self.isShowBlockPopupView.toggle()
+                            self.selectedPopupItemReviewId = item.reviewId ?? 0
+                            self.menuFrame = buttonFrame
+                            self.selectedBlockUserId = item.userId ?? 0
                         }
                         .onTapGesture {
                             if item.isMine! {
@@ -218,19 +209,10 @@ struct ReviewDetailInfoView: View {
                         .padding(.bottom, 12)
                         .padding(.horizontal, 20)
                     }
-
-                    
                     Spacer()
-                    
                 }
                 .background(Color.gray7)
                 .padding(.horizontal, -20)
-                
-                
-                
-            }
-            .onAppear {
-                self.viewModel.getMyReview()
             }
             
             if self.isShowSortOptionView {
@@ -242,88 +224,28 @@ struct ReviewDetailInfoView: View {
                     .padding(.top, 380)
                     .padding(.trailing, 0)
             }
+            
+            if self.isShowBlockPopupView {
+                ReportBlockMenuPopup(
+                    isShowBlockMenu: self.$isShowBlockPopupView) {
+                        // 신고 버튼 Tapped
+                        DLog("신고버튼 tapped")
+                    } blockAction: {
+                        // 차단 버튼 Tapped
+                        DLog("차단버튼 tapped")
+                    }
+                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY - 40)
+                    .zIndex(1000)
+            }
         }
         .background(Color.white)
+        .onAppear {
+            self.starRating = self.viewModel.storedMyReviewRate
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.viewModel.getMyReview()
+            }
+        }
+        
     }
-    
-    
-//    private func smallStarView(starRating: Double) -> some View {
-//        return HStack(spacing: 0) {
-//            ForEach(1...5, id: \.self) { starIdx in
-//                Button {
-//                    self.starRating = starIdx
-//                } label: {
-//                    Image(starIdx <= Int(starRating) ? .fillPickStar : .unfillStar)
-//                        .resizable()
-//                        .frame(width: 20, height: 20)
-//                }
-//                .padding(.trailing, 4)
-//                
-//            }
-//        }
-//    }
-//    
-//    // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기
-//    private func starView(starRating: Binding<Double>) -> some View {
-//        return HStack(spacing: 0) {
-//            ForEach(1...5, id: \.self) { starIdx in
-//                imageName(starIdx: starIdx)
-//                    .resizable()
-//                    .frame(width: 32, height: 32)
-//            }
-//        }
-//        .gesture(
-//            DragGesture(minimumDistance: 0)
-//                .onChanged { value in
-//                    DLog("star 평가 with drag - \(value)")
-//                    let starRating = updateRating(with: value.location.x)
-//                    starRating.wrappedValue = Double(starIdx)
-//                    viewModel.registerStarRating()
-//                }
-//        )
-//    }
-//        
-//        HStack(spacing: 0) {
-//            ForEach(1...5, id: \.self) { starIdx in
-//                Button {
-//                    starRating.wrappedValue = Double(starIdx)
-//                    viewModel.registerStarRating()
-//                } label: {
-//                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
-//                        .resizable()
-//                        .frame(width: 32, height: 32)
-//                }
-//                .padding(.trailing, 4)
-//                
-//            }
-//        }
-    
-//    private func imageName(starIdx: Int) -> Image {
-//        if starRating >= Double(starIdx) {
-//            return Image(.fillPickStar)
-//        } else if starRating >= Double(starIdx) - 0.5 {
-//            return Image(.halfStar)
-//        } else {
-//            return Image(.unfillStar)
-//        }
-//    }
-//    
-//    private func updateRating(with xPosition: CGFloat) -> Double {
-//        let clampedX = min(max(0, xPosition), totalWidth)
-//        let rawRating = Double(clampedX / (starSize + spacing))
-//        let roundedRating = (rawRating * 2).rounded(.toNearestOrEven) / 2.0
-//        starRating = roundedRating
-//        DLog("🐳 \(starRating)")
-//        return starRating
-//        
-//    }
 }
 
-//#Preview {
-//    ReviewDetailInfoView(
-//        viewModel: AnimationInfoViewModel(animeId: <#Int#>, navigationManager: <#NavigationManager#>),
-//        selectedSortOption: .constant(.latest),
-//        isShowOnlyReview: .constant(false),
-//        isShowSortOptionView: .constant(false),
-//        starRating: .constant(3))
-//}

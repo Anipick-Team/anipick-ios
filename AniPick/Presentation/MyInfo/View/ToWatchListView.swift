@@ -31,7 +31,7 @@ struct ToWatchListView: View {
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.bottom, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.toWatchList, id: \.self) { item in
                         animationCell(item: item) {

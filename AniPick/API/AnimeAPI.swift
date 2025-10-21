@@ -293,7 +293,7 @@ enum AnimeAPI: URLRequestConvertible {
            ]
             return rawParams.compactMapValues { $0 }
         case .storedPreference:
-            // TODO: 배열로 선택한 값 넣는 것 필요함~~
+            // TODO: 배열로 선택한 값 넣는 것 필요함
             /*
              let ratedAnimes: [[String: Any]] = [
                  ["animeId": 12345, "rating": 4.5],

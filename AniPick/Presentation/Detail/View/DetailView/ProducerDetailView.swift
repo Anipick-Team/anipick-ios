@@ -21,7 +21,7 @@ struct ProducerDetailView: View {
             
             Spacer().frame(height: 30)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 self.makeProducerView(producerList: self.viewModel.producerList)
             }
         }

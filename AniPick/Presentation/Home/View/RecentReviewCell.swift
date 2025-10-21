@@ -18,7 +18,7 @@ struct RecentReviewCell: View {
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
     
     private let starCount = 5
-    private let starSize: CGFloat = 20
+    private let starSize: CGFloat = 18
     private let spacing: CGFloat = 0
     private var totalWidth: CGFloat {
         CGFloat(starCount) * starSize + CGFloat(starCount - 1) * spacing
@@ -26,48 +26,6 @@ struct RecentReviewCell: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-//            HStack(alignment: .center, spacing: 0 ) {
-//                if let url = item.animeCoverImageUrl {
-//                    AsyncImage(url: URL(string: url)) { phase in
-//                        switch phase {
-//                        case .empty:
-//                            Image(.animeThumbnail)
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(height: 72)
-//                                .clipShape(RoundedRectangle(cornerRadius: 8))
-//                        case .success(let image):
-//                            image
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(height: 72)
-//                                .clipShape(RoundedRectangle(cornerRadius: 8))
-//                        case .failure:
-//                            Image(.animeThumbnail)
-//                                .resizable()
-//                                .scaledToFit()
-//                                .frame(height: 72)
-//                                .clipShape(RoundedRectangle(cornerRadius: 8))
-//                        @unknown default:
-//                            EmptyView()
-//                        }
-//                    }
-//                }
-//                
-//                // TODO: animation name
-//                Text(item.animeTitle ?? "--")
-//                    .customFontStyle(size: 16, color: .anipickBlack)
-//                    .padding(.leading, 16)
-//                
-//                Spacer()
-//            }
-//            
-//            Rectangle()
-//                .frame(height: 1)
-//                .frame(maxWidth: .infinity)
-//                .foregroundStyle(.gray7)
-//                .padding(.vertical, 19)
-            
             HStack(alignment: .center, spacing: 0) {
                 self.starRatingView(starRating: item.rating ?? 0.0)
                 
@@ -118,7 +76,6 @@ struct RecentReviewCell: View {
                         .foregroundStyle(.anipickPrimary)
                         .padding(.trailing, 4)
                     
-                    //Image(reviewContentLimit == nil ? .chevronUpPrimary : .chevronDownPrimary)
                     Image(.chevronDownPrimary)
                 }
             }
@@ -182,7 +139,7 @@ struct RecentReviewCell: View {
             )
             Text("\(starRating, specifier: "%.1f")")
                 .padding(.leading, 8)
-                .customFontStyle(size: 14, color: .gray8)
+                .customFontStyle(size: 13, color: .gray8)
         }
     }
     

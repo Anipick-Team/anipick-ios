@@ -17,7 +17,7 @@ struct EmailSignupView: View {
     var body: some View {
     //    NavigationStack(path: $navigationManager.path) {
             VStack(alignment: .leading, spacing: 0) {
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     VStack(alignment:.leading, spacing: 0) {
                         Spacer()
                             .frame(height: 20)
@@ -81,8 +81,7 @@ struct EmailSignupView: View {
                                     .padding(16)
                                     .background(.textFieldBackground)
                                     .cornerRadius(8)
- 
-                                }
+                                 }
                                 
                                 HStack {
                                     Spacer()

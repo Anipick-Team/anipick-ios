@@ -47,7 +47,7 @@ struct RecentReviewView: View {
                 Spacer().frame(height: 30)
                 
                 ZStack(alignment: .topLeading) {
-                    ScrollView {
+                    ScrollView(showsIndicators: false) {
                         VStack(alignment: .leading, spacing: 0) {
                             GeometryReader { geo in
                                 Color.clear

@@ -37,7 +37,8 @@ struct RankingView: View {
                 Spacer()
                 
                 Button {
-                    print("searchButton Tapped")
+                    DLog("searchButton Tapped")
+                    self.viewModel.moveToSearchView()
                 } label: {
                     Image(.searchIconsGray)
                         .resizable()
@@ -107,7 +108,7 @@ struct RankingView: View {
                 .background(.gray7)
             
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVStack(alignment: .leading, spacing: 0) {
                     ForEach(viewModel.rankingAnimeList, id: \.self) { item in
                         self.rankingAnimationCell(item: item)
@@ -159,7 +160,7 @@ struct RankingView: View {
             .padding(.top, 12)
             .padding(.horizontal, 12)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 FlowLayout() {
                     ForEach(self.genreList, id: \.self) { item in
                         Button {

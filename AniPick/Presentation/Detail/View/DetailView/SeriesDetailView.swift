@@ -56,7 +56,7 @@ struct SeriesDetailView: View {
                 .customFontStyle(size: 16, color: .gray8)
                 .padding(.bottom, 16)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(0..<5) { _ in
                         // TODO: API 에서 데이터 가져와서 보여줘야함

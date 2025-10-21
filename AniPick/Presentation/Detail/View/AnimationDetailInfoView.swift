@@ -76,7 +76,7 @@ struct AnimationDetailInfoView: View {
             .padding(.bottom, 20)
             
             // TODO: 캐릭터, 성우진만 넣으면 UI가 깨짐 확인 필요 및 UI 수정
-            ScrollView(.horizontal) {
+            ScrollView(.horizontal, showsIndicators: false) {
                 LazyHStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.characterInfoList, id: \.self) { item in
                         CharacterAndVoiceActorCellView(
@@ -99,7 +99,7 @@ struct AnimationDetailInfoView: View {
             }
             .padding(.bottom, 20)
             
-            ScrollView(.horizontal) {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.seriesInfoList, id: \.self) { item in
                         AnimeCommonCellWithTitle(
@@ -121,7 +121,7 @@ struct AnimationDetailInfoView: View {
             }
             .padding(.bottom, 20)
             
-            ScrollView(.horizontal) {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.recommendAnimeList, id: \.self) { item in
                         AnimeCommonCellWithTitle(

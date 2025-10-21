@@ -186,7 +186,7 @@ struct HomeSearchView: View {
                     .padding(.horizontal, -20)
             }
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 HStack(spacing: 0) {
                     Text("인기 작품")
                         .customFontStyle(size: 20, color: .anipickBlack, weight: .bold)
@@ -218,7 +218,7 @@ struct HomeSearchView: View {
                 .foregroundStyle(.gray8)
                 .padding(.bottom, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 ForEach(studioInfo!, id: \.self) { item in
                     self.producerCell(studio: item)
                         .padding(.vertical, 6)
@@ -263,7 +263,7 @@ struct HomeSearchView: View {
                 .foregroundStyle(.gray8)
                 .padding(.bottom, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(animeList, id: \.self) { anime in
                         animationCellWithQeury(anime: anime) {
@@ -294,7 +294,7 @@ struct HomeSearchView: View {
                 .foregroundStyle(.gray8)
                 .padding(.bottom, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: personColumns, spacing: 0) {
                     ForEach(info, id: \.self) { item in
                         self.personCell(item: item)
@@ -327,7 +327,7 @@ struct HomeSearchView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
             
-            ScrollView(.horizontal) {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
                     ForEach(self.viewModel.recentKeywordList, id: \.self) { keyword in
                         recentSearchKeyword(keyword: keyword)

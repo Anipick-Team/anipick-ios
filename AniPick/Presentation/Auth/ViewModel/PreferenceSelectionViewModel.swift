@@ -19,7 +19,7 @@ final class PreferenceSelectionViewModel: ObservableObject {
     @Published var selectedQuarter: String = ""
     @Published var searchBarString: String = ""
     
-    var lastId: Int? = nil
+    @Published var lastId: Int? = nil
     
     @Published var storedRatedAnimeList: [AuthAnimeRatingRequest] = []
     @Published var selectedAnimeList: Set<Int> = []
@@ -72,7 +72,6 @@ extension PreferenceSelectionViewModel {
     
     func fetchRecommendAnime() {
         let genreList = UserDefaultsManager.shared.getMetaDataForGenres()
-        
         session.request(
             AnimeAPI.preference(
                 query: self.searchBarString.isEmpty ? nil : self.searchBarString,
@@ -129,6 +128,10 @@ extension PreferenceSelectionViewModel {
     func isRatedDoneAnime(animeId: Int) -> Bool {
         return storedRatedAnimeList.contains { $0.animeId == animeId }
     }
+    
+    func removeRatedAnime(animeId: Int) {
+        self.storedRatedAnimeList.removeAll { $0.animeId == animeId }
+    }
 //    func isRatedAnime(animeId: Int) -> Bool {
 //        return storedRatedAnimeList.contains { $0.animeId == animeId }
 //    }
@@ -150,9 +153,6 @@ extension PreferenceSelectionViewModel {
     func tappedAllClearButton() {
         self.searchBarString = ""
     }
-    func tappedModalSaveButton() {
-        
-    }
     
     func moveToMainView() {
         self.navigationManager.push(route: .content(activeTab: .home))
@@ -160,6 +160,7 @@ extension PreferenceSelectionViewModel {
     
     func tappedModelView() {
         self.isPresentModelView.toggle()
+        self.animeList.removeAll()
         self.fetchRecommendAnime()
     }
 }

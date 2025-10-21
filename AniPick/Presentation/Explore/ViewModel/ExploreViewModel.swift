@@ -24,9 +24,7 @@ final class ExploreViewModel: ObservableObject {
     @Published var selectedTagList: [ExploreSelectedTag] = []
         
     @Published var isToggleAllGenreCondition: Bool = false
-    var lastId: Int? = nil
-
-    
+    @Published var lastId: Int? = nil
     @Published var exploreRequestItem : ExploreReqeustItem? = nil
     @Published var selectedCategory: ExploreSortCategory = .popularity
     
@@ -158,10 +156,9 @@ extension ExploreViewModel {
     // 인기순, 평점순 나누는 값
     func tappedSortButton() {
         self.lastId = nil
+        self.exploreItems = []
         self.isShowSortOptionView.toggle()
-        self.exploreItems.removeAll()
-     //   self.getExploreItems(category: self.selectedCategory)
-        // 🐳
+        self.fetchInitFilteredExploreData()
         self.fetchMoreExploreItem(category: self.selectedCategory)
     }
     
@@ -265,7 +262,7 @@ extension ExploreViewModel {
             season: seasonInt, //selectedSeason.isEmpty ? nil : Int(selectedSeason),
             genres: selectedGenreIdList,//selectedGenreList.isEmpty ? nil : selectedGenreList,
             type: type,//selectedType.isEmpty ? nil : selectedType,
-            lastId: lastId,
+            lastId: self.lastId,
             size: nil,
             genreOp: nil, 
             lastValue: nil
@@ -305,42 +302,13 @@ extension ExploreViewModel {
             genreOp: nil,
             lastValue: nil
         )
-        //   self.getExploreItems(category: self.selectedCategory)
-        // 🐳
         self.fetchExploreItem(category: self.selectedCategory)
-     //   self.setSelectedItem()
     }
 
     func removeTagView(item: ExploreSelectedTag) {
         self.selectedTagList.removeAll { $0.id == item.id }
     }
     
-//    func removeTagView(index: Int) {
-//        DLog("tagItem before - \(selectedTagItems) \(selectdCountList)")
-//        selectedTagItems.remove(at: index)
-//        let type = selectdCountList[index]
-//        switch type {
-//        case .yearQuarter:
-//            <#code#>
-//        case .genre:
-//            self.selectedGenreList.remove(at: index)
-//        case .type:
-//            <#code#>
-//        }
-//        selectdCountList.remove(at: index)
-//        
-//        DLog("tagItem after - \(selectedTagItems) \(selectdCountList)")
-//        if selectedTagItems.isEmpty {
-//            self.exploreRequestItem = nil
-//        }
-//        self.lastId = nil
-//        // 🐳
-//        self.fetchMoreExploreItem(category: self.selectedCategory)
-// //       Task {
-////            await self.getExploreItems(category: self.selectedCategory)
-////        }
-//    }
-//    
     // 초기화 버튼 탭 시, 실행
     func allClearSelectedCategory() {
         self.selectedType = ""
@@ -348,18 +316,9 @@ extension ExploreViewModel {
         self.selectedSeason = ""
         self.selectedGenreList.removeAll()
         self.selectedTagList.removeAll()
-   //     self.selectedTagItems.removeAll()
-     //   self.selectdCountList.removeAll()
         self.exploreRequestItem = nil
         self.lastId = nil
     }
-    
-    // 태그에 해당 filterTab이 있으면 색깔이 남아있도록 판단하는 함수
-    // TODO: delete me
-//    func checkFilterColored(selectedTab: ExploreFilterTab) -> Bool {
-//        return selectdCountList.contains(selectedTab)
-//    }
-    
 }
 
 
@@ -367,5 +326,9 @@ extension ExploreViewModel {
 extension ExploreViewModel {
     func tappedAnime(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
+    
+    func moveToSearchView() {
+        self.navigationManager.push(route: AppRoute.homeSearch)
     }
 }

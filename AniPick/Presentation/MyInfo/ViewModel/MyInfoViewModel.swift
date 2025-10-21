@@ -93,7 +93,7 @@ extension MyInfoViewModel {
                 case .success(let value):
                     DLog("fetch person list success - \(value)")
                     self.likedPersonList = value.result.persons
-                    self.likedPersonLastId = value.result.cursor.lastId
+                   // self.likedPersonLastId = value.result.cursor.lastId
                 case .failure(let error):
                     DLog("fetch person list error - \(error)")
                 }

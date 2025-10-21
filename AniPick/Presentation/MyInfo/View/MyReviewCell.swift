@@ -113,7 +113,6 @@ struct MyReviewCell: View {
                             .foregroundStyle(.anipickPrimary)
                             .padding(.trailing, 4)
                         
-                        //Image(reviewContentLimit == nil ? .chevronUpPrimary : .chevronDownPrimary)
                         Image(.chevronDownPrimary)
                     }
                 }

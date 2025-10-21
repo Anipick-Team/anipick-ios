@@ -84,7 +84,7 @@ struct PreferenceSelectionView: View {
             
             HStack(spacing: 0) {
                 Button {
-                    print("년도 탭탭")
+                    DLog("년도 탭탭")
                     self.selectedTab = .yearQuarter
                     self.viewModel.isPresentModelView.toggle()
                 } label: {
@@ -108,7 +108,7 @@ struct PreferenceSelectionView: View {
                 
                 
                 Button {
-                    print("분기 탭탭")
+                    DLog("분기 탭탭")
                     self.selectedTab = .yearQuarter
                     self.viewModel.isPresentModelView.toggle()
                 } label: {
@@ -164,7 +164,7 @@ struct PreferenceSelectionView: View {
                 .padding(.vertical, 20)
             
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVStack(spacing: 0) {
                     ForEach(viewModel.animeList, id: \.self) { value in
                         // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
@@ -201,7 +201,6 @@ struct PreferenceSelectionView: View {
                 self.viewModel.tappedDoneRatedAnime()
                 self.viewModel.moveToMainView()
             }
-            
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
@@ -292,7 +291,7 @@ struct PreferenceSelectionView: View {
                 }
             } else {
                 
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     FlowLayout() {
                         ForEach(currentList, id: \.self) { item in
                             Button {
@@ -330,6 +329,8 @@ struct PreferenceSelectionView: View {
                     self.viewModel.selectedYear = ""
                     self.viewModel.selectedGenre = ""
                     self.viewModel.selectedQuarter = ""
+                    self.viewModel.selectedGenreId = nil
+                    self.viewModel.lastId = nil
                 } label: {
                     Text("초기화")
                         .font(.system(size: 14))
@@ -340,6 +341,7 @@ struct PreferenceSelectionView: View {
                 
                 Button {
                     DLog("완료버튼")
+                    self.viewModel.lastId = nil
                     self.viewModel.tappedModelView()
                 } label: {
                     Text("완료")
@@ -407,11 +409,30 @@ struct PreferenceSelectionView: View {
                             .padding(.trailing, 20)
                             
                             VStack(alignment: .leading, spacing: 0) {
-                                Text(anime.title ?? "--")
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(.textBlack)
-                                    .padding(.bottom, 4)
-                                    .padding(.top, 4)
+                                HStack(spacing: 0) {
+                                    Text(anime.title ?? "--")
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(.textBlack)
+                                        .padding(.bottom, 4)
+                                        .padding(.top, 4)
+                                        .padding(.trailing, 2)
+                                    
+                                    Spacer()
+                                    
+                                    if viewModel.isRatedDoneAnime(animeId: anime.animeId ?? 0) {
+                                        Button {
+                                            DLog("회원가입에서의 평가 취소 버튼 tapped")
+                                            self.viewModel.removeRatedAnime(animeId: anime.animeId ?? 0)
+                                        } label: {
+                                            Text("평가취소")
+                                                .frame(width: 56, height: 27)
+                                                .customFontStyle(size: 12, color: .background)
+                                                .background(Color.anipickPrimary)
+                                                .cornerRadius(4)
+                                        }
+                                    }
+                                }
+                                .padding(.bottom, 4)
                                 
                                 if let genres = anime.genres {
                                     Text(genres.joined(separator: ", "))
@@ -427,9 +448,9 @@ struct PreferenceSelectionView: View {
                                     
                                     StarRatingComponentView(
                                         starRating: currentStar,
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         fontColor: .point,
-                                        starSize: 20) { star in
+                                        starSize: 18) { star in
                                             self.viewModel.tappedEachRatedAnime(
                                                 animeId: anime.animeId ?? 0,
                                                 rating: star

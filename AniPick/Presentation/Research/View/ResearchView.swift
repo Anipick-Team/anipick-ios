@@ -137,7 +137,7 @@ struct ResearchView: View {
             .padding(.vertical, 16)
             .padding(.horizontal, 20)
             
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(0..<12) { _ in
                         animationCell()
@@ -152,9 +152,9 @@ struct ResearchView: View {
         .sheet(isPresented: $isPresentYearFilter) {
             filterKeywordHalfModalView()
                 .presentationDetents([.height(self.sheetHeight)])
-                .onHeightChange { newHeight in
-                    self.sheetHeight = newHeight
-                }
+//                .onHeightChange { newHeight in
+//                    self.sheetHeight = newHeight
+//                }
                
         }
     }
@@ -242,7 +242,7 @@ struct ResearchView: View {
                         .pickerStyle(.wheel)
                     }
                 } else if self.selectedTab == .genre {
-                    ScrollView {
+                    ScrollView(showsIndicators: false) {
                         FlowLayout() {
                             ForEach(genreList, id: \.self) { item in
                                 Button {
@@ -265,7 +265,7 @@ struct ResearchView: View {
                     }
                     .padding(20)
                 } else {
-                    ScrollView {
+                    ScrollView(showsIndicators: false) {
                         FlowLayout() {
                             ForEach(releaseTypeList, id: \.self) { item in
                                 Button {

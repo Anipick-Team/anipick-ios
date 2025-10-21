@@ -27,7 +27,7 @@ struct RatedAnimeListView: View {
                 
                 Spacer().frame(height: 30)
                 
-                ScrollView(.vertical) {
+                ScrollView(.vertical, showsIndicators: false) {
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer().frame(height: 32)
                         

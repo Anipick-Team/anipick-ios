@@ -191,5 +191,8 @@ extension RankingViewModel {
     func moveToAnimeDetailView(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
-    
+ 
+    func moveToSearchView() {
+        self.navigationManager.push(route: AppRoute.homeSearch)
+    }
 }

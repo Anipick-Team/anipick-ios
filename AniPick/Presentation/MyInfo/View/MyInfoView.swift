@@ -17,7 +17,7 @@ struct MyInfoView: View {
     
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
                     HStack(alignment: .center, spacing: 0) {
                         Text("마이페이지")
@@ -131,7 +131,7 @@ struct MyInfoView: View {
                             .resizable()
                             .frame(height: 140)
                     } else {
-                        ScrollView(.horizontal) {
+                        ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(viewModel.likedAnimeList, id: \.self) { item in
                                     animationCell(item: item) {
@@ -158,7 +158,7 @@ struct MyInfoView: View {
                             .resizable()
                             .frame(height: 140)
                     } else {
-                        ScrollView(.horizontal) {
+                        ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(viewModel.likedPersonList, id: \.self) { item in
                                     personCell(item: item) {

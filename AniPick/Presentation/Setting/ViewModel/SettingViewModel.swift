@@ -112,10 +112,7 @@ final class SettingViewModel: ObservableObject {
             let isSns = UserDefaultsManager.shared.getSNSAccount()
             if isSns.isEmpty {
                 self.moveToDetailSettingView(route: .editEmail)
-            } else {
-                self.isShowSNSPopup.toggle()
             }
-            
         case .editPassword:
             let isSns = UserDefaultsManager.shared.getSNSAccount()
             if isSns.isEmpty {

@@ -78,7 +78,7 @@ struct RecommendedAnimeView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 20)
 
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.recommedationAnimes, id: \.self) { item in
                         animationCell(item: item)
