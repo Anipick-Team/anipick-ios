@@ -30,21 +30,25 @@ struct FinishedWatchingListView: View {
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.bottom, 20)
             
-            ScrollView(showsIndicators: false) {
-                LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(viewModel.finishedList, id: \.self) { item in
-                        self.animationCell(item: item) {
-                            self.viewModel.moveToDetailAnime(animeId: item.animeId ?? 0)
-                        }
-                        .onAppear {
-                            if item.animeId == self.viewModel.finishedList.last?.animeId {
-                                self.viewModel.fetchFinishedList()
+            if viewModel.finishedListCount == 0 {
+                self.makeEmptyView()
+            } else {
+                ScrollView(showsIndicators: false) {
+                    LazyVGrid(columns: columns, spacing: 24) {
+                        ForEach(viewModel.finishedList, id: \.self) { item in
+                            self.animationCell(item: item) {
+                                self.viewModel.moveToDetailAnime(animeId: item.animeId ?? 0)
+                            }
+                            .onAppear {
+                                if item.animeId == self.viewModel.finishedList.last?.animeId {
+                                    self.viewModel.fetchFinishedList()
+                                }
                             }
                         }
                     }
                 }
+                .scrollIndicators(.hidden)
             }
-            .scrollIndicators(.hidden)
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
@@ -54,7 +58,23 @@ struct FinishedWatchingListView: View {
         }
     }
     
-    
+    private func makeEmptyView() -> some View {
+        return VStack(spacing: 0) {
+            Spacer()
+            
+            Image(.emptyFinishedIcon)
+                .resizable()
+                .frame(width: 148, height: 148)
+                .padding(.bottom, 28)
+            
+            Text("아직 다 본 작품이 없어요!")
+                .customFontStyle(size: 16, color: .gray8)
+            
+            Spacer()
+            
+        }
+        .frame(maxWidth: .infinity)
+    }
     
     private func animationCell(item: ToWatchAnime, action: @escaping () -> Void) -> some View {
         return Button {
@@ -68,21 +88,31 @@ struct FinishedWatchingListView: View {
                     title: item.title
                 )
                 
-                HStack(spacing: 0) {
-                    Text("내 평가")
-                        .customFontStyle(size: 12, color: .gray8)
-                        .padding(.trailing, 4)
-                    
-                    Image(.fillPickStar)
-                        .resizable()
-                        .frame(width: 12, height: 12)
-                        .padding(.trailing, 2)
-                    
-                    Text("\(item.myRating ?? 0, specifier: "%.1f")")
-                        .customFontStyle(size: 14, color: .point)
-                    
-                    Spacer()
-                    
+                
+                if let rating = item.myRating {
+                    HStack(spacing: 0) {
+                        Text("내 평가")
+                            .customFontStyle(size: 12, color: .gray8)
+                            .padding(.trailing, 4)
+                        
+                        Image(.fillPickStar)
+                            .resizable()
+                            .frame(width: 12, height: 12)
+                            .padding(.trailing, 2)
+                        
+                        Text("\(rating, specifier: "%.1f")")
+                            .customFontStyle(size: 14, color: .point)
+                        
+                        Spacer()
+                    }
+                } else {
+                    HStack(spacing: 0) {
+                        Text("아직 평가가 없어요.")
+                            .customFontStyle(size: 12, color: .gray8)
+                            .padding(.trailing, 4)
+                        
+                        Spacer()
+                    }
                 }
             }
         }

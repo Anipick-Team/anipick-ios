@@ -1,0 +1,47 @@
+//
+//  SeriesDetailViewModel.swift
+//  AniPick
+//
+//  Created by cho on 11/23/25.
+//
+
+import SwiftUI
+import Alamofire
+
+final class SeriesDetailViewModel: ObservableObject {
+    private let navigationManager: NavigationManager
+    private let animeId: Int
+    @Published var animeTitle: String
+    @Published var animeList: [SeriesAnime] = []
+    @Published var count: Int = 0
+    let session = Session(interceptor: TokenInterceptor.shared)
+    
+    init(
+        navigationManager: NavigationManager,
+        animeId: Int,
+        animeTitle: String
+    ) {
+        self.navigationManager = navigationManager
+        self.animeId = animeId
+        self.animeTitle = animeTitle
+    }
+    
+    func getSeriesDetailInfo() {
+        session.request(AnimeAPI.seriesAnimeList(animeId: self.animeId, lastId: nil, size: 20))
+            .cURLDescription { des in
+            DLog("series Detail Info - \(des)")
+            }
+            .responseDecodable(of: SeriesAnimeResponse.self) { response in
+                switch response.result {
+                case .success(let response):
+                    DLog("series Detail success - \(response)")
+                    if let result = response.result {
+                        self.animeList = result.animes ?? []
+                        self.count = result.count
+                    }
+                case .failure(let error):
+                    DLog("Series Detail fail - \(error)")
+                }
+            }
+    }
+}

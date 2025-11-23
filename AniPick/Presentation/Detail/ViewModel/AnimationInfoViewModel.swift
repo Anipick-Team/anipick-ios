@@ -16,6 +16,7 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var characterInfoList: [CastPair] = []
     @Published var seriesInfoList: [SeriesAnime] = []
     @Published var recommendAnimeList: [Anime] = []
+    @Published var isSpolier: Bool = false
     
     private let navigationManager: NavigationManager
     @Published var animeId: Int
@@ -177,7 +178,6 @@ extension AnimationInfoViewModel {
                     DLog("fetch recommend Anime error - \(error)")
                 }
             }
-        
     }
     
     
@@ -186,7 +186,7 @@ extension AnimationInfoViewModel {
             AnimeAPI.reviewList(
                 animeId: self.animeId,
                 sort: "latest",
-                isSpoiler: true,
+                isSpoiler: self.isSpolier,
                 lastValue: nil,
                 lastId: nil,
                 size: 10
@@ -201,7 +201,11 @@ extension AnimationInfoViewModel {
                 DLog("리뷰리뷰 최신 리뷰 - \(value)")
                 if let result = value.result,
                    let reviewList = result.reviews {
-                    self.reviewList = reviewList
+                    if self.isSpolier {
+                        self.reviewList = reviewList
+                    } else {
+                        self.reviewList = reviewList.filter { $0.isSpoiler == false }
+                    }
                 }
             case .failure(let error):
                 DLog("에러 발생 - \(error)")
@@ -268,6 +272,7 @@ extension AnimationInfoViewModel {
             }
     }
     
+    // TODO: ReviewAPI가 아닌 AnimeAPI 써야할,,듯,,?
     func tappedAnimeDislike() {
         session.request(ReviewAPI.cancelReview(id: self.animeId))
             .cURLDescription { description in
@@ -280,6 +285,36 @@ extension AnimationInfoViewModel {
                     self.isActiveLike.toggle()
                 case .failure(let error):
                     DLog("좋아요 실패 - \(error)")
+                }
+            }
+    }
+    
+    func tappedLikeReviewButton(reviewId: Int) {
+        session.request(ReviewAPI.likeReview(id: reviewId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("최근 리뷰 좋아요 success - \(value)")
+                case .failure(let error):
+                    DLog("최근 리뷰 좋아요 failure - \(error)")
+                }
+            }
+    }
+    
+    func tappedDislikeReviewButton(reviewId: Int) {
+        session.request(ReviewAPI.cancelReview(id: reviewId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("최근 리뷰 좋아요 취소 success - \(value)")
+                case .failure(let error):
+                    DLog("최근 리뷰 좋아요 취소 failure - \(error)")
                 }
             }
     }
@@ -318,6 +353,51 @@ extension AnimationInfoViewModel {
             }
     }
     
+    func postReportReivew(id: Int, message: String) {
+        session.request(ReviewAPI.reportReview(id: id, message: message))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("리뷰 신고 성공 - \(value)")
+                case .failure(let error):
+                    DLog("리뷰 신고 실패 - \(error)")
+                }
+            }
+    }
+    
+    func postBlockUser(userId: Int) {
+        session.request(ReviewAPI.blockUser(userId: userId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("작성자 차단 성공 - \(value)")
+                case .failure(let error):
+                    DLog("작성자 차단 실패 - \(error)")
+                }
+            }
+    }
+    
+    func deleteMyReview(reviewId: Int) {
+        session.request(ReviewAPI.deleteReview(id: reviewId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("리뷰 삭제 성공 - \(value)")
+                case .failure(let error):
+                    DLog("리뷰 삭제 실패 - \(error)")
+                }
+            }
+    }
+    
     func moveToWriteReview() {
         self.navigationManager.push(route: .review(starRating: self.storedMyReviewRate, animeId: self.animeId))
     }
@@ -325,7 +405,6 @@ extension AnimationInfoViewModel {
     func setLastVisitedAnimeId() {
         UserDefaultsManager.shared.setLastVisitedAnimeId(animeId: self.animeId)
     }
-    
     
     func moveToRewriteReview(starRating: Double) {
         self.navigationManager.push(route: .review(starRating: starRating, animeId: self.animeId))
@@ -342,5 +421,13 @@ extension AnimationInfoViewModel {
     
     func moveToVoiceActorDetailView(personId: Int) {
         self.navigationManager.push(route: .voiceActorDetail(animeId: personId))
+    }
+    
+    func moveToSeriesDetailView(animeId: Int, animeTitle: String) {
+        self.navigationManager.push(route: .seriesDetail(animeId: animeId, animeTitle: animeTitle))
+    }
+    
+    func moveToAnimeDetailView(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
 }

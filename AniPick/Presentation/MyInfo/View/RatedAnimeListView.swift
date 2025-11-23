@@ -12,10 +12,12 @@ struct RatedAnimeListView: View {
     @StateObject var viewModel: RatedAnimeListViewModel
     
     @State private var selectedSortOption: RatedSortOption = .latest
+    @State private var isShowOptionView: Bool = false
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     @State private var sortButtonFrame: CGRect = .zero
-    @State private var isShowBlockMenu: Bool = false
+    @State private var optionViewFrame: CGRect = .zero
+    @State private var myReviewId: Int = 0
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -83,21 +85,31 @@ struct RatedAnimeListView: View {
                         .customFontStyle(size: 14, color: viewModel.isShowOnlyReview ? Color.anipickSecondary : Color.gray8)
                         
                         Spacer().frame(height: 20)
-
-                        ForEach(viewModel.ratedReviewList, id: \.self) { item in
-                            MyReviewCell(item: item) { id, buttonFrame in
-                                DLog("button tapped")
-                            }
-                            .onAppear {
-                                if item == viewModel.ratedReviewList.last && viewModel.ratedReviewList.count > 15 {
-                                    viewModel.loadMoreAnimeList()
+                        
+                        if self.viewModel.lastLikeCount == 0 {
+                            self.makeEmptyView()
+                        } else {
+                            ForEach(viewModel.ratedReviewList, id: \.self) { item in
+                                MyReviewCell(item: item) { id, buttonFrame in
+                                    DLog("button tapped")
+                                    // TODO: 이거 눌렀을 때, 삭제/수정 떠야함
+                                    self.isShowOptionView.toggle()
+                                    self.optionViewFrame = buttonFrame
+                                    self.myReviewId = id
+                                } onCellTapped: { item in
+                                    DLog("cell tappedtappped")
+                                    self.viewModel.moveToAnimeDetail(animeId: item.animeId ?? 0)
+                                }
+                                .onAppear {
+                                    if item == viewModel.ratedReviewList.last && viewModel.ratedReviewList.count > 15 {
+                                        viewModel.loadMoreAnimeList()
+                                    }
                                 }
                             }
+                            .padding(.bottom, 12)
+                            
+                            Spacer()
                         }
-                        .padding(.bottom, 12)
-                        
-                        Spacer()
-                        
                         
                     }
                     .padding(.horizontal, 20)
@@ -119,7 +131,11 @@ struct RatedAnimeListView: View {
                         viewModel.isShowSortOptionView = false
                     }
                 }
+                
+
             }
+            
+
         }
         .overlay(alignment: .topLeading) {
             if viewModel.isShowSortOptionView {
@@ -131,12 +147,44 @@ struct RatedAnimeListView: View {
                 .frame(width: 120)
                 .position(x: sortButtonFrame.minX , y: sortButtonFrame.maxY + 140)
             }
+            
+            if self.isShowOptionView {
+                MyReviewPopupView(isShowBlockMenu: self.$isShowOptionView) {
+                    // 삭제 액션
+                    self.isShowOptionView = false
+                    self.viewModel.deleteMyReview(reviewId: self.myReviewId)
+                } editAction: {
+                    // 수정 액션
+                    // TODO: 리뷰 수정 페이지로 이동
+                    self.isShowOptionView = false
+                }
+                .position(x: self.optionViewFrame.minX, y: self.optionViewFrame.minX + 140)
+            }
         }
         .background(Color.gray7)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.fetchRatedAnimeList()
         }
+    }
+    
+    private func makeEmptyView() -> some View {
+        return VStack(spacing: 0) {
+            Spacer()
+                .frame(height: 120)
+            
+            Image(.emptyToWatchListIcon)
+                .resizable()
+                .frame(width: 148, height: 148)
+                .padding(.bottom, 28)
+            
+            Text("앗! 아직 평가한 작품이 없네요.")
+                .customFontStyle(size: 16, color: .gray8)
+            
+            Spacer()
+            
+        }
+        .frame(maxWidth: .infinity)
     }
 }
 

@@ -57,11 +57,11 @@ struct EditEmailView: View {
                     .customFontStyle(size: 14, color: .point, weight: .semibold)
             }
             
-            
             // TODO: 이미 사용중인지 확인하는 api 보내는 통신해야함
             if viewModel.isShowErrorMessage {
                 Text(viewModel.errorMessage)
                     .customFontStyle(size: 14, color: .point, weight: .semibold)
+                    .padding(.bottom, 30)
             } else {
                 Spacer().frame(height: 30)
             }
@@ -161,6 +161,9 @@ struct EditEmailView: View {
         .padding(.horizontal, 20)
         .navigationBarBackButtonHidden(true)
         .background(Color.white)
+        .onTapGesture {
+            UIApplication.shared.endEditing()
+        }
     }
     
     private func obfuscateEmail(_ email: String) -> String {

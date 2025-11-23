@@ -80,17 +80,22 @@ struct MyInfoView: View {
                             }
                         }
                         .frame(width: 100, height: 100)
+                        .padding(.trailing, 8)
                         
                         Spacer()
-                        
+                                                
                         let nickname = UserDefaultsManager.shared.getNickname()
                         Text(nickname)
                             .foregroundColor(.anipickPrimary)
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
                         
-                        +  Text("님, 애니픽과 함께\n행복한 애니메이션 생활 즐기세요!")
+                        +  Text("님, 애니픽과 함께\n")
                             .foregroundColor(.anipickBlack)
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 16, weight: .bold))
+                        
+                        +  Text("행복한 애니메이션 생활 즐기세요!")
+                            .foregroundColor(.anipickBlack)
+                            .font(.system(size: 16, weight: .bold))
                     }
                     
                     Spacer().frame(height: 32)
@@ -163,6 +168,7 @@ struct MyInfoView: View {
                                 ForEach(viewModel.likedPersonList, id: \.self) { item in
                                     personCell(item: item) {
                                         DLog("좋아요한 인물 cell 탭탭")
+                                        self.viewModel.moveToLikedPersionDetailView(id: item.personId ?? 0)
                                     }
                                 }
                             }

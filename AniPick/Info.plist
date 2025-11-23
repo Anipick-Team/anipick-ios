@@ -12,7 +12,16 @@
 				<string>com.googleusercontent.apps.376808777267-6bs66ad6kttc3s7vdnsnibrg16gdlsvh</string>
 			</array>
 		</dict>
-		<dict/>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>anipick</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>anipick</string>
+			</array>
+		</dict>
 	</array>
 	<key>GIDClientID</key>
 	<string>376808777267-6bs66ad6kttc3s7vdnsnibrg16gdlsvh.apps.googleusercontent.com</string>

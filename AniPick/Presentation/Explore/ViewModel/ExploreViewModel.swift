@@ -264,7 +264,7 @@ extension ExploreViewModel {
             type: type,//selectedType.isEmpty ? nil : selectedType,
             lastId: self.lastId,
             size: nil,
-            genreOp: nil, 
+            genreOp: self.isToggleAllGenreCondition ? "AND" : "OR",
             lastValue: nil
         )
         
@@ -299,7 +299,7 @@ extension ExploreViewModel {
             type: typeString,//selectedType.isEmpty ? nil : selectedType,
             lastId: nil,
             size: nil,
-            genreOp: nil,
+            genreOp: self.isToggleAllGenreCondition ? "AND" : "OR",
             lastValue: nil
         )
         self.fetchExploreItem(category: self.selectedCategory)
@@ -314,6 +314,7 @@ extension ExploreViewModel {
         self.selectedType = ""
         self.selectedYear = ""
         self.selectedSeason = ""
+        self.selectedType = ""
         self.selectedGenreList.removeAll()
         self.selectedTagList.removeAll()
         self.exploreRequestItem = nil

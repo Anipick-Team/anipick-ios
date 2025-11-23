@@ -96,11 +96,12 @@ struct AnimationDetailInfoView: View {
             
             self.sectionCategoryButton(title: "시리즈 정보") {
                 DLog("시리즈 정보로 이동")
+                self.viewModel.moveToSeriesDetailView(animeId: detailInfo.animeId, animeTitle: detailInfo.title ?? "-")
             }
             .padding(.bottom, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .center, spacing: 8) {
+                LazyHStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.seriesInfoList, id: \.self) { item in
                         AnimeCommonCellWithTitle(
                             imageUrl: item.coverImageUrl,
@@ -108,6 +109,11 @@ struct AnimationDetailInfoView: View {
                             height: 162,
                             title: item.title
                         )
+                        .onTapGesture {
+                            // TODO: 시리즈 디테일로 이동
+                            DLog("해당 시리즈로 이동")
+                            self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                        }
                     }
                 }
             }
@@ -130,6 +136,11 @@ struct AnimationDetailInfoView: View {
                             height: 162,
                             title: item.title
                         )
+                        .onTapGesture {
+                            // TODO: 함께볼만한 작품 디테일로 이동
+                            DLog("함께볼만한 작품")
+                            self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                        }
                     }
                 }
             }

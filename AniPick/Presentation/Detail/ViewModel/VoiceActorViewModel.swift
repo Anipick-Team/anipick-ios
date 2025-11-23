@@ -88,4 +88,8 @@ extension VoiceActorViewModel {
                 }
             }
     }
+    
+    func moveToAnime(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
 }

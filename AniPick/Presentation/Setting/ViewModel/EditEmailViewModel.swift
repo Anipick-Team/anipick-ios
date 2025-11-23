@@ -48,13 +48,6 @@ final class EditEmailViewModel: ObservableObject {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
                     // TODO: code에 따라서 잘못된 거 확인해야함
-                    if value.code == 200 {
-                       
-                    } else if value.code == 103 {
-                        // 이메일이 올바른 형식이 아님
-                        self.isShowErrorMessage = true
-                        self.errorMessage = "올바른 이메일 형식이 아닙니다."
-                    } else {
                         switch value.code {
                         case 200 :
                             UserDefaultsManager.shared.setEmail(self.newEmailString)
@@ -63,11 +56,18 @@ final class EditEmailViewModel: ObservableObject {
                         case 102:
                             self.isShowErrorMessage = true
                             self.errorMessage = "이메일을 입력해주세요."
-                            
+                        case 103:
+                            self.isShowErrorMessage = true
+                            self.errorMessage = "올바른 이메일 형식이 아닙니다."
+                        case 106:
+                            self.isShowErrorMessage = true
+                            self.errorMessage = "비밀번호가 일치하지 않습니다."
+                        case 109:
+                            self.isShowErrorMessage = true
+                            self.errorMessage = "이미 존재하는 이메일입니다."
                         default:
                             self.isShowErrorMessage = true
                             self.errorMessage = "에러 발생"
-                        }
 
                     }
                     

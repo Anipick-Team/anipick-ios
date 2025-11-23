@@ -12,7 +12,7 @@ import KakaoSDKAuth
 struct AniPickApp: App {
     
     @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var appState = AppState()
+//    @StateObject private var appState = AppState()
     
     init() {
         let appearance = UITabBarAppearance()
@@ -36,18 +36,27 @@ struct AniPickApp: App {
         WindowGroup {
             AppEntryView()
                 .environmentObject(AppDIContainer.navigationManager)
-                .environmentObject(appState)
+                // .environmentObject(appState)
                 .onOpenURL { url in
                     if AuthApi.isKakaoTalkLoginUrl(url) {
                         _ = AuthController.handleOpenUrl(url: url)
                     }
+                    self.handleDeepLink(url)
                 }
-                .onAppear {
-                    Task {
-                        // TODO: authentication 체크하는 로직 필요
-                        
-                    }
-                }
+        }
+    }
+    
+    func handleDeepLink(_ url: URL) {
+        // 예: anipick://anime/123
+        let path = url.host ?? ""
+        let components = url.pathComponents.filter { $0 != "/" }
+        
+        if path == "anime", let idStr = components.first, let id = Int(idStr) {
+            AppDIContainer.appState.deepLink = .anime(id: id)
+        } else if path == "producer", let idStr = components.first, let id = Int(idStr) {
+            AppDIContainer.appState.deepLink = .producer(id: id)
+        } else {
+            AppDIContainer.appState.deepLink = .unknown
         }
     }
 }

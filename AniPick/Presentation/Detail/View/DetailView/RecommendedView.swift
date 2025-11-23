@@ -96,6 +96,3 @@ struct RecommendedView: View {
     
 }
 
-#Preview {
-    RecommendedView()
-}

@@ -122,51 +122,55 @@ struct VoiceActorDetailView: View {
     }
     
     private func personCell(item: PersonWork) -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            
-            AsyncImage(url: URL(string: item.characterImageUrl ?? "")) { phase in
-                switch phase {
-                case .empty:
-                    // 로딩 중 placeholder
-                    Image(.animeThumbnail)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 105)
-                        .background(Color.gray.opacity(0.3))
-                        .clipped()
-                    
-                case .success(let image):
-                    image
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 105)
-                        .background(Color.gray.opacity(0.3))
-                        .clipped()
-                    
-                case .failure:
-                    // 실패 시 fallback
-                    Image(.animeThumbnail)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(height: 105)
-                        .background(Color.gray.opacity(0.3))
-                        .clipped()
-                    
-                    
-                @unknown default:
-                    EmptyView()
+        return Button {
+            self.viewModel.moveToAnime(animeId: item.animeId)
+        } label: {
+            VStack(alignment: .leading, spacing: 0) {
+                
+                AsyncImage(url: URL(string: item.characterImageUrl ?? "")) { phase in
+                    switch phase {
+                    case .empty:
+                        // 로딩 중 placeholder
+                        Image(.animeThumbnail)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 105)
+                            .background(Color.gray.opacity(0.3))
+                            .clipped()
+                        
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 105)
+                            .background(Color.gray.opacity(0.3))
+                            .clipped()
+                        
+                    case .failure:
+                        // 실패 시 fallback
+                        Image(.animeThumbnail)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(height: 105)
+                            .background(Color.gray.opacity(0.3))
+                            .clipped()
+                        
+                        
+                    @unknown default:
+                        EmptyView()
+                    }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+                
+                Text(item.characterName)
+                    .customFontStyle(size: 14, color: .anipickBlack)
+                    .lineLimit(2)
+                    .padding(.top, 6)
+                
+                Text(item.animeTitle)
+                    .customFontStyle(size: 12, color: .gray8)
+                    .lineLimit(1)
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text(item.characterName)
-                .customFontStyle(size: 14, color: .anipickBlack)
-                .lineLimit(2)
-                .padding(.top, 6)
-            
-            Text(item.animeTitle)
-                .customFontStyle(size: 12, color: .gray8)
-                .lineLimit(1)
         }
     }
     

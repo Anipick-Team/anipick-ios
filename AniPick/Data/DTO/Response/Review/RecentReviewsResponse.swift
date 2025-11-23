@@ -38,5 +38,6 @@ struct ReviewItem: Decodable, Hashable {
     let likedByCurrentUser: Bool?
     let isMine: Bool?
     let content: String?
+    let isSpoiler: Bool?
 }
 

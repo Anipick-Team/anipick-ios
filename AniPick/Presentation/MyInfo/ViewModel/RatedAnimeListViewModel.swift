@@ -93,4 +93,24 @@ extension RatedAnimeListViewModel {
             }
         }
     }
+    
+    func deleteMyReview(reviewId: Int) {
+        session.request(ReviewAPI.deleteReview(id: reviewId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("success - delete myreview \(value)")
+                    self.fetchRatedAnimeList()
+                case .failure(let error):
+                    DLog("Fail - delete myreview error: \(error)")
+                }
+            }
+    }
+    
+    func moveToAnimeDetail(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
 }

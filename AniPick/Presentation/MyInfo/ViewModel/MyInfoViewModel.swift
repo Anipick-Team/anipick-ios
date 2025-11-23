@@ -217,4 +217,8 @@ extension MyInfoViewModel {
     func moveToLikedPersonListView() {
         self.navigationManager.push(route: .likePersonList)
     }
+    
+    func moveToLikedPersionDetailView(id: Int) {
+        self.navigationManager.push(route: .voiceActorDetail(animeId: id))
+    }
 }

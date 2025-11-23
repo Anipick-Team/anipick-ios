@@ -13,7 +13,6 @@ struct ReportReviewWithReasonPopupView: View {
     var okAction: (String) -> Void
     
     @State private var reasonReportString: String = ""
-    let session = Session(interceptor: TokenInterceptor.shared)
 
     var body: some View {
         ZStack {

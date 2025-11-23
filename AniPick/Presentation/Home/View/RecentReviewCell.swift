@@ -12,10 +12,13 @@ struct RecentReviewCell: View {
     @State private var starRating: Double = 0
     @State private var isShowBlockMenu: Bool = false
     @State private var reviewContentLimit: Int? = 2
+    @State private var currentUserTappedLike: Bool = false
+    @State private var tmpHeartCount: Int = 0
     
     let item: ReviewItem
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
+    let tappedMoreButton: ((Bool) -> Void)?
     
     private let starCount = 5
     private let starSize: CGFloat = 18
@@ -24,6 +27,7 @@ struct RecentReviewCell: View {
         CGFloat(starCount) * starSize + CGFloat(starCount - 1) * spacing
     }
     
+   
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
@@ -31,10 +35,30 @@ struct RecentReviewCell: View {
                 
                 Spacer()
                 
-                Circle()
-                    .frame(width: 30, height: 30)
-                    .foregroundStyle(.gray)
-                    .padding(.trailing, 8)
+                if let url = item.profileImageUrl {
+                    AsyncImage(url: URL(string: url)) { phase in
+                        switch phase {
+                        case .empty:
+                            Circle()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.gray)
+                                .padding(.trailing, 8)
+                        case .success(let image):
+                            image
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.gray)
+                                .padding(.trailing, 8)
+                        case .failure:
+                            Circle()
+                                .frame(width: 30, height: 30)
+                                .foregroundStyle(.gray)
+                                .padding(.trailing, 8)
+                            
+                        @unknown default:
+                            EmptyView()
+                        }
+                    }
+                }
                 
                 Text(item.nickname ?? "--")
                     .foregroundStyle(.anipickBlack)
@@ -49,7 +73,7 @@ struct RecentReviewCell: View {
             Spacer().frame(height: 16)
             
             if let content = item.content {
-                Text(content ?? "--")
+                Text(content)
                     .lineLimit(self.reviewContentLimit)
                     .font(.system(size: 16))
                     .foregroundStyle(.anipickBlack)
@@ -85,20 +109,27 @@ struct RecentReviewCell: View {
             HStack(alignment: .center, spacing: 0) {
                 Button {
                     DLog("좋아요 버튼 탭탭, 누를때 fill, unfill heart로 변경되어야함")
+                    self.currentUserTappedLike.toggle()
+                    tappedMoreButton?(self.currentUserTappedLike)
+                    if self.currentUserTappedLike {
+                        self.tmpHeartCount = 1
+                    } else {
+                        self.tmpHeartCount = 0
+                    }
                 } label: {
-                    Image(.unfilledHeart)
+                    Image(self.currentUserTappedLike ? .fillHeartGreen : .unfilledHeart)
+                        .resizable()
+                        .frame(width: 16, height: 16)
                         .padding(.trailing, 4)
                 }
                 
-                // TODO: 좋아요 갯수 넣어야함
                 if let likeCount = item.likeCount {
-                    Text("\(likeCount)")
+                    Text("\(likeCount + self.tmpHeartCount)")
                         .foregroundStyle(.gray6)
                         .font(.system(size: 14))
                 }
                 
                 Spacer()
-                
                 
                 GeometryReader { proxy in
                     Button {
@@ -117,6 +148,9 @@ struct RecentReviewCell: View {
         .padding(.horizontal, 20)
         .background(Color.white)
         .cornerRadius(8)
+        .onAppear {
+            self.currentUserTappedLike = item.likedByCurrentUser ?? false
+        }
     }
     
     
@@ -140,6 +174,9 @@ struct RecentReviewCell: View {
             Text("\(starRating, specifier: "%.1f")")
                 .padding(.leading, 8)
                 .customFontStyle(size: 13, color: .gray8)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .allowsTightening(true)
         }
     }
     

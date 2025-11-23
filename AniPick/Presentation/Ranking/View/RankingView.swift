@@ -15,12 +15,15 @@ enum RankingFilter: String {
 
 struct RankingView: View {
     @StateObject var viewModel: RankingViewModel
-    
+    var genres: [String] = []
+    private let columns = [
+        GridItem(.adaptive(minimum: 60), spacing: 4)
+    ]
     @State private var isPresentGenreModalView: Bool = false
     @State private var isPresentYearSeasonModalView: Bool = false
     
     @State private var selectedTmpYear: String = ""
-    @State private var selectedTmpSeason: String = "1"
+    @State private var selectedTmpSeason: String = ""
     
     @State private var sheetHeight: CGFloat = 300
     @State private var genreList = UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
@@ -222,7 +225,7 @@ struct RankingView: View {
     
     private func makeYearSeaonModalView() -> some View {
         let yearList = UserDefaultsManager.shared.getMetaDataForSeasonYear().map { String($0) }
-        let quarterList = ["1", "2", "3", "4"]
+        let quarterList = ["전체 분기", "1", "2", "3", "4"]
         
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
@@ -336,12 +339,19 @@ struct RankingView: View {
                             .foregroundStyle(.anipickBlack)
                             .multilineTextAlignment(.leading)
                         
-                        HStack(alignment: .center, spacing: 0) {
-                            ForEach(item.genres ?? [], id: \.self) { item in
-                                self.gerneCell(title: item)
+                        FlowCellLayout(spacing: 4) {
+                      //  LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
+                            ForEach(item.genres ?? [], id: \.self) { genre in
+                                gerneCell(title: genre)
                                     .padding(.trailing, 4)
                             }
                         }
+//                        HStack(alignment: .center, spacing: 0) {
+//                            ForEach(item.genres ?? [], id: \.self) { item in
+//                                self.gerneCell(title: item)
+//                                    .padding(.trailing, 4)
+//                            }
+//                        }
                         .padding(.trailing, 4)
                         .padding(.vertical, 4)
                         
@@ -380,12 +390,21 @@ struct RankingView: View {
                 if self.viewModel.isSelectedFilter == .yearQuater && myFilter == .yearQuater {
                     let year = self.viewModel.selectedYear.isEmpty ? "년도" : self.viewModel.selectedYear
                     let season = self.viewModel.selectedSeason.isEmpty ? "" : self.viewModel.selectedSeason
-                    Text("\(year)/\(season)분기")
-                        .padding(.vertical, 7)
-                        .padding(.horizontal, 12)
-                        .customFontStyle(size: 13, color: self.viewModel.isSelectedFilter == myFilter ? .gray5 : .white)
-                        .background(self.viewModel.isSelectedFilter == myFilter ? .anipickPrimary : .gray6)
-                        .cornerRadius(32)
+                    if season == "전체 분기" {
+                        Text("\(year)/전체 분기")
+                            .padding(.vertical, 7)
+                            .padding(.horizontal, 12)
+                            .customFontStyle(size: 13, color: self.viewModel.isSelectedFilter == myFilter ? .gray5 : .white)
+                            .background(self.viewModel.isSelectedFilter == myFilter ? .anipickPrimary : .gray6)
+                            .cornerRadius(32)
+                    } else {
+                        Text("\(year)/\(season)분기")
+                            .padding(.vertical, 7)
+                            .padding(.horizontal, 12)
+                            .customFontStyle(size: 13, color: self.viewModel.isSelectedFilter == myFilter ? .gray5 : .white)
+                            .background(self.viewModel.isSelectedFilter == myFilter ? .anipickPrimary : .gray6)
+                            .cornerRadius(32)
+                    }
                 } else {
                     Text(myFilter.rawValue)
                         .padding(.vertical, 7)

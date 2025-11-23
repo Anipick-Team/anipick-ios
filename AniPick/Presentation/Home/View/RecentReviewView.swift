@@ -17,6 +17,7 @@ struct RecentReviewView: View {
     @State private var isShowBlockUser: Bool = false
     @State private var selectedPopupItemReviewId: Int = 0
     @State private var selectedBlockUserId: Int = 0
+    @State private var currentUserTappedLike: Bool = false
     
     var body: some View {
         ZStack {
@@ -60,12 +61,19 @@ struct RecentReviewView: View {
                             }
                             .frame(height: 0)
                             ForEach(viewModel.recentReviewList, id: \.self) { item in
-                                RecentReviewCell(item: item) { id , buttonFrame in
+                                RecentReviewCellInHome(item: item, onReportButtonTapped: { id, buttonFrame in
                                     self.isShowBlockMenu.toggle()
                                     self.selectedPopupItemReviewId = item.reviewId ?? 0
                                     self.menuFrame = buttonFrame
                                     self.selectedBlockUserId = item.userId ?? 0
-                                }
+                                }, tappedMoreButton: { value in
+                                    if value {
+                                        self.viewModel.tappedLikeReviewButton(reviewId: item.reviewId ?? 0)
+                                    } else {
+                                        self.viewModel.tappedDislikeReviewButton(reviewId: item.reviewId ?? 0)
+                                    }
+
+                                })
                                 .onTapGesture {
                                     self.viewModel.moveToDetailAnimation(animeId: item.animeId ?? 0)
                                 }
@@ -85,9 +93,9 @@ struct RecentReviewView: View {
                             isShowReportPopupView = true
                         } blockAction: {
                             // block action
-                            DLog("차아단")
                             isShowBlockMenu = false
                             self.isShowBlockUser.toggle()
+                            self.viewModel.fetchRecentReview()
                         }
                         .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY - 40)
                         .zIndex(1000)
@@ -115,6 +123,8 @@ struct RecentReviewView: View {
                     self.isShowBlockUser = false
                 } okAction: {
                     self.viewModel.blockUser(userId: self.selectedBlockUserId)
+                    self.isShowBlockUser = false
+                    self.viewModel.fetchRecentReview()
                 }
 
             }

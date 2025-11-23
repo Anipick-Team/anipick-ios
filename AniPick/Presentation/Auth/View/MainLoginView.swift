@@ -13,6 +13,7 @@ struct MainLoginView: View {
     @StateObject var viewModel: MainLoginViewModel
     
     var body: some View {
+        ZStack {
             VStack(spacing: 0) {
                 Spacer()
                 Image("AniPickLogo_green")
@@ -23,15 +24,15 @@ struct MainLoginView: View {
                 Spacer()
                     .frame(height: 48)
                 
-
-                    VStack(spacing: 0) {
-                        Text("나에게 딱 맞는 애니 추천을 위해.")
-                            .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
-                            .padding(.bottom, 8)
-                        Text("사용할수록 더 좋아지는 애니메이션 환경을 만나보세요")
-                            .customFontStyle(size: 14, color: .anipickBlack)
-                    }
-                    .padding(.bottom, 60)
+                
+                VStack(spacing: 0) {
+                    Text("나에게 딱 맞는 애니 추천을 위해.")
+                        .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
+                        .padding(.bottom, 8)
+                    Text("사용할수록 더 좋아지는 애니메이션 환경을 만나보세요")
+                        .customFontStyle(size: 14, color: .anipickBlack)
+                }
+                .padding(.bottom, 60)
                 
                 
                 Button {
@@ -51,7 +52,7 @@ struct MainLoginView: View {
                         .background(.white)
                         .padding(.bottom, 12)
                 }
-                            
+                
                 SignInWithAppleButton(
                     onRequest: viewModel.configure,
                     onCompletion: viewModel.handle
@@ -105,8 +106,25 @@ struct MainLoginView: View {
                 
                 
             }
-            .navigationBarBackButtonHidden(true)
             .background(Color.white.ignoresSafeArea())
+            
+            if viewModel.isShowWithdrawlUserPopup {
+                WithdrawlUserPopupView {
+                    self.viewModel.isShowWithdrawlUserPopup.toggle()
+                }
+            }
+            
+            if viewModel.isShowSNSSignupPopup {
+                SNSSignupPopupView {
+                    self.viewModel.isShowSNSSignupPopup.toggle()
+                } okAction: {
+                    self.viewModel.isShowSNSSignupPopup.toggle()
+                }
+
+            }
+        }
+            .navigationBarBackButtonHidden(true)
+            
 
     }
     

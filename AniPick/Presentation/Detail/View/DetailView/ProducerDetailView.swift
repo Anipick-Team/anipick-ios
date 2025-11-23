@@ -52,7 +52,7 @@ struct ProducerDetailView: View {
                         let item = itemList[idx]
                         animationCell(item: item)
                             .onAppear {
-                                viewModel.loadMoreIfNeeded(currentIndex: idx)
+                                self.viewModel.loadMoreIfNeeded(animeId: item.animeId ?? 0)
                             }
                     }
 

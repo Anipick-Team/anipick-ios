@@ -9,6 +9,7 @@ import SwiftUI
 @MainActor
 struct AppDIContainer {
     static let navigationManager = NavigationManager()
+    static let appState = AppState(navigationManager: navigationManager)
     
     static func makeLoginView() -> some View {
         let apiService = AuthAPIService()
@@ -249,6 +250,12 @@ extension AppDIContainer {
     static func makeCharacterAndVoiceActorDetailVIew(animeId: Int) -> some View {
         let viewModel = PersonDetailViewModel(navigationManager: navigationManager, animeId: animeId)
         return PersonDetailView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+    
+    static func makeSeriesDetialView(animeId: Int, animeTitle: String) -> some View {
+        let viewModel = SeriesDetailViewModel(navigationManager: navigationManager, animeId: animeId, animeTitle: animeTitle)
+        return SeriesDetailView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
 }

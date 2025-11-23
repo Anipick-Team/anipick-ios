@@ -13,6 +13,7 @@ struct PreferenceSelectionView: View {
     let quarterList = ["전체", "1", "2", "3", "4"]
     @State private var selectedList: [String] = []
     @State private var isShowStarRatingView: Bool = false
+    @State private var isHeaderHidden: Bool = false
     
     var currentList: [String] {
         switch selectedTab {
@@ -44,140 +45,165 @@ struct PreferenceSelectionView: View {
             
             Spacer().frame(height: 40)
             
-            Text("평가한 작품 \(viewModel.storedRatedAnimeList.count)")
-                .customFontStyle(size: 14, color: viewModel.storedRatedAnimeList.count > 0 ? .point : .gray6)
             
-            Spacer().frame(height: 16)
-            
-            HStack(spacing: 0) {
-                Image(systemName: "magnifyingglass")
-                    .frame(width: 16, height: 16)
-                    .foregroundColor(.gray)
-                    .padding(.horizontal, 12)
+            if self.isHeaderHidden == false {
+                Text("평가한 작품 \(viewModel.storedRatedAnimeList.count)")
+                    .customFontStyle(size: 14, color: viewModel.storedRatedAnimeList.count > 0 ? .point : .gray6)
                 
-                TextField(
-                    "",
-                    text: $viewModel.searchBarString,
-                    prompt: Text("검색")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.textGray)
-                )
-                .padding(.horizontal, 4)
-                .background(Color.gray5)
-                .foregroundColor(.anipickBlack)
+                Spacer().frame(height: 16)
                 
-                Spacer()
-                
-                Button {
-                    DLog("searchBar all clear 버튼")
-                    self.viewModel.tappedAllClearButton()
-                } label: {
-                    Image(.allClearButton)
+                HStack(spacing: 0) {
+                    Image(systemName: "magnifyingglass")
+                        .frame(width: 16, height: 16)
+                        .foregroundColor(.gray)
                         .padding(.horizontal, 12)
+                    
+                    TextField(
+                        "",
+                        text: $viewModel.searchBarString,
+                        prompt: Text("검색")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.textGray)
+                    )
+                    .padding(.horizontal, 4)
+                    .background(Color.gray5)
+                    .foregroundColor(.anipickBlack)
+                    
+                    Spacer()
+                    
+                    Button {
+                        DLog("searchBar all clear 버튼")
+                        self.viewModel.tappedAllClearButton()
+                    } label: {
+                        Image(.allClearButton)
+                            .padding(.horizontal, 12)
+                    }
                 }
+                .padding(.vertical, 11)
+                .background(Color.gray5)
+                .cornerRadius(8)
+                
+                Spacer().frame(height: 16)
+                
+                HStack(spacing: 0) {
+                    Button {
+                        DLog("년도 탭탭")
+                        self.selectedTab = .yearQuarter
+                        self.viewModel.isPresentModelView.toggle()
+                    } label: {
+                        HStack(alignment: .center, spacing: 0) {
+                            Text(self.viewModel.selectedYear.isEmpty ? "년도" : self.viewModel.selectedYear)
+                                .font(.system(size: 16))
+                                .foregroundStyle(self.viewModel.selectedYear.isEmpty ? .textBlack : .anipickSecondary)
+                                .padding(.trailing, 10)
+                            
+                            Image(self.viewModel.selectedYear.isEmpty ? .chevronDownGray : .chevronDownBlue)
+                        }
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 32)
+                                .stroke(self.viewModel.selectedYear.isEmpty ? .gray5 : .anipickSecondary, lineWidth: 1)
+                        )
+                        .foregroundStyle(.anipickBlack)
+                    }
+                    .padding(.trailing, 8)
+                    
+                    
+                    Button {
+                        DLog("분기 탭탭")
+                        self.selectedTab = .yearQuarter
+                        self.viewModel.isPresentModelView.toggle()
+                    } label: {
+                        HStack(alignment: .center, spacing: 0) {
+                            Text(self.viewModel.selectedQuarter.isEmpty ? "분기" : "\(self.viewModel.selectedQuarter)분기")
+                                .font(.system(size: 16))
+                                .foregroundStyle(self.viewModel.selectedQuarter.isEmpty ? .textBlack : .anipickSecondary)
+                                .padding(.trailing, 10)
+                            
+                            Image(self.viewModel.selectedQuarter.isEmpty ? .chevronDownGray : .chevronDownBlue)
+                        }
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 32)
+                                .stroke(self.viewModel.selectedQuarter.isEmpty ? .gray5 : .anipickSecondary, lineWidth: 1)
+                        )
+                        .foregroundStyle(.anipickBlack)
+                    }
+                    .padding(.trailing, 8)
+                    
+                    
+                    
+                    Button {
+                        DLog("장르 탭탭")
+                        self.selectedTab = .genre
+                        self.viewModel.isPresentModelView.toggle()
+                    } label: {
+                        HStack(alignment: .center, spacing: 0) {
+                            Text(self.viewModel.selectedGenre.isEmpty ? "장르" : self.viewModel.selectedGenre)
+                                .font(.system(size: 16))
+                                .foregroundStyle(self.viewModel.selectedGenre.isEmpty ? .textBlack : .anipickSecondary)
+                                .padding(.trailing, 10)
+                            
+                            Image(self.viewModel.selectedGenre.isEmpty ? .chevronDownGray : .chevronDownBlue)
+                        }
+                        .padding(.horizontal, 15)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 32)
+                                .stroke(self.viewModel.selectedGenre.isEmpty ? .gray5 : .anipickSecondary, lineWidth: 1)
+                        )
+                        .foregroundStyle(.anipickBlack)
+                    }
+                    
+                }
+                
+                Rectangle()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 1)
+                    .foregroundStyle(.gray5)
+                    .padding(.horizontal, -20)
+                    .padding(.vertical, 20)
             }
-            .padding(.vertical, 11)
-            .background(Color.gray5)
-            .cornerRadius(8)
-            
-            Spacer().frame(height: 16)
-            
-            HStack(spacing: 0) {
-                Button {
-                    DLog("년도 탭탭")
-                    self.selectedTab = .yearQuarter
-                    self.viewModel.isPresentModelView.toggle()
-                } label: {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text(self.viewModel.selectedYear.isEmpty ? "년도" : self.viewModel.selectedYear)
-                            .font(.system(size: 16))
-                            .foregroundStyle(self.viewModel.selectedYear.isEmpty ? .textBlack : .anipickSecondary)
-                            .padding(.trailing, 10)
-                        
-                        Image(self.viewModel.selectedYear.isEmpty ? .chevronDownGray : .chevronDownBlue)
-                    }
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 32)
-                            .stroke(self.viewModel.selectedYear.isEmpty ? .gray5 : .anipickSecondary, lineWidth: 1)
-                    )
-                    .foregroundStyle(.anipickBlack)
-                }
-                .padding(.trailing, 8)
-                
-                
-                Button {
-                    DLog("분기 탭탭")
-                    self.selectedTab = .yearQuarter
-                    self.viewModel.isPresentModelView.toggle()
-                } label: {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text(self.viewModel.selectedQuarter.isEmpty ? "분기" : "\(self.viewModel.selectedQuarter)분기")
-                            .font(.system(size: 16))
-                            .foregroundStyle(self.viewModel.selectedQuarter.isEmpty ? .textBlack : .anipickSecondary)
-                            .padding(.trailing, 10)
-                        
-                        Image(self.viewModel.selectedQuarter.isEmpty ? .chevronDownGray : .chevronDownBlue)
-                    }
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 32)
-                            .stroke(self.viewModel.selectedQuarter.isEmpty ? .gray5 : .anipickSecondary, lineWidth: 1)
-                    )
-                    .foregroundStyle(.anipickBlack)
-                }
-                .padding(.trailing, 8)
-                
-                
-                
-                Button {
-                    DLog("장르 탭탭")
-                    self.selectedTab = .genre
-                    self.viewModel.isPresentModelView.toggle()
-                } label: {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text(self.viewModel.selectedGenre.isEmpty ? "장르" : self.viewModel.selectedGenre)
-                            .font(.system(size: 16))
-                            .foregroundStyle(self.viewModel.selectedGenre.isEmpty ? .textBlack : .anipickSecondary)
-                            .padding(.trailing, 10)
-                        
-                        Image(self.viewModel.selectedGenre.isEmpty ? .chevronDownGray : .chevronDownBlue)
-                    }
-                    .padding(.horizontal, 15)
-                    .padding(.vertical, 8)
-                    .background(
-                        RoundedRectangle(cornerRadius: 32)
-                            .stroke(self.viewModel.selectedGenre.isEmpty ? .gray5 : .anipickSecondary, lineWidth: 1)
-                    )
-                    .foregroundStyle(.anipickBlack)
-                }
-                
-            }
-            
-            Rectangle()
-                .frame(maxWidth: .infinity)
-                .frame(height: 1)
-                .foregroundStyle(.gray5)
-                .padding(.horizontal, -20)
-                .padding(.vertical, 20)
-            
             
             ScrollView(showsIndicators: false) {
                 LazyVStack(spacing: 0) {
-                    ForEach(viewModel.animeList, id: \.self) { value in
-                        // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
-                        //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
+//                    GeometryReader { geo in
+//                        Color.clear
+//                            .preference(
+//                                key: ScrollOffsetPreferenceKey.self,
+//                                value: geo.frame(in: .named("scroll")).minY
+//                            )
+//                    }
+//                    .frame(height: 0)
+                    
+                    ForEach(Array(viewModel.animeList.enumerated()), id: \.element.self) { index, value in
                         self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
                             self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
                         }
                         .onAppear {
+                            // 스크롤 방향 감지
+                            if index < (viewModel.lastVisibleIndex ?? 8)  {
+                                // 위로 스크롤
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    self.isHeaderHidden = false
+                                }
+                            } else if index > (viewModel.lastVisibleIndex ?? 8) {
+
+                                // 아래로 스크롤
+                                withAnimation(.easeInOut(duration: 0.2)) {
+                                    self.isHeaderHidden = true
+                                }
+                            }
+                            viewModel.lastVisibleIndex = index
+                            
+                            // 페이징
                             if value.animeId == viewModel.animeList.last?.animeId {
                                 self.viewModel.fetchRecommendAnime()
                             }
                         }
-                        // TODO: 각 애니메이션 별 star 표시하도록 적용
+                        
                         if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
                             StarRatingView() { rating in
                                 self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
@@ -185,6 +211,33 @@ struct PreferenceSelectionView: View {
                             }
                         }
                     }
+                    
+//                    ForEach(viewModel.animeList, id: \.self) { value in
+//                        // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
+//                        //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
+//                        self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
+//                            self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+//                        }
+//                        .onAppear {
+//                            if value.animeId == viewModel.animeList.last?.animeId {
+//                                self.viewModel.fetchRecommendAnime()
+//                            }
+//                        }
+//                        // TODO: 각 애니메이션 별 star 표시하도록 적용
+//                        if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
+//                            StarRatingView() { rating in
+//                                self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
+//                                self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+//                            }
+//                        }
+//                    }
+                }
+            }
+            .coordinateSpace(name: "scroll") // ⭐️ 중요
+            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                DLog("scroll 확인 - \(value)")
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.isHeaderHidden = value < -50   // 위로 50px 이상 올리면 숨김
                 }
             }
             

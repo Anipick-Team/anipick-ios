@@ -71,6 +71,36 @@ extension RecentReviewViewModel {
             }
     }
     
+    func tappedLikeReviewButton(reviewId: Int) {
+        session.request(ReviewAPI.likeReview(id: reviewId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("최근 리뷰 좋아요 success - \(value)")
+                case .failure(let error):
+                    DLog("최근 리뷰 좋아요 failure - \(error)")
+                }
+            }
+    }
+    
+    func tappedDislikeReviewButton(reviewId: Int) {
+        session.request(ReviewAPI.cancelReview(id: reviewId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("최근 리뷰 좋아요 취소 success - \(value)")
+                case .failure(let error):
+                    DLog("최근 리뷰 좋아요 취소 failure - \(error)")
+                }
+            }
+    }
+    
     
     func moveToDetailAnimation(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))

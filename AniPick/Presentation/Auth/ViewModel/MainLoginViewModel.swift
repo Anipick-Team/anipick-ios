@@ -23,6 +23,9 @@ class MainLoginViewModel: ObservableObject {
     @Published var userName: String = ""
     @Published var userEmail: String = ""
     
+    @Published var isShowWithdrawlUserPopup: Bool = false
+    @Published var isShowSNSSignupPopup: Bool = false
+    
     var kakaoToken: String = ""
     
     @Published var loginResponse: LoginResponse?
@@ -146,6 +149,10 @@ extension MainLoginViewModel {
                 } else {
                     self.navigationManager.push(route: .preferenceSelection)
                 }
+            } else if response.code == 132 {
+                self.isShowWithdrawlUserPopup.toggle()
+            } else if response.code == 133 {
+                self.isShowSNSSignupPopup.toggle()
             }
             // TODO: 소셜로그인 response를 받아서 어떻게 처리할 것인지 layer 나누고 처리해야함
             // TODO: UserName, id, accessToken, refreshToken -  UserDefaults에 저장
@@ -175,88 +182,88 @@ extension MainLoginViewModel {
 
 extension MainLoginViewModel {
 
-    func googleLogin() -> String {
-        var idToken = ""
-        guard let presentVC = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else { return "" }
-        GIDSignIn.sharedInstance.signIn(withPresenting: presentVC) { signInResult, error in
-            
-            guard let result = signInResult else {
-                   DLog("❌ 로그인 결과 없음")
-                   return
-               }
-
-               let user = result.user
-               let name = user.profile?.name ?? "이름 없음"
-               let email = user.profile?.email ?? "이메일 없음"
-               idToken = user.idToken?.tokenString ?? "ID Token 없음"
-            
-            DLog("✅ 로그인 성공")
-            DLog("이름: \(name)")
-            DLog("이메일: \(email)")
-            DLog("ID Token: \(idToken)")
-            
-        }
-        
-        return idToken
-    }
+//    func googleLogin() -> String {
+//        var idToken = ""
+//        guard let presentVC = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else { return "" }
+//        GIDSignIn.sharedInstance.signIn(withPresenting: presentVC) { signInResult, error in
+//            
+//            guard let result = signInResult else {
+//                   DLog("❌ 로그인 결과 없음")
+//                   return
+//               }
+//
+//               let user = result.user
+//               let name = user.profile?.name ?? "이름 없음"
+//               let email = user.profile?.email ?? "이메일 없음"
+//               idToken = user.idToken?.tokenString ?? "ID Token 없음"
+//            
+//            DLog("✅ 로그인 성공")
+//            DLog("이름: \(name)")
+//            DLog("이메일: \(email)")
+//            DLog("ID Token: \(idToken)")
+//            
+//        }
+//        
+//        return idToken
+//    }
     
-    func postSocialLogin(
-        provider: String,
-        code: String
-    ) {
-        
-        let url = baseUrl + "/api/oauth/\(provider)/callback"
-        
-        let parameters: Parameters = [
-            "platform": "ios",
-            "code": "\(code)"
-        ]
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json"
-        ]
-        
-        AF.request(
-            url,
-            method: .post,
-            parameters: parameters,
-            encoding: JSONEncoding.default,
-            headers: headers
-        )
-        .responseDecodable(of: LoginResponse.self) { response in
-            switch response.result {
-            case .success(let value):
-                DLog("✅ 성공: \(value)")
-            case .failure(let error):
-                DLog("❌ 실패: \(error)")
-            }
-        }
-    }
+//    func postSocialLogin(
+//        provider: String,
+//        code: String
+//    ) {
+//        
+//        let url = baseUrl + "/api/oauth/\(provider)/callback"
+//        
+//        let parameters: Parameters = [
+//            "platform": "ios",
+//            "code": "\(code)"
+//        ]
+//        
+//        let headers: HTTPHeaders = [
+//            "Content-Type": "application/json"
+//        ]
+//        
+//        AF.request(
+//            url,
+//            method: .post,
+//            parameters: parameters,
+//            encoding: JSONEncoding.default,
+//            headers: headers
+//        )
+//        .responseDecodable(of: LoginResponse.self) { response in
+//            switch response.result {
+//            case .success(let value):
+//                DLog("✅ 성공: \(value)")
+//            case .failure(let error):
+//                DLog("❌ 실패: \(error)")
+//            }
+//        }
+//    }
     
-    func refreshToken(refreshToken: String) {
-        let url = baseUrl + "/api/tokens/refresh"
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json",
-            "Authorization": "Bearer \(refreshToken)"
-        ]
-        
-        
-        AF.request(
-            url,
-            method: .post,
-            headers: headers
-        )
-        .responseDecodable (of: RefreshResponse.self) { response in
-            DLog(response)
-            switch response.result {
-            case .success(let value):
-                print("✅ 성공: \(value)")
-            case .failure(let error):
-                print("❌ 실패: \(error)")
-            }
-        }
-    }
+//    func refreshToken(refreshToken: String) {
+//        let url = baseUrl + "/api/tokens/refresh"
+//        
+//        let headers: HTTPHeaders = [
+//            "Content-Type": "application/json",
+//            "Authorization": "Bearer \(refreshToken)"
+//        ]
+//        
+//        
+//        AF.request(
+//            url,
+//            method: .post,
+//            headers: headers
+//        )
+//        .responseDecodable (of: RefreshResponse.self) { response in
+//            DLog(response)
+//            switch response.result {
+//            case .success(let value):
+//                print("✅ 성공: \(value)")
+//            case .failure(let error):
+//                print("❌ 실패: \(error)")
+//            }
+//        }
+//    }
     
     func tappedLogout(accessToken: String) {
         let url = baseUrl + "/api/users/logout"
@@ -410,8 +417,11 @@ extension MainLoginViewModel {
                 // TODO: 이메일 전체로 보내기
                 if let email = appleIDCredential.email {
                     let usernamePart = email.components(separatedBy: "@").first ?? ""
-                    DLog("Username part: \(usernamePart)")
-                    self.postSocialLogin(provider: "APPLE", code: usernamePart)
+                    let appleEmail = "\(usernamePart)@apple.com"
+                    DLog("appleLogin Email: \(appleEmail)")
+                    Task {
+                        await self.postSocialLogin(provider: .apple, code: appleEmail)
+                    }
                 }
           //      self.navigationManager.push(route: .content(activeTab: .home))
             }

@@ -9,6 +9,8 @@ import Foundation
 
 extension Notification.Name {
     static let didSelectSeason = Notification.Name("didSelectSeason")
+    static let presentReportPopup = Notification.Name("presentReportPopup")
+    static let presentBlockUserPopup = Notification.Name("presentBlockUserPopup")
 }
 
 
@@ -26,6 +28,14 @@ struct SeasonNotificationManager {
         )
     }
     
+    static func postReportPoup() {
+        NotificationCenter.default.post(
+            name: .presentReportPopup,
+            object: nil
+        )
+    }
+    
+    
     static func observe(_ observer: Any, selector: Selector) {
         NotificationCenter.default.addObserver(
             observer,
@@ -42,4 +52,9 @@ struct SeasonNotificationManager {
             object: nil
         )
     }
+}
+
+
+extension SeasonNotificationManager {
+    
 }

@@ -16,6 +16,7 @@ struct MyReviewCell: View {
     let item: MyReview
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
+    let onCellTapped: (MyReview) -> Void
     
     private let starCount = 5
     private let starSize: CGFloat = 20
@@ -69,22 +70,11 @@ struct MyReviewCell: View {
                 .padding(.vertical, 19)
             
             HStack(alignment: .center, spacing: 0) {
-              //  StarRatingComponentView(starRating: item.rating ?? 0.0)
                 self.starRatingView(starRating: item.rating ?? 0.0)
-                
                 Spacer()
                 
-//                Circle()
-//                    .frame(width: 30, height: 30)
-//                    .foregroundStyle(.gray)
-//                    .padding(.trailing, 8)
-//                
-//                // TODO: 닉네임 넣어야함!
-//                Text(item.nickname ?? "--")
-//                    .foregroundStyle(.anipickBlack)
-//                    .font(.system(size: 12))
-                
             }
+            .padding(.bottom, 8)
             
             Text(item.createdAt ?? "--")
                 .foregroundStyle(.gray6)
@@ -141,7 +131,7 @@ struct MyReviewCell: View {
                 GeometryReader { proxy in
                     Button {
                         let frame = proxy.frame(in: .global)
-                        onReportButtonTapped(id, frame)
+                        onReportButtonTapped(item.reviewId ?? 0, frame)
                         DLog("되었음요 탭탭")
                     } label: {
                         Image(.moreVerticalGray)
@@ -155,6 +145,10 @@ struct MyReviewCell: View {
         .padding(.horizontal, 20)
         .background(Color.white)
         .cornerRadius(8)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onCellTapped(item)
+        }
     }
     
     

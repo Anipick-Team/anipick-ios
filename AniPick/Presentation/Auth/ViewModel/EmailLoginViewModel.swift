@@ -29,6 +29,7 @@ class EmailLoginViewModel: ObservableObject {
     @Published var commonGuideText: String = ""
 
     @Published var isEnableLoginButton: Bool = false
+    @Published var isShowWithdrawlUserPopup: Bool = false
     
     private let authUsecase: AuthUsecaseProtocol
     private let navigationManager: NavigationManager
@@ -64,12 +65,17 @@ extension EmailLoginViewModel {
                 }
             } else if response.code == 110 {
                 self.passwordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요."
-            } else if response.code == 104 || response.code == 106 {
+            } else if response.code == 104 || response.code == 106 || response.code == 101 {
                 self.commonGuideText = "이메일이나 비밀번호를 확인해주세요."
             } else if response.code == 105 {
                 self.passwordGuideText = "비밀번호를 입력해주세요."
             }  else if response.code == 112 {
                 self.emailGuideText = "가입된 계정이 없습니다. 이메일을 다시 확인해주세요."
+            } else if response.code == 132 {
+                self.isShowWithdrawlUserPopup.toggle()
+                
+            } else if response.code == 102 {
+                self.emailGuideText = "이메일 주소를 입력해 주세요."
             }
             
         } catch {
@@ -125,6 +131,10 @@ extension EmailLoginViewModel {
         let regex = "^(?=.*[A-Za-z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{8,16}$"
         let predicate = NSPredicate(format: "SELF MATCHES %@", regex)
         return predicate.evaluate(with: password)
+    }
+    
+    func popToMainLoginView() {
+        self.navigationManager.pop()
     }
 
 }

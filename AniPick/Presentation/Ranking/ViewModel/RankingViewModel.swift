@@ -75,7 +75,7 @@ extension RankingViewModel {
     private func fetchYearSeasonList() {
         // TODO: 현재 최신 분기로 잡히도록 만들어야함
         let year = self.selectedYear.isEmpty ? 2025 : Int(self.selectedYear)
-        let season = self.selectedSeason.isEmpty ? 4 : Int(self.selectedSeason)
+        let season = self.selectedSeason.isEmpty || self.selectedSeason == "전체 분기" ? nil : Int(self.selectedSeason)
         let genre = self.selectedGenre == "장르" ? nil : self.selectedGenre
         session.request(
             RankingAPI.yearAndSeason(

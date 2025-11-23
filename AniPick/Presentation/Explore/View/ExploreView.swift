@@ -142,7 +142,7 @@ struct ExploreView: View {
                 self.applyIncomingFilterIfNeeded()
                 viewModel.fetchFiletedExploreData()
             }
-            .onChange(of: appState.pendingExploreFilter) { _ in
+            .onChange(of: AppDIContainer.appState.pendingExploreFilter) { _ in
                 DLog("appState onChange 감지")
                 applyIncomingFilterIfNeeded()
             }
@@ -171,7 +171,7 @@ struct ExploreView: View {
     }
     
     private func applyIncomingFilterIfNeeded() {
-          guard let f = appState.consumeExploreFilter() else { return }
+        guard let f = AppDIContainer.appState.consumeExploreFilter() else { return }
 
           // 예: 태그로 반영
           if let y = f.year, !y.isEmpty {
@@ -252,8 +252,6 @@ struct ExploreView: View {
                                     if item.category == .genre {
                                         if let index = self.selectedGenreListForUI.firstIndex(of: item.value) {
                                             self.selectedGenreListForUI.remove(at: index)
-//                                            self.viewModel.selectedGenreNameList.remove(at: index)
-//                                            self.viewModel.removeItemGenreList(idx: index)
                                         }
                                     }
                                     
@@ -384,41 +382,36 @@ struct ExploreView: View {
                     DLog("완료버튼 탭탭")
                     if tmpSelectedYear.isEmpty == false {
                         let item = ExploreSelectedTag(category: .yearQuarter, value: tmpSelectedYear)
-                        self.insertTagIfNotExist(item)
-                        
-                      //  self.viewModel.selectedTagList.insert(item, at: 0)
+                        self.insertTagReplacingCategory(item)
+                    //    self.insertTagIfNotExist(item)
                     }
-                   
                     
                     if tmpSelectedSeason.isEmpty == false {
                         let item = ExploreSelectedTag(category: .season, value: tmpSelectedSeason)
-                        self.insertTagIfNotExist(item)
-                     //   self.viewModel.selectedTagList.insert(item, at: 0)
+                        self.insertTagReplacingCategory(item)
+                      //  self.insertTagIfNotExist(item)
                     }
                     
                     if tmpSelectedGenreList.isEmpty == false {
                         for item in tmpSelectedGenreList {
                             let genreItem = ExploreSelectedTag(category: .genre, value: item)
                             self.insertTagIfNotExist(genreItem)
-                         //   self.viewModel.selectedTagList.insert(genreItem, at: 0)
                         }
                        
                     }
                     
                     if tmpSelectedType.isEmpty == false {
                         let item = ExploreSelectedTag(category: .type, value: tmpSelectedType)
-                        self.insertTagIfNotExist(item)
-                      //  self.viewModel.selectedTagList.insert(item, at: 0)
+                        self.insertTagReplacingCategory(item)
                     }
                     
-                    self.tmpSelectedYear = ""
-                    self.tmpSelectedSeason = ""
-                    self.tmpSelectedType = ""
+                //    self.tmpSelectedYear = ""
+                 //   self.tmpSelectedSeason = ""
+                 //   self.tmpSelectedType = ""
                     self.tmpSelectedGenreList.removeAll()
                     
                     DLog("tagList 확인 - \(self.viewModel.selectedTagList)")
                     self.isPresentYearFilter.toggle()
-                 //   self.viewModel.tappedDoneFilteredCategory()
                     self.viewModel.exploreItems.removeAll()
                     viewModel.fetchInitFilteredExploreData()
                     
@@ -446,6 +439,14 @@ struct ExploreView: View {
         if !viewModel.selectedTagList.contains(where: { $0.category == tag.category && $0.value == tag.value }) {
             viewModel.selectedTagList.insert(tag, at: 0)
         }
+    }
+
+    private func insertTagReplacingCategory(_ tag: ExploreSelectedTag) {
+        // 1️⃣ 같은 category 가진 항목이 있으면 모두 제거
+        viewModel.selectedTagList.removeAll { $0.category == tag.category }
+
+        // 2️⃣ 새 tag 추가
+        viewModel.selectedTagList.insert(tag, at: 0)
     }
 
     
@@ -551,8 +552,8 @@ extension ExploreView {
                 
                 Button {
                     self.viewModel.isToggleAllGenreCondition.toggle()
-                    self.selectedGenreListForUI.removeAll()
-                    self.viewModel.tappedAllCondition()
+                  //  self.selectedGenreListForUI.removeAll()
+               //     self.viewModel.tappedAllCondition()
                 } label: {
                     Text("모든 조건 일치")
                         .customFontStyle(size: 14, color: .anipickBlack)

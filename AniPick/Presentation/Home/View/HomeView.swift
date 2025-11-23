@@ -81,11 +81,16 @@ struct HomeView: View {
                 
                 sectionDivider()
                 
-                self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommendationAnimesWithAnimeId) {
-                    viewModel.moveToRecommendationView()
-                    DLog("추천작 탭탭")
-                }
+                if viewModel.recommendationAnimesWithAnimeId.isEmpty {
+                     Image("empty_recommendation")
+                        .padding(.bottom, 24)
+                } else {
+                    self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommendationAnimesWithAnimeId) {
+                        viewModel.moveToRecommendationView()
+                        DLog("추천작 탭탭")
+                    }
                     .padding(.bottom, 24)
+                }
                 
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
@@ -112,6 +117,7 @@ struct HomeView: View {
                         HStack(spacing: 0) {
                             self.recentReviewCell()
                                 .padding(.trailing, 12)
+                            
                         }
                         .padding(.horizontal, 20)
                     }
@@ -216,39 +222,44 @@ struct HomeView: View {
     
     private func recentReviewCell() -> some View {
         return ForEach(viewModel.recentReviews, id: \.self) { item in
-            VStack(alignment: .leading, spacing: 0) {
+            Button {
+                self.viewModel.moveToRecentReviewView()
+            } label: {
                 VStack(alignment: .leading, spacing: 0) {
-                    Text(item.animeTitle ?? "--")
-                        .font(.system(size: 12))
-                        .padding(.bottom, 7)
-                    
-                    Text(item.reviewContent ?? "--")
-                        .frame(width: 197, alignment: .leading)
-                        .multilineTextAlignment(.leading)
-                        .lineLimit(2)
-                        .font(.system(size: 16))
-                        .padding(.bottom, 17)
-                    
-                    HStack(spacing: 0) {
-                        Text(item.nickname ?? "--")
+                    VStack(alignment: .leading, spacing: 0) {
+                        Text(item.animeTitle ?? "--")
+                            .font(.system(size: 12))
+                            .padding(.bottom, 7)
                             .lineLimit(1)
                         
-                        Rectangle()
-                            .frame(width: 1, height: 10)
-                            .padding(.horizontal, 8)
+                        Text(item.reviewContent ?? "--")
+                            .frame(width: 197, alignment: .leading)
+                            .multilineTextAlignment(.leading)
+                            .lineLimit(2)
+                            .font(.system(size: 16))
+                            .padding(.bottom, 17)
                         
-                        // TODO: 날짜 변환 필요
-                        Text(item.createdAt ?? "--")
+                        HStack(spacing: 0) {
+                            Text(item.nickname ?? "--")
+                                .lineLimit(1)
+                            
+                            Rectangle()
+                                .frame(width: 1, height: 10)
+                                .padding(.horizontal, 8)
+                            
+                            // TODO: 날짜 변환 필요
+                            Text(item.createdAt ?? "--")
+                        }
+                        .font(.system(size: 12))
+                        
                     }
-                    .font(.system(size: 12))
-                    
+                    .foregroundStyle(.anipickBlack)
+                    .frame(width: 197, height: 112)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .background(.white)
+                    .cornerRadius(8)
                 }
-                .foregroundStyle(.anipickBlack)
-                .frame(width: 197, height: 112)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(.white)
-                .cornerRadius(8)
             }
         }
     }

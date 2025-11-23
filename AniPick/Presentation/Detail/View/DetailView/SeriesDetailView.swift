@@ -9,12 +9,12 @@ import SwiftUI
 
 struct SeriesDetailView: View {
     @Environment(\.dismiss) private var dismiss
-    
+    @ObservedObject var viewModel: SeriesDetailViewModel
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            NavigationBackButtonView(title: "함께 볼만한 작품") {
+            NavigationBackButtonView(title: "시리즈 정보") {
                 dismiss()
             }
             .padding(.horizontal, -20)
@@ -35,7 +35,8 @@ struct SeriesDetailView: View {
                 
                 VStack(spacing: 0) {
                     HStack(spacing: 0) {
-                        Text("'록은 숙녀의 소양이기에'의\n 시리즈에요!")
+                        // TODO: 넘어온 값 넣기
+                        Text("'\(self.viewModel.animeTitle)'의\n 시리즈에요!")
                             .customFontStyle(size: 24, color: .gray7, weight: .bold)
                             .padding(.top, 20)
                             .padding(.leading, 20)
@@ -52,15 +53,20 @@ struct SeriesDetailView: View {
             
             Spacer().frame(height: 24)
             
-            Text("총 11개")
+            Text("총 \(self.viewModel.count)개")
                 .customFontStyle(size: 16, color: .gray8)
                 .padding(.bottom, 16)
             
             ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<5) { _ in
+                    ForEach(self.viewModel.animeList, id: \.self) { item in
                         // TODO: API 에서 데이터 가져와서 보여줘야함
-                        animationCell()
+                        AnimeCommonCellWithTitle(
+                            imageUrl: item.coverImageUrl,
+                            width: nil,
+                            height: 162,
+                            title: item.title
+                        )
                     }
                 }
             }
@@ -70,26 +76,22 @@ struct SeriesDetailView: View {
         }
         .background(Color.white)
         .padding(.horizontal, 20)
-    }
-    
-    private func animationCell() -> some View {
-        return VStack(spacing: 0) {
-            ZStack(alignment: .topLeading) {
-                // 회색 배경 정사각형
-                RoundedRectangle(cornerRadius: 12)
-                    .foregroundColor(Color.gray.opacity(0.2))
-                    .frame(height: 162)
-
-            }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
-            
-            Text("착각하는 공방주 영풍파티의 전 잡어쩌구어쩌구")
-               // .frame(width: 128, height: 45)
-                .font(.system(size: 14))
-                .lineLimit(2)
-                .padding(.top, 6)
+        .navigationBarBackButtonHidden()
+        .onAppear {
+            self.viewModel.getSeriesDetailInfo()
         }
     }
+    
+//    private func animationCell(item: SeriesAnime) -> some View {
+//        return VStack(spacing: 0) {
+//            AnimeCommonCellWithTitle(
+//                imageUrl: item.coverImageUrl,
+//                width: nil,
+//                height: 162,
+//                title: item.title
+//            )
+//        }
+//    }
     
     @ViewBuilder
     private func sectionDivder() -> some View {
@@ -103,6 +105,3 @@ struct SeriesDetailView: View {
     
 }
 
-#Preview {
-    SeriesDetailView()
-}

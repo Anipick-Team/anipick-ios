@@ -12,7 +12,7 @@ final class PreferenceSelectionViewModel: ObservableObject {
     
     @Published var animeList: [AnimePreference] = []
     @Published var ratedAnimeCount: Int = 0
-    
+    @Published var lastVisibleIndex: Int? = nil
     @Published var selectedGenreId: Int? = nil
     @Published var selectedGenre: String = ""
     @Published var selectedYear: String = ""

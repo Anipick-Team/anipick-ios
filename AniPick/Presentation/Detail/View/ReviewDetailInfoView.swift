@@ -22,6 +22,11 @@ struct ReviewDetailInfoView: View {
     @State private var selectedPopupItemReviewId: Int = 0
     @State private var selectedBlockUserId: Int = 0
     
+    @State private var isPresentReportView: Bool = false
+    @State private var isPresentReportReasonView: Bool = false
+    @State private var isPresentBlockUserView: Bool = false
+    @State private var isPresentMyReviewPopupView: Bool = false
+        
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
@@ -125,7 +130,18 @@ struct ReviewDetailInfoView: View {
                                 
                                 Spacer()
                                 
-                                Image(.moreVerticalGray)
+                                GeometryReader { proxy in
+                                        Button {
+                                            self.menuFrame = proxy.frame(in: .global)
+                                            DLog("되었음요 탭탭 - \(self.menuFrame)")
+                                            // 삭제, 수정 팝업 띄워야함
+                                            self.isPresentMyReviewPopupView.toggle()
+                                        } label: {
+                                            Image(.moreVerticalGray)
+                                        }
+                                        .frame(width: 20, height: 20)
+                                }
+                                .frame(width: 20, height: 20)
                                 
                             }
                         }
@@ -161,7 +177,12 @@ struct ReviewDetailInfoView: View {
                     Text("스포일러")
                         .customFontStyle(size: 16, color: .anipickSecondary, weight: .bold)
                     
-                    Image(.toggleEnable)
+                    Button {
+                        self.viewModel.isSpolier.toggle()
+                        self.viewModel.fetchReview()
+                    } label: {
+                        Image(self.viewModel.isSpolier ?.toggleEnable : .toggleDisable)
+                    }
                 }
                 
                 Spacer().frame(height: 32)
@@ -185,7 +206,6 @@ struct ReviewDetailInfoView: View {
                                     .frame(width: 9, height: 6)
                             }
                         }
-                        
                     }
                     .customFontStyle(size: 14, color: .gray8)
                     .foregroundColor(Color.gray8)
@@ -194,25 +214,63 @@ struct ReviewDetailInfoView: View {
                     
                     Spacer().frame(height: 20)
                     
-                    ForEach(viewModel.reviewList, id: \.self) { item in
-                        RecentReviewCell(item: item) { id, buttonFrame in
-                            self.isShowBlockPopupView.toggle()
-                            self.selectedPopupItemReviewId = item.reviewId ?? 0
-                            self.menuFrame = buttonFrame
-                            self.selectedBlockUserId = item.userId ?? 0
-                        }
-                        .onTapGesture {
-                            if item.isMine! {
-                                viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
+                    if viewModel.reviewList.count > 0 {
+                        ForEach(viewModel.reviewList, id: \.self) { item in
+                            if item.isMine == false {
+                                RecentReviewCell(item: item, onReportButtonTapped: { id, buttonFrame in
+                                    self.isShowBlockPopupView.toggle()
+                                    self.selectedPopupItemReviewId = item.reviewId ?? 0
+                                    self.menuFrame = buttonFrame
+                                    self.selectedBlockUserId = item.userId ?? 0
+                                }, tappedMoreButton: { value in
+                                    DLog("더보기 눌렀을 때의 동작")
+                                    if value {
+                                        self.viewModel.tappedLikeReviewButton(reviewId: item.reviewId ?? 0)
+                                    } else {
+                                        self.viewModel.tappedDislikeReviewButton(reviewId: item.reviewId ?? 0)
+                                    }
+                                })
+                                .onTapGesture {
+                                    if item.isMine! {
+                                        viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
+                                    }
+                                }
+                                .padding(.bottom, 12)
+                                .padding(.horizontal, 20)
                             }
                         }
-                        .padding(.bottom, 12)
-                        .padding(.horizontal, 20)
+                    } else {
+                        VStack(spacing: 0) {
+                            Image(.emptyReviewIcon)
+                                .resizable()
+                                .frame(width: 150)
+                                .padding(.bottom, 30)
+                            
+                            Text("아직 리뷰가 없어요!\n첫 번째 리뷰의 주인공이 되어볼까요?")
+                                .customFontStyle(size: 14, color: .gray8)
+                                .multilineTextAlignment(.center)
+                        }
+                        .frame(maxWidth: .infinity)
                     }
+                    
                     Spacer()
                 }
                 .background(Color.gray7)
                 .padding(.horizontal, -20)
+            }
+            
+            if self.isPresentMyReviewPopupView {
+                MyReviewPopupView(
+                    isShowBlockMenu: self.$isPresentMyReviewPopupView) {
+                    // 삭제 이벤트
+                        DLog("삭제삭제")
+                        self.viewModel.deleteMyReview(reviewId: viewModel.MyReview?.reviewId ?? 0)
+                } editAction: {
+                    // 수정 이벤트
+                    DLog("수정수정")
+                }
+                .position(x: self.menuFrame.minX, y: self.menuFrame.minY)
+                .zIndex(1000)
             }
             
             if self.isShowSortOptionView {
@@ -221,7 +279,7 @@ struct ReviewDetailInfoView: View {
                         self.selectedSortOption = option
                         self.isShowSortOptionView.toggle()
                     }
-                    .padding(.top, 380)
+                    .padding(.top, 400)
                     .padding(.trailing, 0)
             }
             
@@ -230,11 +288,25 @@ struct ReviewDetailInfoView: View {
                     isShowBlockMenu: self.$isShowBlockPopupView) {
                         // 신고 버튼 Tapped
                         DLog("신고버튼 tapped")
+                        self.isShowBlockPopupView.toggle()
+                        self.isPresentReportView.toggle()
+                        NotificationCenter.default.post(
+                            name: .presentReportPopup,
+                            object: nil,
+                            userInfo: ["reviewId": self.selectedPopupItemReviewId]
+                        )
                     } blockAction: {
                         // 차단 버튼 Tapped
                         DLog("차단버튼 tapped")
+                        self.isPresentBlockUserView.toggle()
+                        self.isShowBlockPopupView.toggle()
+                        NotificationCenter.default.post(
+                            name: .presentBlockUserPopup,
+                            object: nil,
+                            userInfo: ["userId": self.selectedBlockUserId]
+                        )
                     }
-                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY - 40)
+                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY + 40)
                     .zIndex(1000)
             }
         }

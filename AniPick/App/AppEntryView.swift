@@ -96,6 +96,8 @@ struct AppEntryView: View {
                     AppDIContainer.makeVoiceActorDetailView(animeId: animeId)
                 case .characterAndVoiceActorDetail(let animeId):
                     AppDIContainer.makeCharacterAndVoiceActorDetailVIew(animeId: animeId)
+                case let .seriesDetail(animeId, animeTitle):
+                    AppDIContainer.makeSeriesDetialView(animeId: animeId, animeTitle: animeTitle)
                 default:
                     Text("asdfasdf")
                 }

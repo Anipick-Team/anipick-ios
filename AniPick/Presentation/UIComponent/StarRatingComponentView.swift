@@ -19,7 +19,7 @@ struct StarRatingComponentView: View {
     let action: (Double) -> Void
     
     init(starRating: Double, fontSize: CGFloat, fontColor: Color, starSize: CGFloat, action: @escaping (Double) -> Void) {
-        _starRating = State(initialValue: starRating)  // ✅ 언더바 붙여야 함
+        _starRating = State(initialValue: starRating)
         self.action = action
         self.fontSize = fontSize
         self.starSize = starSize

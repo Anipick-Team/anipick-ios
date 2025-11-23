@@ -24,7 +24,6 @@ struct SNSSignupPopupView: View {
                 Text("SNS로 로그인해주세요.")
                     .customFontStyle(size: 14, color: .settingSubTitle)
                     
-
                 Spacer().frame(height: 37)
                 
                 HStack {

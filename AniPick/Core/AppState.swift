@@ -8,8 +8,34 @@
 import SwiftUI
 
 final class AppState: ObservableObject {
+    private let navigationManager: NavigationManager
+    
     @Published var pendingExploreFilter: ExploreFilter?
+    @Published var deepLink: DeepLink? {
+        didSet {
+            guard let deepLink else { return }
+            handle(deepLink)
+        }
+    }
+    
+    init(navigationManager: NavigationManager) {
+        self.navigationManager = navigationManager
+    }
 
+    func handle(_ link: DeepLink) {
+        switch link {
+        case .anime(let id):
+            DLog("Anime Detail 이동 id: \(id)")
+            // AnimeDetailView로 이동 로직 추가
+            navigationManager.push(route: .animeDetail(animeId: 20457))
+        case .producer(let id):
+            DLog("Producer Detail 이동 id: \(id)")
+        case .unknown:
+            DLog("알 수 없는 링크")
+        }
+    }
+    
+    
     func pushExplore(year: String?, season: String?) {
         DLog("explore push push - \(year) - \(season)")
         pendingExploreFilter = .init(year: year, season: season)
@@ -19,6 +45,8 @@ final class AppState: ObservableObject {
         defer { pendingExploreFilter = nil }
         return pendingExploreFilter
     }
+    
+
 }
 
 struct ExploreFilter: Equatable {
