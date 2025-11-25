@@ -340,10 +340,9 @@ struct AnimationInfoView: View {
                     .padding(.bottom, 13)
                 }
                 .background(Color.white)
-                .padding(.horizontal, 20)
                 .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? 20)
                 .padding(.bottom, 12)
-                // .background(.ultraThinMaterial) // iOS 네이티브 블러 느낌
+              //  .background(.ultraThinMaterial) // iOS 네이티브 블러 느낌
                 .transition(.opacity.combined(with: .move(edge: .top)))
                 
             }

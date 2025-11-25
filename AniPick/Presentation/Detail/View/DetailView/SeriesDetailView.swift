@@ -67,6 +67,12 @@ struct SeriesDetailView: View {
                             height: 162,
                             title: item.title
                         )
+                        .onAppear {
+                            if item == viewModel.animeList.last {
+                                DLog("seriesDetail 데이터 확인 - \(item) -- \(String(describing: viewModel.animeList.last))")
+                                viewModel.getSeriesDetailInfo()
+                            }
+                        }
                     }
                 }
             }

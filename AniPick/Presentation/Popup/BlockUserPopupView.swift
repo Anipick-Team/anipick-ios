@@ -23,6 +23,7 @@ struct BlockUserPopupView: View {
                 
                 Text("차단한 사용자의 리뷰, 커뮤니티 게시글 및 댓글 등 모든 콘첸츠가 노출되지 않게 됩니다.")
                     .customFontStyle(size: 14, color: .settingSubTitle)
+                    .multilineTextAlignment(.center)
                 
                 Spacer().frame(height: 40)
                 

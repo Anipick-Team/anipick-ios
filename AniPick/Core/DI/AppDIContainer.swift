@@ -258,6 +258,13 @@ extension AppDIContainer {
         return SeriesDetailView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
+    
+    static func makeRecommendView(animeId: Int, animeTitle: String) -> some View {
+        let viewModel = RecommendedViewModel(navigationManager: navigationManager, animeId: animeId, animeTitle: animeTitle)
+        
+        return RecommendedView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
 }
 
 

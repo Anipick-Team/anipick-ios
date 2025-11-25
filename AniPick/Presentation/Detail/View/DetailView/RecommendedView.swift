@@ -9,7 +9,7 @@ import SwiftUI
 
 struct RecommendedView: View {
     @Environment(\.dismiss) private var dismiss
-    
+    @ObservedObject var viewModel: RecommendedViewModel
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     var body: some View {
@@ -35,7 +35,7 @@ struct RecommendedView: View {
                 
                 VStack(spacing: 0) {
                     HStack(spacing: 0) {
-                        Text("'록은 숙녀의 소양이기에'와\n 함께보기 좋은 작품")
+                        Text("'\(viewModel.animeTitle)'와\n 함께보기 좋은 작품")
                             .customFontStyle(size: 24, color: .gray7, weight: .bold)
                             .padding(.top, 20)
                             .padding(.leading, 20)
@@ -54,15 +54,29 @@ struct RecommendedView: View {
             
             ScrollView(showsIndicators: false) {
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(0..<5) { _ in
-                        // TODO: API 에서 데이터 가져와서 보여줘야함
-                        animationCell()
+                    ForEach(self.viewModel.recommendedAnimeList, id: \.self) { item in
+                        AnimeCommonCellWithTitle(
+                            imageUrl: item.coverImageUrl,
+                            width: nil,
+                            height: 162,
+                            title: item.title
+                        )
+                        .onAppear {
+                            if item == viewModel.recommendedAnimeList.last {
+                                DLog("recommended 데이터 확인 - \(item) -- \(String(describing: viewModel.recommendedAnimeList.last))")
+                                viewModel.fetchRecommendationAnimeInfo()
+                            }
+                        }
                     }
                 }
             }
         }
         .background(Color.white)
         .padding(.horizontal, 20)
+        .navigationBarBackButtonHidden()
+        .onAppear {
+            self.viewModel.fetchRecommendationAnimeInfo()
+        }
     }
     
     private func animationCell() -> some View {

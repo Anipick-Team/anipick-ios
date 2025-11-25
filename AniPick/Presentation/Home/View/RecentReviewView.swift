@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PopupView
 
 struct RecentReviewView: View {
     @Environment(\.dismiss) private var dismiss
@@ -18,6 +19,9 @@ struct RecentReviewView: View {
     @State private var selectedPopupItemReviewId: Int = 0
     @State private var selectedBlockUserId: Int = 0
     @State private var currentUserTappedLike: Bool = false
+    
+    @State private var isShowToastBlockUser: Bool = false
+    @State private var isShowToastReportUser: Bool = false
     
     var body: some View {
         ZStack {
@@ -104,25 +108,62 @@ struct RecentReviewView: View {
             }
             .background(.gray7)
             .navigationBarBackButtonHidden(true)
+            .popup(isPresented: self.$isShowToastBlockUser) {
+                Text("사용자 차단이 완료되었습니다.")
+                    .customFontStyle(size: 14, color: .gray5)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.anipickBlack)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 20)
+            } customize: {
+                $0
+                    .type(.floater())
+                    .position(.top)
+                    .autohideIn(2)
+            }
+            .popup(isPresented: self.$isShowToastReportUser) {
+                Text("신고가 정상적으로 접수되었습니다.")
+                    .customFontStyle(size: 14, color: .gray5)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color.anipickBlack)
+                    .cornerRadius(8)
+                    .padding(.horizontal, 20)
+            } customize: {
+                $0
+                    .type(.floater())
+                    .position(.top)
+                    .autohideIn(2)
+            }
             
             if isShowReportPopupView {
                 ReportReviewWithReasonPopupView {
                     self.isShowReportPopupView = false
+                    self.viewModel.fetchRecentReview()
                 } okAction: { reportReason in
                     self.viewModel.reportReview(
                         reviewId: self.selectedPopupItemReviewId,
                         message: reportReason
-                    )
+                    ) { result in
+                        if result {
+                            self.isShowToastReportUser.toggle()
+                        }
+                    }
                     self.isShowReportPopupView = false
+                    self.viewModel.fetchRecentReview()
                 }
-
             }
             
             if isShowBlockUser {
                 BlockUserPopupView {
                     self.isShowBlockUser = false
                 } okAction: {
-                    self.viewModel.blockUser(userId: self.selectedBlockUserId)
+                    self.viewModel.blockUser(userId: self.selectedBlockUserId) { result in
+                        if result {
+                            self.isShowToastBlockUser.toggle()
+                        }
+                    }
                     self.isShowBlockUser = false
                     self.viewModel.fetchRecentReview()
                 }

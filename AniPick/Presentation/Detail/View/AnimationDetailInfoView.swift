@@ -122,8 +122,9 @@ struct AnimationDetailInfoView: View {
             Spacer().frame(height: 48)
             
             
-            self.sectionCategoryButton(title: "함께 볼 만한 작품") {
+            self.sectionCategoryButton(title: "함께 볼만한 작품") {
                 DLog("함께 볼만한 작품으로 이동")
+                self.viewModel.moveToRecommendView(animeId: detailInfo.animeId, animeTitle: detailInfo.title ?? "-")
             }
             .padding(.bottom, 20)
             

@@ -160,8 +160,8 @@ struct RankingView: View {
                 }
                 
             }
-            .padding(.top, 12)
-            .padding(.horizontal, 12)
+            .padding(.top, 20)
+            .padding(.horizontal, 20)
             
             ScrollView(showsIndicators: false) {
                 FlowLayout() {
@@ -244,8 +244,8 @@ struct RankingView: View {
                 }
                 
             }
-            .padding(.top, 12)
-            .padding(.horizontal, 12)
+            .padding(.top, 20)
+            .padding(.horizontal, 20)
             
             HStack(spacing: 0) {
                 Picker("", selection: self.$selectedTmpYear) {

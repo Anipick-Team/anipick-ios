@@ -84,5 +84,6 @@ enum AppRoute: Hashable {
     case voiceActorDetail(animeId: Int)
     case characterAndVoiceActorDetail(animeId: Int)
     case seriesDetail(animeId: Int, animeTitle: String)
+    case recommend(animeId: Int, animeTitle: String)
     
 }

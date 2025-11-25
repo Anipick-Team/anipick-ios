@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PopupView
 
 struct ReviewDetailInfoView: View {
     @StateObject var viewModel: AnimationInfoViewModel
@@ -47,7 +48,11 @@ struct ReviewDetailInfoView: View {
                                 starSize: 32
                             ) { star in
                                 self.starRating = star
-                                viewModel.registerStarRating(ratedStar: star)
+                               // viewModel.registerStarRating(ratedStar: star)
+                                viewModel.editMyReviewStar(
+                                    reviewId: viewModel.myReviewId,
+                                    ratedStar: star
+                                )
                             }
                         }
                     }
@@ -215,28 +220,38 @@ struct ReviewDetailInfoView: View {
                     Spacer().frame(height: 20)
                     
                     if viewModel.reviewList.count > 0 {
-                        ForEach(viewModel.reviewList, id: \.self) { item in
-                            if item.isMine == false {
-                                RecentReviewCell(item: item, onReportButtonTapped: { id, buttonFrame in
-                                    self.isShowBlockPopupView.toggle()
-                                    self.selectedPopupItemReviewId = item.reviewId ?? 0
-                                    self.menuFrame = buttonFrame
-                                    self.selectedBlockUserId = item.userId ?? 0
-                                }, tappedMoreButton: { value in
-                                    DLog("더보기 눌렀을 때의 동작")
-                                    if value {
-                                        self.viewModel.tappedLikeReviewButton(reviewId: item.reviewId ?? 0)
-                                    } else {
-                                        self.viewModel.tappedDislikeReviewButton(reviewId: item.reviewId ?? 0)
+                        VStack(spacing: 0) {
+                            ForEach(viewModel.reviewList, id: \.self) { item in
+                                if item.isMine == false {
+                                    RecentReviewCell(item: item, onReportButtonTapped: { id, buttonFrame in
+                                        self.isShowBlockPopupView.toggle()
+                                        self.selectedPopupItemReviewId = item.reviewId ?? 0
+                                        self.menuFrame = buttonFrame
+                                        self.selectedBlockUserId = item.userId ?? 0
+                                    }, tappedMoreButton: { value in
+                                        DLog("더보기 눌렀을 때의 동작")
+                                        if value {
+                                            self.viewModel.tappedLikeReviewButton(reviewId: item.reviewId ?? 0)
+                                        } else {
+                                            self.viewModel.tappedDislikeReviewButton(reviewId: item.reviewId ?? 0)
+                                        }
+                                    })
+                                    .onTapGesture {
+                                        if item.isMine! {
+                                            viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
+                                        }
                                     }
-                                })
-                                .onTapGesture {
-                                    if item.isMine! {
-                                        viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
-                                    }
+                                    .padding(.bottom, 12)
+                                    .padding(.horizontal, 20)
                                 }
-                                .padding(.bottom, 12)
-                                .padding(.horizontal, 20)
+                            }
+                        }
+                        .overlayPreferenceValue(PopupMenuAnchorPreferenceKey.self) { anchor in
+                            GeometryReader { geo in
+                                if let anchor = anchor {
+                                    let frame = geo[anchor]
+                                    popupMenu(for: frame)
+                                }
                             }
                         }
                     } else {
@@ -258,7 +273,7 @@ struct ReviewDetailInfoView: View {
                 .background(Color.gray7)
                 .padding(.horizontal, -20)
             }
-            
+
             if self.isPresentMyReviewPopupView {
                 MyReviewPopupView(
                     isShowBlockMenu: self.$isPresentMyReviewPopupView) {
@@ -269,7 +284,7 @@ struct ReviewDetailInfoView: View {
                     // 수정 이벤트
                     DLog("수정수정")
                 }
-                .position(x: self.menuFrame.minX, y: self.menuFrame.minY)
+              //  .position(x: self.menuFrame.minX, y: self.menuFrame.minY)
                 .zIndex(1000)
             }
             
@@ -282,33 +297,6 @@ struct ReviewDetailInfoView: View {
                     .padding(.top, 400)
                     .padding(.trailing, 0)
             }
-            
-            if self.isShowBlockPopupView {
-                ReportBlockMenuPopup(
-                    isShowBlockMenu: self.$isShowBlockPopupView) {
-                        // 신고 버튼 Tapped
-                        DLog("신고버튼 tapped")
-                        self.isShowBlockPopupView.toggle()
-                        self.isPresentReportView.toggle()
-                        NotificationCenter.default.post(
-                            name: .presentReportPopup,
-                            object: nil,
-                            userInfo: ["reviewId": self.selectedPopupItemReviewId]
-                        )
-                    } blockAction: {
-                        // 차단 버튼 Tapped
-                        DLog("차단버튼 tapped")
-                        self.isPresentBlockUserView.toggle()
-                        self.isShowBlockPopupView.toggle()
-                        NotificationCenter.default.post(
-                            name: .presentBlockUserPopup,
-                            object: nil,
-                            userInfo: ["userId": self.selectedBlockUserId]
-                        )
-                    }
-                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY + 40)
-                    .zIndex(1000)
-            }
         }
         .background(Color.white)
         .onAppear {
@@ -317,7 +305,40 @@ struct ReviewDetailInfoView: View {
                 self.viewModel.getMyReview()
             }
         }
-        
+    }
+    
+    @ViewBuilder
+    func popupMenu(for frame: CGRect) -> some View {
+        if isShowBlockPopupView {
+            ReportBlockMenuPopup(
+                isShowBlockMenu: self.$isShowBlockPopupView) {
+                    // 신고 버튼 Tapped
+                    DLog("신고버튼 tapped")
+                    self.isShowBlockPopupView.toggle()
+                    self.isPresentReportView.toggle()
+                    NotificationCenter.default.post(
+                        name: .presentReportPopup,
+                        object: nil,
+                        userInfo: ["reviewId": self.selectedPopupItemReviewId]
+                    )
+                } blockAction: {
+                    // 차단 버튼 Tapped
+                    DLog("차단버튼 tapped")
+                    self.isPresentBlockUserView.toggle()
+                    self.isShowBlockPopupView.toggle()
+                    NotificationCenter.default.post(
+                        name: .presentBlockUserPopup,
+                        object: nil,
+                        userInfo: ["userId": self.selectedBlockUserId]
+                    )
+                }
+           //     .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY - 40)
+                .position(x: frame.maxX - 20,  // 오른쪽에 맞춰 팝업 위치
+                          y: frame.minY + 80)
+                .transition(.opacity.combined(with: .scale))
+                .animation(.spring(), value: isShowBlockPopupView)
+                .zIndex(9999)
+        }
     }
 }
 

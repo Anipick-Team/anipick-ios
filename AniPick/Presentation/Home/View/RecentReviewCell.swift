@@ -131,17 +131,20 @@ struct RecentReviewCell: View {
                 
                 Spacer()
                 
-                GeometryReader { proxy in
+             //   GeometryReader { proxy in
                     Button {
-                        let frame = proxy.frame(in: .global)
-                        onReportButtonTapped(id, frame)
+//                       let frame = proxy.frame(in: .global)
+                        onReportButtonTapped(id, .zero)
                         DLog("되었음요 탭탭")
                     } label: {
                         Image(.moreVerticalGray)
                     }
                     .frame(width: 20, height: 20)
-                }
-                .frame(width: 20, height: 20)
+                    .anchorPreference(key: PopupMenuAnchorPreferenceKey.self, value: .bounds) { anchor in
+                        anchor   // ← 상위 뷰에서 geo[anchor] 로 global frame 얻음
+                    }
+//                }
+//                .frame(width: 20, height: 20)
             }
         }
         .padding(.vertical, 16)

@@ -15,6 +15,7 @@ final class SeriesDetailViewModel: ObservableObject {
     @Published var animeList: [SeriesAnime] = []
     @Published var count: Int = 0
     let session = Session(interceptor: TokenInterceptor.shared)
+    var lastId: Int? = nil
     
     init(
         navigationManager: NavigationManager,
@@ -27,21 +28,26 @@ final class SeriesDetailViewModel: ObservableObject {
     }
     
     func getSeriesDetailInfo() {
-        session.request(AnimeAPI.seriesAnimeList(animeId: self.animeId, lastId: nil, size: 20))
-            .cURLDescription { des in
+        session.request(AnimeAPI.seriesAnimeList(
+            animeId: self.animeId,
+            lastId: lastId,
+            size: 20)
+        )
+        .cURLDescription { des in
             DLog("series Detail Info - \(des)")
-            }
-            .responseDecodable(of: SeriesAnimeResponse.self) { response in
-                switch response.result {
-                case .success(let response):
-                    DLog("series Detail success - \(response)")
-                    if let result = response.result {
-                        self.animeList = result.animes ?? []
-                        self.count = result.count
-                    }
-                case .failure(let error):
-                    DLog("Series Detail fail - \(error)")
+        }
+        .responseDecodable(of: SeriesAnimeResponse.self) { response in
+            switch response.result {
+            case .success(let response):
+                DLog("series Detail success - \(response)")
+                if let result = response.result {
+                    self.animeList = result.animes ?? []
+                    self.count = result.count
+                    self.lastId = result.cursor?.lastId
                 }
+            case .failure(let error):
+                DLog("Series Detail fail - \(error)")
             }
+        }
     }
 }

@@ -34,6 +34,7 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var myReviewCreatedAt: String = ""
     @Published var selectedAnimationStatusTab: AnimationWatchStatus = .empty
     @Published var storedMyReviewRate: Double = 0.0
+    @Published var myReviewId: Int = 0
     @Published var myLikeCount: Int = 0
     
     
@@ -44,7 +45,6 @@ final class AnimationInfoViewModel: ObservableObject {
         self.navigationManager = navigationManager
         self.fetchAnimationInfo(animeId: animeId)
         self.fetchSeriesAnimeInfo()
-        self.fetchRecommendationAnimeInfo()
         self.fetchReview()
         self.getMyReview()
         self.fetchCharacterAndVoiceActor(animeId: animeId)
@@ -105,30 +105,7 @@ extension AnimationInfoViewModel {
             }
     }
     
-    func fetchRecommendationAnimeInfo() {
-        session.request(AnimeAPI.recommendationAnime(animeId: self.animeId, lastId: nil, size: nil))
-            .cURLDescription { description in
-                DLog("\(description)")
-            }
-            .responseDecodable(of: RecommendationResponse.self) { response in
-                if let data = response.data {
-                    let raw = String(data: data, encoding: .utf8) ?? "⚠️ 디코딩 불가"
-                    print("📦 원본 응답: \(raw)")
-                }
-                
-                switch response.result {
-                case let .success(value):
-                    DLog("anime recommendation response - \(response)")
-                    if let animeList = value.result,
-                       let seriesInfo = animeList.animes {
-                        self.recommendationInfo = seriesInfo
-                    }
-                case let .failure(error):
-                    
-                    DLog("anime recommendation Error: \(error)")
-                }
-            }
-    }
+
     
     
     func fetchCharacterAndVoiceActor(animeId: Int) {
@@ -231,6 +208,7 @@ extension AnimationInfoViewModel {
                             self.myReviewCreatedAt = result.createdAt ?? ""
                             self.storedMyReviewRate = result.rating ?? 0
                             self.myLikeCount = result.likeCount ?? 0
+                            self.myReviewId = result.reviewId ?? 0
                         } else {
                             self.hasMyReview = false
                         }
@@ -239,6 +217,24 @@ extension AnimationInfoViewModel {
                     DLog("에러 발생 - \(error)")
                 }
             }
+    }
+    
+    func editMyReviewStar(reviewId: Int, ratedStar: Double) {
+        AF.request(AnimeAPI.editRating(
+            reviewId: reviewId,
+            rating: self.storedMyReviewRate)
+        )
+        .cURLDescription { description in
+            DLog("\(description)")
+        }
+        .responseDecodable(of: BaseResponse.self) { response in
+            switch response.result {
+            case .success(let value):
+                DLog("별점 수정 완 - \(value)")
+            case .failure(let error):
+                DLog("별점 수정 에러")
+            }
+        }
     }
     
     func registerStarRating(ratedStar: Double) {
@@ -429,5 +425,9 @@ extension AnimationInfoViewModel {
     
     func moveToAnimeDetailView(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
+    
+    func moveToRecommendView(animeId: Int, animeTitle: String) {
+        self.navigationManager.push(route: .recommend(animeId: animeId, animeTitle: animeTitle))
     }
 }

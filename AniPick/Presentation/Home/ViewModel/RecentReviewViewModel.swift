@@ -40,7 +40,7 @@ extension RecentReviewViewModel {
             }
     }
     
-    func reportReview(reviewId: Int, message: String) {
+    func reportReview(reviewId: Int, message: String, completionHandler: @escaping (Bool) -> Void) {
         session.request(ReviewAPI.reportReview(id: reviewId, message: message))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -49,14 +49,16 @@ extension RecentReviewViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("리뷰 신고 success - \(value)")
+                    completionHandler(true)
                 case .failure(let error):
                     DLog("리뷰 신고 failure - \(error)")
+                    completionHandler(false)
                 }
             }
         
     }
     
-    func blockUser(userId: Int) {
+    func blockUser(userId: Int, completionHandler: @escaping (Bool) -> Void) {
         session.request(ReviewAPI.blockUser(userId: userId))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -65,8 +67,10 @@ extension RecentReviewViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("사용자 차단 success - \(value)")
+                    completionHandler(true)
                 case .failure(let error):
                     DLog("사용자 차단 failure - \(error)")
+                    completionHandler(false)
                 }
             }
     }

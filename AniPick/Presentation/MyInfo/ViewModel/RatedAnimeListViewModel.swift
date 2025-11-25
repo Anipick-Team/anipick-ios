@@ -27,7 +27,9 @@ final class RatedAnimeListViewModel: ObservableObject {
 }
 
 extension RatedAnimeListViewModel {
+  
     func fetchRatedAnimeList() {
+        self.clearProperties()
         session.request(
             MyInfoAPI.ratedAnimeList(
                 lastId: nil,
@@ -108,6 +110,12 @@ extension RatedAnimeListViewModel {
                     DLog("Fail - delete myreview error: \(error)")
                 }
             }
+    }
+    
+    func clearProperties() {
+        self.lastId = nil
+        self.lastLikeCount = nil
+        self.lastRating = nil
     }
     
     func moveToAnimeDetail(animeId: Int) {

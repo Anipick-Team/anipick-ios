@@ -39,6 +39,7 @@ final class EditEmailViewModel: ObservableObject {
     }
     
     func checkEmail() {
+        self.isInvalidPassword = false
         session.request(SettingAPI.editEmail(email: self.newEmailString, password: self.passwordString))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -60,8 +61,7 @@ final class EditEmailViewModel: ObservableObject {
                             self.isShowErrorMessage = true
                             self.errorMessage = "올바른 이메일 형식이 아닙니다."
                         case 106:
-                            self.isShowErrorMessage = true
-                            self.errorMessage = "비밀번호가 일치하지 않습니다."
+                            self.isInvalidPassword = true
                         case 109:
                             self.isShowErrorMessage = true
                             self.errorMessage = "이미 존재하는 이메일입니다."

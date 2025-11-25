@@ -127,10 +127,10 @@ final class SettingViewModel: ObservableObject {
             let url = URL(string: "https://forms.gle/SJ7mbQfyfoe2HDLd7")!
             UIApplication.shared.open(url)
         case .termsOfService:
-            let url = URL(string: "https://spiral-cowl-f89.notion.site/AniPick-1d3b3eed42088025b329eb107cd42ae1?source=copy_link")!
+            let url = URL(string: "https://anipick.p-e.kr/terms.html")!
             UIApplication.shared.open(url)
         case .privacyPolicy:
-            let url = URL(string: "https://spiral-cowl-f89.notion.site/AniPick-1d3b3eed42088077a175f63a04dc93fd?source=copy_link")!
+            let url = URL(string: "https://anipick.p-e.kr/privacy.html")!
             UIApplication.shared.open(url)
         case .notice:
             let url = URL(string: "https://spiral-cowl-f89.notion.site/227b3eed42088098a351ff047659bdcb?source=copy_link")!

@@ -132,7 +132,7 @@ struct HomeView: View {
                 self.sectionView(title: "\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기 방영예정", items: viewModel.upcomingAnimes) {
                     self.viewModel.moveToExploreView()
                     
-                    appState.pushExplore(
+                    AppDIContainer.appState.pushExplore(
                         year: String(self.viewModel.seasonYearString),
                         season: String(self.viewModel.seasonString)
                         )

@@ -63,7 +63,11 @@ struct WriteReviewView: View {
                     Spacer()
                     Text("스포일러")
                         .customFontStyle(size: 16, color: .anipickSecondary, weight: .bold)
-                    Image(viewModel.isSpoiler ? .toggleEnable : .toggleDisable)
+                    Button {
+                        self.viewModel.isSpoiler.toggle()
+                    } label: {
+                        Image(viewModel.isSpoiler ? .toggleEnable : .toggleDisable)
+                    }
                 }
                 .padding(.bottom, 18)
             }
