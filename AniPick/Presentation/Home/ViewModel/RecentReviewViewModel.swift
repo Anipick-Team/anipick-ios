@@ -11,8 +11,11 @@ import Alamofire
 final class RecentReviewViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager
+    
     @Published var recentReviewList: [ReviewItem] = []
     let session = Session(interceptor: TokenInterceptor.shared)
+    
+    var lastId: Int? = nil
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
         self.fetchRecentReview()
@@ -21,8 +24,10 @@ final class RecentReviewViewModel: ObservableObject {
 
 
 extension RecentReviewViewModel {
+    
     func fetchRecentReview() {
-        session.request(ReviewAPI.recentReview)
+        self.lastId = nil
+        session.request(ReviewAPI.recentReview(lastId: nil))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -33,6 +38,27 @@ extension RecentReviewViewModel {
                     if let result = value.result,
                        let recentList = result.reviews {
                         self.recentReviewList = recentList
+                        self.lastId = result.cursor?.lastId
+                    }
+                case .failure(let error):
+                    DLog("최근 리뷰 뷰 - \(error)")
+                }
+            }
+    }
+    
+    func fetchLoadMoreRecentReview() {
+        session.request(ReviewAPI.recentReview(lastId: self.lastId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: RecentReviewsResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("최근 리뷰 뷰 - \(value)")
+                    if let result = value.result,
+                       let recentList = result.reviews {
+                        self.recentReviewList += recentList
+                        self.lastId = result.cursor?.lastId
                     }
                 case .failure(let error):
                     DLog("최근 리뷰 뷰 - \(error)")

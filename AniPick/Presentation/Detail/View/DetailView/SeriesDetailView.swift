@@ -70,7 +70,7 @@ struct SeriesDetailView: View {
                         .onAppear {
                             if item == viewModel.animeList.last {
                                 DLog("seriesDetail 데이터 확인 - \(item) -- \(String(describing: viewModel.animeList.last))")
-                                viewModel.getSeriesDetailInfo()
+                                viewModel.getLoadMoreSeriesDetailInfo()
                             }
                         }
                     }
@@ -80,8 +80,8 @@ struct SeriesDetailView: View {
             
             
         }
-        .background(Color.white)
         .padding(.horizontal, 20)
+        .background(Color.white)
         .navigationBarBackButtonHidden()
         .onAppear {
             self.viewModel.getSeriesDetailInfo()

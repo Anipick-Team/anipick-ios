@@ -16,33 +16,73 @@ struct AnimationDetailInfoView: View {
     
     @State private var lineLimit: Int? = 3
     
+    @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
+    @State private var fullHeight: CGFloat = 0        // 전체 높이
+
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(detailInfo.description ?? "--")
+            let description = detailInfo.description ?? "--"
+            Text(description)
                 .customFontStyle(size: 14, color: .anipickBlack)
                 .lineLimit(self.lineLimit)
+                .fixedSize(horizontal: false, vertical: true)
                 .padding(.bottom, 16)
-            
-            HStack(alignment: .center, spacing: 0) {
-                Button {
-                    DLog("더보기 버튼 탭탭")
-                    if self.lineLimit == 3 {
-                        self.lineLimit = nil
-                    } else {
-                        self.lineLimit = 3
+                .overlay(
+                    VStack {
+                        // collapsed(3줄) 높이 측정용
+                        Text(description)
+                            .customFontStyle(size: 14, color: .anipickBlack)
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .onAppear { collapsedHeight = geo.size.height }
+                                        .onChange(of: geo.size.height) { collapsedHeight = $0 }
+                                }
+                            )
+                            .hidden() // 레이아웃 제외됨
+
+                        // full(전체줄) 높이 측정용
+                        Text(description)
+                            .customFontStyle(size: 14, color: .anipickBlack)
+                            .lineLimit(nil)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .background(
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .onAppear { fullHeight = geo.size.height }
+                                        .onChange(of: geo.size.height) { fullHeight = $0 }
+                                }
+                            )
+                            .hidden() // 레이아웃 제외됨
                     }
-                } label: {
-                    HStack(alignment: .center, spacing: 0) {
-                        Text("더보기")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.anipickPrimary)
-                            .padding(.trailing, 4)
-                        
-                        Image(.chevronDownPrimary)
+                )
+
+            if fullHeight > collapsedHeight + 1 {
+                HStack(alignment: .center, spacing: 0) {
+                    Button {
+                        DLog("더보기 버튼 탭탭")
+                        if self.lineLimit == 3 {
+                            self.lineLimit = nil
+                        } else {
+                            self.lineLimit = 3
+                        }
+                    } label: {
+                        HStack(alignment: .center, spacing: 0) {
+                            Text("더보기")
+                                .font(.system(size: 14))
+                                .foregroundStyle(.anipickPrimary)
+                                .padding(.trailing, 4)
+
+                            Image(.chevronDownPrimary)
+                                .rotationEffect(self.lineLimit == 3 ? .degrees(0) : .degrees(180))
+                        }
                     }
+
+                    Spacer()
                 }
-                
-                Spacer()
             }
             
             Spacer().frame(height: 20)
@@ -91,7 +131,12 @@ struct AnimationDetailInfoView: View {
                     }
                 }
                 .padding(.horizontal, 12)
+                
             }
+            .frame(width: UIScreen.main.bounds.width - 20)   // ★ 가로 영역 고정!
+            .contentShape(Rectangle())                  // 터치영역 명확화
+            .clipped()                                  // 부모 확장 방지
+            .scrollDisabled(false)
             .padding(.bottom, 20)
             
             self.sectionCategoryButton(title: "시리즈 정보") {
@@ -116,7 +161,13 @@ struct AnimationDetailInfoView: View {
                         }
                     }
                 }
+                .padding(.horizontal, 12)
             }
+            .frame(width: UIScreen.main.bounds.width - 20)   // ★ 가로 영역 고정!
+            .contentShape(Rectangle())                  // 터치영역 명확화
+            .clipped()                                  // 부모 확장 방지
+            .scrollDisabled(false)
+            .padding(.bottom, 20)
             
             
             Spacer().frame(height: 48)
@@ -129,7 +180,7 @@ struct AnimationDetailInfoView: View {
             .padding(.bottom, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .center, spacing: 8) {
+                LazyHStack(alignment: .center, spacing: 8) {
                     ForEach(viewModel.recommendAnimeList, id: \.self) { item in
                         AnimeCommonCellWithTitle(
                             imageUrl: item.coverImageUrl,
@@ -144,7 +195,13 @@ struct AnimationDetailInfoView: View {
                         }
                     }
                 }
+                .padding(.horizontal, 12)
             }
+            .frame(width: UIScreen.main.bounds.width - 20)   // ★ 가로 영역 고정!
+            .contentShape(Rectangle())                  // 터치영역 명확화
+            .clipped()                                  // 부모 확장 방지
+            .scrollDisabled(false)
+            .padding(.bottom, 20)
         }
         .background(Color.white)
     }
@@ -177,29 +234,21 @@ struct AnimationDetailInfoView: View {
             infoTextView(string: "\(detailInfo.age ?? "-") 이상 시청")
         case .productionCompany:
             if let studios = detailInfo.studios {
-                VStack(spacing: 4) {
+                FlowCellLayout(spacing: 4, alignment: .trailing) {
                     ForEach(studios, id: \.self) { studio in
                         if let name = studio.name {
                             Button {
                                 DLog("제작사 탭탭 - \(String(describing: studio.name)) \(studio.studioId)")
                                 self.viewModel.moveToProducerDetailView(studioId: studio.studioId ?? 0)
                             } label: {
-                                HStack(spacing: 0) {
-                                    
-                                    Spacer()
-                                    
-                                    Text(name)
-                                        .customFontStyle(size: 14, color: .anipickSecondary)
-                                        .underline(true, color: .anipickSecondary)
-                                        .frame(maxWidth: .infinity, alignment: .trailing)
-                                        .padding(.vertical, 4)
-                                }
+                                Text(name)
+                                    .customFontStyle(size: 14, color: .anipickSecondary)
+                                    .underline(true, color: .anipickSecondary)
                             }
                         }
                     }
                 }
             }
-
         }
     }
     

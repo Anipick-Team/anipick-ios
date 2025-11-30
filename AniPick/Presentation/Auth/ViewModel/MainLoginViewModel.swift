@@ -414,11 +414,17 @@ extension MainLoginViewModel {
                 DLog("Full Name: \(String(describing: fullName))")
                 DLog("Email: \(String(describing: email))")
                 
-                // TODO: 이메일 전체로 보내기
+
                 if let email = appleIDCredential.email {
                     let usernamePart = email.components(separatedBy: "@").first ?? ""
                     let appleEmail = "\(usernamePart)@apple.com"
                     DLog("appleLogin Email: \(appleEmail)")
+                    UserDefaultsManager.shared.setAppleUserId(appleEmail)
+                    Task {
+                        await self.postSocialLogin(provider: .apple, code: appleEmail)
+                    }
+                } else {
+                    let appleEmail = UserDefaultsManager.shared.getAppleUserId()
                     Task {
                         await self.postSocialLogin(provider: .apple, code: appleEmail)
                     }

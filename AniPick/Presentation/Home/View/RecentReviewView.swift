@@ -83,6 +83,12 @@ struct RecentReviewView: View {
                                 }
                                 .padding(.vertical, 16)
                                 .padding(.horizontal, 20)
+                                .onAppear {
+                                    /// ⬇️ Load More 트리거
+                                    if item.reviewId == viewModel.recentReviewList.last?.reviewId {
+                                        viewModel.fetchLoadMoreRecentReview()   
+                                    }
+                                }
                             }
                         }
                         .cornerRadius(8)

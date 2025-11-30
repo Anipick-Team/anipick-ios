@@ -9,7 +9,7 @@ import Alamofire
 import Foundation
 
 enum ReviewAPI: URLRequestConvertible {
-    case recentReview
+    case recentReview(lastId: Int?)
     case likeReview(id: Int)
     case cancelReview(id: Int)
     case deleteReview(id: Int)
@@ -52,8 +52,13 @@ enum ReviewAPI: URLRequestConvertible {
     
     var parameters: Parameters? {
         switch self {
-        case .recentReview:
-            return nil
+        case let .recentReview(lastId):
+            let rawParams: [String : Any?] = [
+                "lastId": lastId
+            ]
+            
+            return rawParams.compactMapValues { $0 }
+
         case .likeReview:
             return nil
         case .cancelReview:

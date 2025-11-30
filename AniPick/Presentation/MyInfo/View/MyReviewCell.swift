@@ -12,7 +12,8 @@ struct MyReviewCell: View {
     @State private var starRating: Double = 0
     @State private var isShowBlockMenu: Bool = false
     @State private var reviewContentLimit: Int? = 2
-    
+    @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
+    @State private var fullHeight: CGFloat = 0        // 전체 높이
     let item: MyReview
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
@@ -88,26 +89,62 @@ struct MyReviewCell: View {
                     .font(.system(size: 16))
                     .foregroundStyle(.anipickBlack)
                     .padding(.bottom, 4)
-                
-                Button {
-                    DLog("더보기 버튼 탭탭")
-                    if reviewContentLimit != nil {
-                        reviewContentLimit = nil // 전체 보기
-                    } else {
-                        reviewContentLimit = 2 // 다시 2줄 제한
-                    }
-                } label: {
+                    .overlay(
+                        VStack {
+                            // collapsed(3줄) 높이 측정용
+                            Text(content)
+                                .customFontStyle(size: 14, color: .anipickBlack)
+                                .lineLimit(3)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .background(
+                                    GeometryReader { geo in
+                                        Color.clear
+                                            .onAppear { collapsedHeight = geo.size.height }
+                                            .onChange(of: geo.size.height) { collapsedHeight = $0 }
+                                    }
+                                )
+                                .hidden() // 레이아웃 제외됨
+                            
+                            // full(전체줄) 높이 측정용
+                            Text(content)
+                                .customFontStyle(size: 14, color: .anipickBlack)
+                                .lineLimit(nil)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .background(
+                                    GeometryReader { geo in
+                                        Color.clear
+                                            .onAppear { fullHeight = geo.size.height }
+                                            .onChange(of: geo.size.height) { fullHeight = $0 }
+                                    }
+                                )
+                                .hidden() // 레이아웃 제외됨
+                        }
+                    )
+            }
+                if fullHeight > collapsedHeight + 1 {
                     HStack(alignment: .center, spacing: 0) {
-                        Text("더보기")
-                            .font(.system(size: 14))
-                            .foregroundStyle(.anipickPrimary)
-                            .padding(.trailing, 4)
-                        
-                        Image(.chevronDownPrimary)
+                        Button {
+                            DLog("더보기 버튼 탭탭")
+                            if self.reviewContentLimit == 3 {
+                                self.reviewContentLimit = nil
+                            } else {
+                                self.reviewContentLimit = 3
+                            }
+                        } label: {
+                            HStack(alignment: .center, spacing: 0) {
+                                Text("더보기")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(.anipickPrimary)
+                                    .padding(.trailing, 4)
+
+                                Image(.chevronDownPrimary)
+                                    .rotationEffect(self.reviewContentLimit == 3 ? .degrees(0) : .degrees(180))
+                            }
+                        }
+
+                        Spacer()
                     }
                 }
-                
-            }
             Spacer().frame(height: 20)
             
             HStack(alignment: .center, spacing: 0) {

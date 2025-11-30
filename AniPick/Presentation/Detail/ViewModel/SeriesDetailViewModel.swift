@@ -28,6 +28,7 @@ final class SeriesDetailViewModel: ObservableObject {
     }
     
     func getSeriesDetailInfo() {
+        self.lastId = nil
         session.request(AnimeAPI.seriesAnimeList(
             animeId: self.animeId,
             lastId: lastId,
@@ -42,6 +43,30 @@ final class SeriesDetailViewModel: ObservableObject {
                 DLog("series Detail success - \(response)")
                 if let result = response.result {
                     self.animeList = result.animes ?? []
+                    self.count = result.count
+                    self.lastId = result.cursor?.lastId
+                }
+            case .failure(let error):
+                DLog("Series Detail fail - \(error)")
+            }
+        }
+    }
+    
+    func getLoadMoreSeriesDetailInfo() {
+        session.request(AnimeAPI.seriesAnimeList(
+            animeId: self.animeId,
+            lastId: lastId,
+            size: 20)
+        )
+        .cURLDescription { des in
+            DLog("series Detail Info - \(des)")
+        }
+        .responseDecodable(of: SeriesAnimeResponse.self) { response in
+            switch response.result {
+            case .success(let response):
+                DLog("series Detail success - \(response)")
+                if let result = response.result {
+                    self.animeList += result.animes ?? []
                     self.count = result.count
                     self.lastId = result.cursor?.lastId
                 }

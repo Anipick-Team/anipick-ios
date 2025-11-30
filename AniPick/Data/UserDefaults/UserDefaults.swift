@@ -13,6 +13,8 @@ enum UserDefaultKey: String {
     case nickname
     case email
     case sns
+    case appleUserId
+    case appleEmail
     
     case seasonYear
     case seasonQuater
@@ -173,6 +175,14 @@ extension UserDefaultsManager {
     
     func getImageId() -> Int {
         return defaults.integer(forKey: UserDefaultKey.imageId.rawValue)
+    }
+    
+    func setAppleUserId(_ value: String) {
+        defaults.set(value, forKey: UserDefaultKey.appleUserId.rawValue)
+    }
+    
+    func getAppleUserId() -> String {
+        return defaults.string(forKey: UserDefaultKey.appleUserId.rawValue) ?? ""
     }
 }
 

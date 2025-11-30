@@ -27,6 +27,9 @@ struct ReviewDetailInfoView: View {
     @State private var isPresentReportReasonView: Bool = false
     @State private var isPresentBlockUserView: Bool = false
     @State private var isPresentMyReviewPopupView: Bool = false
+    
+    @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
+    @State private var fullHeight: CGFloat = 0        // 전체 높이
         
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -100,27 +103,83 @@ struct ReviewDetailInfoView: View {
                                 .customFontStyle(size: 16, color: .anipickBlack, weight: .semibold)
                                 .lineLimit(self.lineLimit)
                                 .padding(.bottom, 16)
+                                .overlay(
+                                    VStack {
+                                        // collapsed(3줄) 높이 측정용
+                                        Text(viewModel.reviewContent)
+                                            .customFontStyle(size: 14, color: .anipickBlack)
+                                            .lineLimit(3)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                            .background(
+                                                GeometryReader { geo in
+                                                    Color.clear
+                                                        .onAppear { collapsedHeight = geo.size.height }
+                                                        .onChange(of: geo.size.height) { collapsedHeight = $0 }
+                                                }
+                                            )
+                                            .hidden() // 레이아웃 제외됨
+
+                                        // full(전체줄) 높이 측정용
+                                        Text(viewModel.reviewContent)
+                                            .customFontStyle(size: 14, color: .anipickBlack)
+                                            .lineLimit(nil)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                            .background(
+                                                GeometryReader { geo in
+                                                    Color.clear
+                                                        .onAppear { fullHeight = geo.size.height }
+                                                        .onChange(of: geo.size.height) { fullHeight = $0 }
+                                                }
+                                            )
+                                            .hidden() // 레이아웃 제외됨
+                                    }
+                                )
                             
                             // 좋아요 + 더보기
                             
-                            Button {
-                                DLog("더보기 버튼 탭탭")
-                                if self.lineLimit == 3 {
-                                    self.lineLimit = nil
-                                } else {
-                                    self.lineLimit = 3
-                                }
-                            } label: {
+//                            Button {
+//                                DLog("더보기 버튼 탭탭")
+//                                if self.lineLimit == 3 {
+//                                    self.lineLimit = nil
+//                                } else {
+//                                    self.lineLimit = 3
+//                                }
+//                            } label: {
+//                                HStack(alignment: .center, spacing: 0) {
+//                                    Text("더보기")
+//                                        .font(.system(size: 14))
+//                                        .foregroundStyle(.anipickPrimary)
+//                                        .padding(.trailing, 4)
+//                                    
+//                                    Image(.chevronDownPrimary)
+//                                }
+//                            }
+                            if fullHeight > collapsedHeight + 1 {
                                 HStack(alignment: .center, spacing: 0) {
-                                    Text("더보기")
-                                        .font(.system(size: 14))
-                                        .foregroundStyle(.anipickPrimary)
-                                        .padding(.trailing, 4)
-                                    
-                                    Image(.chevronDownPrimary)
+                                    Button {
+                                        DLog("더보기 버튼 탭탭")
+                                        if self.lineLimit == 3 {
+                                            self.lineLimit = nil
+                                        } else {
+                                            self.lineLimit = 3
+                                        }
+                                    } label: {
+                                        HStack(alignment: .center, spacing: 0) {
+                                            Text("더보기")
+                                                .font(.system(size: 14))
+                                                .foregroundStyle(.anipickPrimary)
+                                                .padding(.trailing, 4)
+
+                                            Image(.chevronDownPrimary)
+                                                .rotationEffect(self.lineLimit == 3 ? .degrees(0) : .degrees(180))
+                                        }
+                                    }
+
+                                    Spacer()
                                 }
+                                .padding(.bottom, 4)
                             }
-                            .padding(.bottom, 4)
+                            
                             
                             HStack {
                                 HStack(spacing: 4) {

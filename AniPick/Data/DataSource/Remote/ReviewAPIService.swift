@@ -21,8 +21,8 @@ final class ReviewAPIService {
 extension ReviewAPIService {
     
     /// 최근 리뷰 목록 가져오기
-    func getRecentReviews() async throws -> RecentReviewsResponse {
-        try await requestAPI(.recentReview)
+    func getRecentReviews(lastId: Int?) async throws -> RecentReviewsResponse {
+        try await requestAPI(.recentReview(lastId: lastId))
     }
     
     /// 리뷰 좋아요
