@@ -330,7 +330,7 @@ struct AnimationInfoView: View {
                         
                         Spacer()
                     }
-                    .padding(.bottom ,12)
+                    .padding(.bottom, 12)
 
                     
                     HStack(alignment: .center, spacing: 0) {
@@ -339,11 +339,11 @@ struct AnimationInfoView: View {
                     }
                     .padding(.bottom, 13)
                 }
-                .background(Color.white)
                 .padding(.top, UIApplication.shared.windows.first?.safeAreaInsets.top ?? 20)
                 .padding(.bottom, 12)
-              //  .background(.ultraThinMaterial) // iOS 네이티브 블러 느낌
+                .padding(.horizontal, 20)
                 .transition(.opacity.combined(with: .move(edge: .top)))
+                .background(Color.white)
                 
             }
                 

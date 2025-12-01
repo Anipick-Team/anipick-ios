@@ -71,8 +71,8 @@ struct RecommendedView: View {
                 }
             }
         }
-        .background(Color.white)
         .padding(.horizontal, 20)
+        .background(Color.white)
         .navigationBarBackButtonHidden()
         .onAppear {
             self.viewModel.fetchRecommendationAnimeInfo()

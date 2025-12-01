@@ -369,6 +369,9 @@ struct ExploreView: View {
                         self.viewModel.selectedAllClear = false
                         self.selectedGenreListForUI.removeAll()
                     }
+                    self.tmpSelectedType = ""
+                    self.tmpSelectedYear = ""
+                    self.tmpSelectedSeason = ""
 
                 } label: {
                     Text("초기화")

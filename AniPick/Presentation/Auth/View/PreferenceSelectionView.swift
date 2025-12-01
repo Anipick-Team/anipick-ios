@@ -413,7 +413,11 @@ struct PreferenceSelectionView: View {
         .background(.white)
     }
     
-    private func animationCell(anime: AnimePreference, showStarRating: Bool, action: @escaping () -> Void) -> some View {
+    private func animationCell(
+        anime: AnimePreference,
+        showStarRating: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
         var eachStarRating: Double = 0.0
         
         return VStack(spacing: 0) {

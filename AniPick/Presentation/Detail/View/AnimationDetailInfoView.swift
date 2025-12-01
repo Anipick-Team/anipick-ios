@@ -96,7 +96,7 @@ struct AnimationDetailInfoView: View {
             Spacer().frame(height: 33)
             
             ForEach(AnimationDetailInfo.allCases, id: \.self) { value in
-                HStack(alignment: .center, spacing: 0) {
+                HStack(alignment: .top, spacing: 0) {
                     Text(value.title)
                         .customFontStyle(size: 14, color: .anipickBlack)
                         .padding(.vertical, 10)

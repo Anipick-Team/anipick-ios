@@ -17,7 +17,7 @@ final class RecommendedViewModel: ObservableObject {
     
     let session = Session(interceptor: TokenInterceptor.shared)
     
-    var lastId: Int = 0
+    var lastId: Int? = nil
     
     init(
         navigationManager: NavigationManager,
@@ -34,7 +34,7 @@ final class RecommendedViewModel: ObservableObject {
             AnimeAPI.recommendationAnime(
                 animeId: self.animeId,
                 lastId: self.lastId,
-                size: 20
+                size: 7
             )
         )
         .cURLDescription { description in
