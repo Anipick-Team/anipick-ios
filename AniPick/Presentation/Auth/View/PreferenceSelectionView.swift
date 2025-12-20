@@ -177,41 +177,44 @@ struct PreferenceSelectionView: View {
 //                            )
 //                    }
 //                    .frame(height: 0)
-                    
-                    ForEach(Array(viewModel.animeList.enumerated()), id: \.element.self) { index, value in
-                        self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
-                            self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
-                        }
-                        .onAppear {
-                            // 스크롤 방향 감지
-                            if index < (viewModel.lastVisibleIndex ?? 8)  {
-                                // 위로 스크롤
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    self.isHeaderHidden = false
+                    LazyVStack(spacing: 0) {
+                        ForEach(Array(viewModel.animeList.enumerated()), id: \.element.self) { index, value in
+                            self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
+                                self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+                            }
+                            
+                            .onAppear {
+                                // 스크롤 방향 감지
+                                if index > 3 {
+                                    if index < (viewModel.lastVisibleIndex)  {
+                                        // 위로 스크롤
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            self.isHeaderHidden = false
+                                        }
+                                    } else if index > (viewModel.lastVisibleIndex) {
+                                        // 아래로 스크롤
+                                        withAnimation(.easeInOut(duration: 0.2)) {
+                                            self.isHeaderHidden = true
+                                        }
+                                    }
+                                    viewModel.lastVisibleIndex = index
                                 }
-                            } else if index > (viewModel.lastVisibleIndex ?? 8) {
-
-                                // 아래로 스크롤
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    self.isHeaderHidden = true
+                                
+                                // 페이징
+                                if value.animeId == viewModel.animeList.last?.animeId {
+                                    self.viewModel.fetchRecommendAnime()
                                 }
                             }
-                            viewModel.lastVisibleIndex = index
                             
-                            // 페이징
-                            if value.animeId == viewModel.animeList.last?.animeId {
-                                self.viewModel.fetchRecommendAnime()
+                            if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
+                                StarRatingView() { rating in
+                                    self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
+                                    self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
+                                }
                             }
                         }
                         
-                        if viewModel.isRatedAnime(animeId: value.animeId ?? 0) {
-                            StarRatingView() { rating in
-                                self.viewModel.tappedEachRatedAnime(animeId: value.animeId ?? 0, rating: rating)
-                                self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
-                            }
-                        }
                     }
-                    
 //                    ForEach(viewModel.animeList, id: \.self) { value in
 //                        // TODO: 평가한 애니메이션의 경우, showStarRating 보여야함
 //                        //  let isShowStar = viewModel.isRatedAnime(animeId: value.animeId ?? 0)
@@ -234,12 +237,12 @@ struct PreferenceSelectionView: View {
                 }
             }
             .coordinateSpace(name: "scroll") // ⭐️ 중요
-            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
-                DLog("scroll 확인 - \(value)")
-                withAnimation(.easeInOut(duration: 0.2)) {
-                    self.isHeaderHidden = value < -50   // 위로 50px 이상 올리면 숨김
-                }
-            }
+//            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+//                DLog("scroll 확인 - \(value)")
+//                withAnimation(.easeInOut(duration: 0.2)) {
+//                    self.isHeaderHidden = value < -50   // 위로 50px 이상 올리면 숨김
+//                }
+//            }
             
             Rectangle()
                 .frame(maxWidth: .infinity)

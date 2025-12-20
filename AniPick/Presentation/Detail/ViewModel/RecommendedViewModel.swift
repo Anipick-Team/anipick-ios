@@ -57,4 +57,8 @@ final class RecommendedViewModel: ObservableObject {
             }
         }
     }
+    
+    func moveToAnimeDetail(animeId: Int) {
+        self.navigationManager.push(route: .animeDetail(animeId: animeId))
+    }
 }

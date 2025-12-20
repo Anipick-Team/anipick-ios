@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PopupView
 
 struct RatedAnimeListView: View {
     @Environment(\.dismiss) private var dismiss
@@ -19,6 +20,12 @@ struct RatedAnimeListView: View {
     @State private var optionViewFrame: CGRect = .zero
     @State private var myReviewId: Int = 0
     
+    @State private var animeId: Int = 0
+    @State private var reviewContent: String = ""
+    @State private var starRating: Double = 0
+    
+    @State private var isShowToastReviewDelete: Bool = false
+    
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
@@ -30,11 +37,19 @@ struct RatedAnimeListView: View {
                 Spacer().frame(height: 30)
                 
                 ScrollView(.vertical, showsIndicators: false) {
+                    GeometryReader { geo in
+                        Color.clear
+                            .onChange(of: geo.frame(in: .global).minY) { newValue in
+                                print("🌀 스크롤 offset 변경됨:", newValue)
+                                self.isShowOptionView = false
+                            }
+                    }
+                    .frame(height: 0)
                     VStack(alignment: .leading, spacing: 0) {
                         Spacer().frame(height: 32)
                         
                         HStack(alignment: .center, spacing: 0) {
-                            Text("총 \(viewModel.lastLikeCount ?? 0)개")
+                            Text("총 \(viewModel.totalCount ?? 0)개")
                             Spacer()
                             
                             // TODO: 최신순, 좋아요 순, 평가 순 등 팝업 필요
@@ -86,27 +101,34 @@ struct RatedAnimeListView: View {
                         
                         Spacer().frame(height: 20)
                         
-                        if self.viewModel.lastLikeCount == 0 {
+                        if self.viewModel.ratedReviewList.isEmpty {
                             self.makeEmptyView()
                         } else {
-                            ForEach(viewModel.ratedReviewList, id: \.self) { item in
-                                MyReviewCell(item: item) { id, buttonFrame in
-                                    DLog("button tapped")
-                                    // TODO: 이거 눌렀을 때, 삭제/수정 떠야함
-                                    self.isShowOptionView.toggle()
-                                    self.optionViewFrame = buttonFrame
-                                    self.myReviewId = id
-                                } onCellTapped: { item in
-                                    DLog("cell tappedtappped")
-                                    self.viewModel.moveToAnimeDetail(animeId: item.animeId ?? 0)
-                                }
-                                .onAppear {
-                                    if item == viewModel.ratedReviewList.last && viewModel.ratedReviewList.count > 15 {
-                                        viewModel.loadMoreAnimeList()
+                            LazyVStack(spacing: 0) {
+                                ForEach(viewModel.ratedReviewList, id: \.self) { item in
+                                    MyReviewCell(item: item) { id, buttonFrame in
+                                        DLog("button tapped")
+                                        // TODO: 이거 눌렀을 때, 삭제/수정 떠야함
+                                        self.isShowOptionView.toggle()
+                                        self.optionViewFrame = buttonFrame
+                                        self.myReviewId = id
+                                        self.animeId = item.animeId ?? 0
+                                        self.reviewContent = item.reviewContent ?? ""
+                                        self.starRating = item.rating ?? 0
+                                    } onCellTapped: { item in
+                                        DLog("cell tappedtappped")
+                                        self.viewModel.moveToAnimeDetail(animeId: item.animeId ?? 0)
+                                    }
+                                    .onAppear {
+                                        if item == viewModel.ratedReviewList.last && viewModel.ratedReviewList.count > 6 {
+                                            DLog("왜 안나옴여")
+                                            viewModel.loadMoreAnimeList()
+                                        }
                                     }
                                 }
+                                .padding(.bottom, 12)
                             }
-                            .padding(.bottom, 12)
+                            
                             
                             Spacer()
                         }
@@ -153,18 +175,37 @@ struct RatedAnimeListView: View {
                     // 삭제 액션
                     self.isShowOptionView = false
                     self.viewModel.deleteMyReview(reviewId: self.myReviewId)
+                    self.isShowToastReviewDelete.toggle()
                 } editAction: {
                     // 수정 액션
                     // TODO: 리뷰 수정 페이지로 이동
                     self.isShowOptionView = false
+                    self.viewModel.moveToEditReview(starRating: self.starRating, animeId: self.animeId, reviewContent: self.reviewContent)
                 }
-                .position(x: self.optionViewFrame.minX, y: self.optionViewFrame.minX + 140)
+                .position(x: self.optionViewFrame.minX, y: self.optionViewFrame.minY + 50)
             }
         }
         .background(Color.gray7)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             viewModel.fetchRatedAnimeList()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .reloadRatedAnime)) { _ in
+            viewModel.fetchRatedAnimeList()
+        }
+        .popup(isPresented: self.$isShowToastReviewDelete) {
+            Text("리뷰 삭제가 완료되었습니다.")
+                .customFontStyle(size: 14, color: .gray5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.anipickBlack)
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.top)
+                .autohideIn(2)
         }
     }
     
@@ -254,6 +295,19 @@ enum SortOption: String, CaseIterable {
     case like = "좋아요 순"
     case highRating = "평가 높은 순"
     case lowRating = "평가 낮은 순"
+    
+    var request: String {
+        switch self {
+        case .latest:
+            return "latest"
+        case .like:
+            return "like"
+        case .highRating:
+            return "highRating"
+        case .lowRating:
+            return "lowRating"
+        }
+    }
 }
 
 enum RatedSortOption: String, CaseIterable {

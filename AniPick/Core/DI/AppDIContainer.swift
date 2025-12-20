@@ -181,8 +181,8 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeReviewView(starRating: Double, animeId: Int) -> some View {
-        let viewModel = WriteReviewViewModel(navigationManager: navigationManager, starRating: starRating, animeId: animeId)
+    static func makeReviewView(starRating: Double, animeId: Int, reviewContent: String) -> some View {
+        let viewModel = WriteReviewViewModel(navigationManager: navigationManager, starRating: starRating, animeId: animeId, reviewContent: reviewContent)
         return WriteReviewView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }

@@ -25,6 +25,7 @@ struct AppEntryView: View {
             .onAppear {
                 TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
+                viewModel.checkVersion()
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -66,8 +67,8 @@ struct AppEntryView: View {
                     AppDIContainer.makeRakingView()
                 case .research:
                     AppDIContainer.makeResearchView()
-                case .review(let starRating, let animeId):
-                    AppDIContainer.makeReviewView(starRating: starRating, animeId: animeId)
+                case .review(let starRating, let animeId, let reviewContent):
+                    AppDIContainer.makeReviewView(starRating: starRating, animeId: animeId, reviewContent: reviewContent)
                 case .explore(let season, let seaseonYear):
                     AppDIContainer.makeExploreView(season: season, year: seaseonYear)
                 case .animeDetail(let animeId):

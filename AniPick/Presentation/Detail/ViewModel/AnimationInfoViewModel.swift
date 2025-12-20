@@ -37,6 +37,10 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var myReviewId: Int = 0
     @Published var myLikeCount: Int = 0
     
+    var reviewLastValue: String? = nil
+    var reviewLastId: Int? = nil
+    @Published var selectedReviewSortOption: SortOption = .latest
+    
     
     let session = Session(interceptor: TokenInterceptor.shared)
     
@@ -159,10 +163,12 @@ extension AnimationInfoViewModel {
     
     
     func fetchReview() {
+        self.reviewLastId = nil
+        self.reviewLastValue = nil
         session.request(
             AnimeAPI.reviewList(
                 animeId: self.animeId,
-                sort: "latest",
+                sort: self.selectedReviewSortOption.request,
                 isSpoiler: self.isSpolier,
                 lastValue: nil,
                 lastId: nil,
@@ -184,11 +190,46 @@ extension AnimationInfoViewModel {
                         self.reviewList = reviewList.filter { $0.isSpoiler == false }
                     }
                 }
+                self.reviewLastId = value.result?.cursor?.lastId
+                self.reviewLastValue = value.result?.cursor?.lastValue
             case .failure(let error):
                 DLog("에러 발생 - \(error)")
             }
         }
-        
+    }
+    
+    func loadMoreReview() {
+        session.request(
+            AnimeAPI.reviewList(
+                animeId: self.animeId,
+                sort: self.selectedReviewSortOption.request,
+                isSpoiler: self.isSpolier,
+                lastValue: self.reviewLastValue,
+                lastId: self.reviewLastId,
+                size: 10
+            )
+        )
+        .cURLDescription { description in
+            DLog("\(description)")
+        }
+        .responseDecodable(of: RecentReviewsResponse.self) { response in
+            switch response.result {
+            case .success(let value):
+                DLog("리뷰리뷰 최신 리뷰 - \(value)")
+                if let result = value.result,
+                   let reviewList = result.reviews {
+                    if self.isSpolier {
+                        self.reviewList += reviewList
+                    } else {
+                        self.reviewList += reviewList.filter { $0.isSpoiler == false }
+                    }
+                }
+                self.reviewLastId = value.result?.cursor?.lastId
+                self.reviewLastValue = value.result?.cursor?.lastValue
+            case .failure(let error):
+                DLog("에러 발생 - \(error)")
+            }
+        }
     }
     
     
@@ -200,18 +241,18 @@ extension AnimationInfoViewModel {
             .responseDecodable(of: ReviewResponse.self) { response in
                 switch response.result {
                 case .success(let value):
-                    DLog("getNyReview  - \(value)")
+                    DLog("getMyReview  - \(value)")
                     if let result = value.result {
-                        if let reviewId = result.reviewId {
+                       // if let reviewId = result.reviewId {
                             self.hasMyReview = true
                             self.reviewContent = result.content ?? ""
                             self.myReviewCreatedAt = result.createdAt ?? ""
                             self.storedMyReviewRate = result.rating ?? 0
                             self.myLikeCount = result.likeCount ?? 0
                             self.myReviewId = result.reviewId ?? 0
-                        } else {
-                            self.hasMyReview = false
-                        }
+//                        } else {
+//                            self.hasMyReview = false
+//                        }
                     }
                 case .failure(let error):
                     DLog("에러 발생 - \(error)")
@@ -222,7 +263,7 @@ extension AnimationInfoViewModel {
     func editMyReviewStar(reviewId: Int, ratedStar: Double) {
         AF.request(AnimeAPI.editRating(
             reviewId: reviewId,
-            rating: self.storedMyReviewRate)
+            rating: ratedStar)
         )
         .cURLDescription { description in
             DLog("\(description)")
@@ -237,7 +278,7 @@ extension AnimationInfoViewModel {
         }
     }
     
-    func registerStarRating(ratedStar: Double) {
+    func registerStarRating(ratedStar: Double, completion: (() -> Void)? = nil) {
         session.request(AnimeAPI.registerRating(animeId: self.animeId, rating: ratedStar))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -246,6 +287,7 @@ extension AnimationInfoViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("평점 등록 성공 - \(value)")
+                    completion?()
                 case .failure(let error):
                     DLog("평점 등록 실패 - \(error)")
                 }
@@ -349,7 +391,7 @@ extension AnimationInfoViewModel {
             }
     }
     
-    func postReportReivew(id: Int, message: String) {
+    func postReportReivew(id: Int, message: String, completion: @escaping () -> Void) {
         session.request(ReviewAPI.reportReview(id: id, message: message))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -358,13 +400,14 @@ extension AnimationInfoViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("리뷰 신고 성공 - \(value)")
+                    completion()
                 case .failure(let error):
                     DLog("리뷰 신고 실패 - \(error)")
                 }
             }
     }
     
-    func postBlockUser(userId: Int) {
+    func postBlockUser(userId: Int, completion: @escaping () -> Void) {
         session.request(ReviewAPI.blockUser(userId: userId))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -373,14 +416,15 @@ extension AnimationInfoViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("작성자 차단 성공 - \(value)")
+                    completion()
                 case .failure(let error):
                     DLog("작성자 차단 실패 - \(error)")
                 }
             }
     }
     
-    func deleteMyReview(reviewId: Int) {
-        session.request(ReviewAPI.deleteReview(id: reviewId))
+    func deleteMyReview(reviewId: Int, completion: @escaping () -> Void) {
+        session.request(ReviewAPI.deleteReview(id: self.myReviewId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -388,6 +432,7 @@ extension AnimationInfoViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("리뷰 삭제 성공 - \(value)")
+                    completion()
                 case .failure(let error):
                     DLog("리뷰 삭제 실패 - \(error)")
                 }
@@ -395,17 +440,17 @@ extension AnimationInfoViewModel {
     }
     
     func moveToWriteReview() {
-        self.navigationManager.push(route: .review(starRating: self.storedMyReviewRate, animeId: self.animeId))
+        self.navigationManager.push(route: .review(starRating: self.storedMyReviewRate, animeId: self.animeId, reviewContent: ""))
     }
     
     func setLastVisitedAnimeId() {
         UserDefaultsManager.shared.setLastVisitedAnimeId(animeId: self.animeId)
     }
     
-    func moveToRewriteReview(starRating: Double) {
-        self.navigationManager.push(route: .review(starRating: starRating, animeId: self.animeId))
+    func moveToRewriteReview() {
+        self.navigationManager.push(route: .review(starRating: self.storedMyReviewRate, animeId: self.animeId, reviewContent: self.reviewContent))
     }
-    
+//    
     func moveToProducerDetailView(studioId: Int) {
         self.navigationManager.push(route: .producerDetail(studioId: studioId))
     }

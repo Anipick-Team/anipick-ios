@@ -14,17 +14,20 @@ final class WriteReviewViewModel: ObservableObject {
     @Published var starRating: Double = 0
     @Published var isSpoiler: Bool = true
     @Published var animeId: Int = 0
+    @Published var isFirstVisit: Bool = true
     let session = Session(interceptor: TokenInterceptor.shared)
     private let navigationManager: NavigationManager
     
-    init(navigationManager: NavigationManager, starRating: Double, animeId: Int) {
+    init(navigationManager: NavigationManager, starRating: Double, animeId: Int, reviewContent: String) {
         self.navigationManager = navigationManager
         self.starRating = starRating
         self.animeId = animeId
+        self.reviewTextContent = reviewContent
+        if reviewContent.isEmpty == false {
+            self.isFirstVisit = false
+        }
     }
-    
 }
-
 
 extension WriteReviewViewModel {
     func patchReview() {
@@ -44,6 +47,10 @@ extension WriteReviewViewModel {
             switch response.result {
             case .success(let value):
                 DLog("리뷰 성공성공 - \(value)")
+                NotificationCenter.default.post(
+                    name: .reloadRatedAnime,
+                    object: nil
+                )
             case .failure(let error):
                 DLog("리이뷰 실패 - \(error)")
             }
@@ -59,7 +66,7 @@ extension WriteReviewViewModel {
         self.isSpoiler.toggle()
     }
     
-    func moveToWriteReview(starRating: Double) {
-        self.navigationManager.push(route: .review(starRating: starRating, animeId: self.animeId))
-    }
+//    func moveToWriteReview(starRating: Double, reviewContent: String) {
+//        self.navigationManager.push(route: .review(starRating: starRating, animeId: self.animeId, reviewContent: reviewContent))
+//    }
 }

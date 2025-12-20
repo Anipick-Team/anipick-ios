@@ -1,50 +1,46 @@
 //
-//  RecommendationAPI.swift
+//  VersionAPI.swift
 //  AniPick
 //
-//  Created by cho on 7/26/25.
+//  Created by cho on 12/20/25.
 //
 
-import Alamofire
 import Foundation
+import Alamofire
 
-enum RecommendationAPI: URLRequestConvertible {
-    case recommedation(lastId: Int?, lastValue: String?)
-    case recommedationWithAnimeId(animeId: Int, lastId: Int?, lastValue: String?)
+enum VersionAPI: URLRequestConvertible {
+    case checkVersion
+    case deeplink
     
     var path: String {
         switch self {
-        case .recommedation:
-            return "api/recommendation/animes"
-        case let .recommedationWithAnimeId(animeId, _, _):
-            return "api/recommendation/animes/\(animeId)/recent"
-            
+        case .checkVersion:
+            return "api/version"
+        case .deeplink:
+            return "api/deeplink"
         }
     }
     
     var method: HTTPMethod {
         switch self {
-        case .recommedation:
+        case .checkVersion:
             return .get
-        case .recommedationWithAnimeId:
+        case .deeplink:
             return .get
         }
     }
     
     var parameters: Parameters? {
         switch self {
-        case let .recommedation(lastId, lastValue):
-            let rawParams: [String: Any?] = [
-                "lastId": lastId,
-                "lastValue": lastValue
+        case .checkVersion:
+            let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+
+            return [
+                "userAppVersion": appVersion,
+                "platform": "IOS"
             ]
-            return rawParams.compactMapValues { $0 }
-        case let .recommedationWithAnimeId(_, lastId, lastValue):
-            let rawParams: [String: Any?] = [
-                "lastId": lastId,
-                "lastValue": lastValue
-            ]
-            return rawParams.compactMapValues { $0 }
+        case .deeplink:
+            return nil
         }
     }
     
@@ -54,9 +50,9 @@ enum RecommendationAPI: URLRequestConvertible {
         urlRequest.httpMethod = self.method.rawValue
         
         switch self {
-        case .recommedation:
+        case .checkVersion:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-        case .recommedationWithAnimeId:
+        case .deeplink:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         
@@ -66,14 +62,11 @@ enum RecommendationAPI: URLRequestConvertible {
             }
         }
         
-        
         return urlRequest
-        
     }
     
     var headers: HTTPHeaders {
         return ["Content-Type": "application/json",
                 "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"]
     }
-    
 }

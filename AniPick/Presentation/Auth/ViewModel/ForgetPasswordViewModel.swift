@@ -68,6 +68,7 @@ class ForgetPasswordViewModel: ObservableObject {
     }
     
     func sendCodeAndStartTimer() async {
+        isRunning = false
         startCountdown(duration: 180)  // 3분
     }
     
@@ -193,7 +194,7 @@ class ForgetPasswordViewModel: ObservableObject {
             )
             let response = try await authUsecase.resetPassword(request: request)
             if response.code == 200 {
-                self.navigationManager.push(route: .content(activeTab: .home))
+                self.navigationManager.push(route: .mainLoginView)
             } else {
                 self.editPasswordGuideText = "비밀번호가 일치하지 않습니다."
                 DLog("비밀번호 변경 실패")

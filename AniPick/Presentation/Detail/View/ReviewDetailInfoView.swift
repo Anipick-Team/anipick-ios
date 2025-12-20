@@ -10,10 +10,11 @@ import PopupView
 
 struct ReviewDetailInfoView: View {
     @StateObject var viewModel: AnimationInfoViewModel
-    
+    @Binding var scrollOffset: CGFloat
     @State private var menuFrame: CGRect = .zero
-
-    @Binding var selectedSortOption: SortOption
+    @State private var menuFrame2: CGRect = .zero
+    
+   // @Binding var selectedSortOption: SortOption
     @Binding var isShowOnlyReview: Bool
     @Binding var isShowSortOptionView: Bool
     @State private var isShowBlockPopupView: Bool = false
@@ -28,14 +29,22 @@ struct ReviewDetailInfoView: View {
     @State private var isPresentBlockUserView: Bool = false
     @State private var isPresentMyReviewPopupView: Bool = false
     
+    @State private var isShowToastReviewDelete: Bool = false
+    @State private var isShowToastCompletedWriteReview: Bool = false
+    
     @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
     @State private var fullHeight: CGFloat = 0        // 전체 높이
-        
+    
+    @State private var scrollllll: CGFloat = 0
+    let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
+    let onMoreButtonTapped: (_ reviewId: Int, _ blockUserId: Int, _ buttonFrame: CGRect) -> Void
+    
+    
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
                 if viewModel.reviewContent.isEmpty {
-              //  if viewModel.hasMyReview == false {
+                    //  if viewModel.hasMyReview == false {
                     ZStack {
                         Rectangle()
                             .frame(height: 123)
@@ -51,11 +60,17 @@ struct ReviewDetailInfoView: View {
                                 starSize: 32
                             ) { star in
                                 self.starRating = star
-                               // viewModel.registerStarRating(ratedStar: star)
-                                viewModel.editMyReviewStar(
-                                    reviewId: viewModel.myReviewId,
-                                    ratedStar: star
-                                )
+                                // viewModel.registerStarRating(ratedStar: star)
+                                if viewModel.myReviewId == 0 {
+                                    viewModel.registerStarRating(ratedStar: star) {
+                                        self.isShowToastCompletedWriteReview.toggle()
+                                    }
+                                } else {
+                                    viewModel.editMyReviewStar(
+                                        reviewId: viewModel.myReviewId,
+                                        ratedStar: star
+                                    )
+                                }
                             }
                         }
                     }
@@ -64,7 +79,9 @@ struct ReviewDetailInfoView: View {
                     Button {
                         DLog("상세 리뷰 작성하기로 이동")
                         self.viewModel.storedMyReviewRate = self.starRating
-                        viewModel.registerStarRating(ratedStar: self.starRating)
+                        viewModel.registerStarRating(ratedStar: self.starRating) {
+                           // self.isShowToastCompletedWriteReview.toggle()
+                        }
                         viewModel.moveToWriteReview()
                     } label: {
                         Text("상세 리뷰 작성하기")
@@ -82,8 +99,8 @@ struct ReviewDetailInfoView: View {
                         
                         VStack(alignment: .leading, spacing: 0) {
                             HStack {
-                                StarRatingComponentView(
-                                    starRating: self.viewModel.storedMyReviewRate,
+                                StarRatingComponentView2(
+                                    starRating: self.$viewModel.storedMyReviewRate,
                                     fontSize: 14,
                                     fontColor: .gray8,
                                     starSize: 20
@@ -118,7 +135,7 @@ struct ReviewDetailInfoView: View {
                                                 }
                                             )
                                             .hidden() // 레이아웃 제외됨
-
+                                        
                                         // full(전체줄) 높이 측정용
                                         Text(viewModel.reviewContent)
                                             .customFontStyle(size: 14, color: .anipickBlack)
@@ -135,25 +152,6 @@ struct ReviewDetailInfoView: View {
                                     }
                                 )
                             
-                            // 좋아요 + 더보기
-                            
-//                            Button {
-//                                DLog("더보기 버튼 탭탭")
-//                                if self.lineLimit == 3 {
-//                                    self.lineLimit = nil
-//                                } else {
-//                                    self.lineLimit = 3
-//                                }
-//                            } label: {
-//                                HStack(alignment: .center, spacing: 0) {
-//                                    Text("더보기")
-//                                        .font(.system(size: 14))
-//                                        .foregroundStyle(.anipickPrimary)
-//                                        .padding(.trailing, 4)
-//                                    
-//                                    Image(.chevronDownPrimary)
-//                                }
-//                            }
                             if fullHeight > collapsedHeight + 1 {
                                 HStack(alignment: .center, spacing: 0) {
                                     Button {
@@ -169,12 +167,12 @@ struct ReviewDetailInfoView: View {
                                                 .font(.system(size: 14))
                                                 .foregroundStyle(.anipickPrimary)
                                                 .padding(.trailing, 4)
-
+                                            
                                             Image(.chevronDownPrimary)
                                                 .rotationEffect(self.lineLimit == 3 ? .degrees(0) : .degrees(180))
                                         }
                                     }
-
+                                    
                                     Spacer()
                                 }
                                 .padding(.bottom, 4)
@@ -195,15 +193,18 @@ struct ReviewDetailInfoView: View {
                                 Spacer()
                                 
                                 GeometryReader { proxy in
-                                        Button {
-                                            self.menuFrame = proxy.frame(in: .global)
-                                            DLog("되었음요 탭탭 - \(self.menuFrame)")
-                                            // 삭제, 수정 팝업 띄워야함
-                                            self.isPresentMyReviewPopupView.toggle()
-                                        } label: {
-                                            Image(.moreVerticalGray)
-                                        }
-                                        .frame(width: 20, height: 20)
+                                    Button {
+                                        let frame = proxy.frame(in: .global)
+                                        self.menuFrame = proxy.frame(in: .global)
+                                        DLog("되었음요 탭탭 - \(self.menuFrame)")
+                                        // 삭제, 수정 팝업 띄워야함
+                                        onReportButtonTapped(0, frame)
+                                     //   self.isPresentMyReviewPopupView.toggle()
+                                        DLog("menuFrame 위치 파악 - \(self.menuFrame)")
+                                    } label: {
+                                        Image(.moreVerticalGray)
+                                    }
+                                    .frame(width: 20, height: 20)
                                 }
                                 .frame(width: 20, height: 20)
                                 
@@ -263,7 +264,7 @@ struct ReviewDetailInfoView: View {
                             self.isShowSortOptionView.toggle()
                         } label: {
                             HStack(alignment: .center, spacing: 0) {
-                                Text(selectedSortOption.rawValue)
+                                Text(self.viewModel.selectedReviewSortOption.rawValue)
                                     .padding(.trailing, 4)
                                 Image(systemName: self.isShowSortOptionView ? "chevron.up" : "chevron.down")
                                     .resizable()
@@ -279,38 +280,53 @@ struct ReviewDetailInfoView: View {
                     Spacer().frame(height: 20)
                     
                     if viewModel.reviewList.count > 0 {
-                        VStack(spacing: 0) {
-                            ForEach(viewModel.reviewList, id: \.self) { item in
-                                if item.isMine == false {
+                        ForEach(viewModel.reviewList, id: \.self) { item in
+                            VStack(spacing: 0) {
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .onChange(of: geo.frame(in: .global).minY) { newValue in
+                                            print("🌀🌀 스크롤 offset 변경됨:", newValue)
+                                            self.scrollllll = newValue
+//                                            if self.isShowBlockPopupView {
+//                                                self.isShowBlockPopupView = false
+//                                            }
+                                        }
+                                }
+                                .frame(height: 0)
+                                
+                               // if item.isMine == false {
                                     RecentReviewCell(item: item, onReportButtonTapped: { id, buttonFrame in
-                                        self.isShowBlockPopupView.toggle()
-                                        self.selectedPopupItemReviewId = item.reviewId ?? 0
-                                        self.menuFrame = buttonFrame
-                                        self.selectedBlockUserId = item.userId ?? 0
+                                        if item.isMine ?? false {
+                                           // self.isPresentMyReviewPopupView.toggle()
+                                            onReportButtonTapped(0, buttonFrame)
+                                        } else {
+                                        //    self.isShowBlockPopupView.toggle()
+                                            self.selectedPopupItemReviewId = item.reviewId ?? 0
+                                            self.menuFrame = buttonFrame
+                                            onMoreButtonTapped(item.reviewId ?? 0, item.userId ?? 0, buttonFrame)
+                                            DLog("menuFrame - \(self.menuFrame) - scoll \(self.scrollllll)")
+                                            self.selectedBlockUserId = item.userId ?? 0
+                                        }
                                     }, tappedMoreButton: { value in
-                                        DLog("더보기 눌렀을 때의 동작")
                                         if value {
                                             self.viewModel.tappedLikeReviewButton(reviewId: item.reviewId ?? 0)
                                         } else {
                                             self.viewModel.tappedDislikeReviewButton(reviewId: item.reviewId ?? 0)
                                         }
                                     })
-                                    .onTapGesture {
-                                        if item.isMine! {
-                                            viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
+//                                    .onTapGesture {
+//                                        if item.isMine! {
+//                                            viewModel.moveToRewriteReview(starRating: item.rating ?? 0.0)
+//                                        }
+//                                    }
+                                    .onAppear {
+                                        if item.reviewId == self.viewModel.reviewList.last?.reviewId {
+                                            self.viewModel.loadMoreReview()
                                         }
                                     }
                                     .padding(.bottom, 12)
                                     .padding(.horizontal, 20)
-                                }
-                            }
-                        }
-                        .overlayPreferenceValue(PopupMenuAnchorPreferenceKey.self) { anchor in
-                            GeometryReader { geo in
-                                if let anchor = anchor {
-                                    let frame = geo[anchor]
-                                    popupMenu(for: frame)
-                                }
+                           //     }
                             }
                         }
                     } else {
@@ -330,27 +346,58 @@ struct ReviewDetailInfoView: View {
                     Spacer()
                 }
                 .background(Color.gray7)
-                .padding(.horizontal, -20)
+                //.padding(.horizontal, -20)
             }
-
+            
+            if isShowBlockPopupView {
+                ReportBlockMenuPopup(
+                    isShowBlockMenu: self.$isShowBlockPopupView) {
+                        // 신고 버튼 Tapped
+                        DLog("신고버튼 tapped")
+                        self.isShowBlockPopupView.toggle()
+                        self.isPresentReportView.toggle()
+                        NotificationCenter.default.post(
+                            name: .presentReportPopup,
+                            object: nil,
+                            userInfo: ["reviewId": self.selectedPopupItemReviewId]
+                        )
+                    } blockAction: {
+                        // 차단 버튼 Tapped
+                        DLog("차단버튼 tapped")
+                        self.isPresentBlockUserView.toggle()
+                        self.isShowBlockPopupView.toggle()
+                        NotificationCenter.default.post(
+                            name: .presentBlockUserPopup,
+                            object: nil,
+                            userInfo: ["userId": self.selectedBlockUserId]
+                        )
+                    }
+                    .position(x: UIScreen.main.bounds.width - 90, y: self.menuFrame.minY - self.scrollllll + 480)
+                    .zIndex(1000)
+            }
+            
             if self.isPresentMyReviewPopupView {
                 MyReviewPopupView(
                     isShowBlockMenu: self.$isPresentMyReviewPopupView) {
-                    // 삭제 이벤트
+                        // 삭제 이벤트
                         DLog("삭제삭제")
-                        self.viewModel.deleteMyReview(reviewId: viewModel.MyReview?.reviewId ?? 0)
-                } editAction: {
-                    // 수정 이벤트
-                    DLog("수정수정")
-                }
-              //  .position(x: self.menuFrame.minX, y: self.menuFrame.minY)
-                .zIndex(1000)
+                        self.viewModel.deleteMyReview(reviewId: viewModel.MyReview?.reviewId ?? 0) {
+                            self.isShowToastReviewDelete.toggle()
+                            self.viewModel.fetchReview()
+                            self.viewModel.getMyReview()
+                        }
+                    } editAction: {
+                        DLog("수정수정")
+                        self.viewModel.moveToRewriteReview()
+                    }
+                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame2.minY)
+                    .zIndex(1000)
             }
             
             if self.isShowSortOptionView {
                 SortDropdownView2(
-                    selectedOption: self.$selectedSortOption) { option in
-                        self.selectedSortOption = option
+                    selectedOption: self.$viewModel.selectedReviewSortOption) { option in
+                        self.viewModel.selectedReviewSortOption = option
                         self.isShowSortOptionView.toggle()
                     }
                     .padding(.top, 400)
@@ -362,42 +409,45 @@ struct ReviewDetailInfoView: View {
             self.starRating = self.viewModel.storedMyReviewRate
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                 self.viewModel.getMyReview()
+                self.viewModel.fetchReview()
             }
+        }
+        .popup(isPresented: self.$isShowToastReviewDelete) {
+            Text("리뷰 삭제가 완료되었습니다.")
+                .customFontStyle(size: 14, color: .gray5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.anipickBlack)
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.top)
+                .autohideIn(2)
+        }
+        .popup(isPresented: self.$isShowToastCompletedWriteReview) {
+            Text("리뷰가 성공적으로 작성되었습니다!")
+                .customFontStyle(size: 14, color: .gray5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.anipickBlack)
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.top)
+                .autohideIn(2)
         }
     }
     
-    @ViewBuilder
-    func popupMenu(for frame: CGRect) -> some View {
-        if isShowBlockPopupView {
-            ReportBlockMenuPopup(
-                isShowBlockMenu: self.$isShowBlockPopupView) {
-                    // 신고 버튼 Tapped
-                    DLog("신고버튼 tapped")
-                    self.isShowBlockPopupView.toggle()
-                    self.isPresentReportView.toggle()
-                    NotificationCenter.default.post(
-                        name: .presentReportPopup,
-                        object: nil,
-                        userInfo: ["reviewId": self.selectedPopupItemReviewId]
-                    )
-                } blockAction: {
-                    // 차단 버튼 Tapped
-                    DLog("차단버튼 tapped")
-                    self.isPresentBlockUserView.toggle()
-                    self.isShowBlockPopupView.toggle()
-                    NotificationCenter.default.post(
-                        name: .presentBlockUserPopup,
-                        object: nil,
-                        userInfo: ["userId": self.selectedBlockUserId]
-                    )
-                }
-           //     .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame.minY - 40)
-                .position(x: frame.maxX - 20,  // 오른쪽에 맞춰 팝업 위치
-                          y: frame.minY + 80)
-                .transition(.opacity.combined(with: .scale))
-                .animation(.spring(), value: isShowBlockPopupView)
-                .zIndex(9999)
-        }
-    }
 }
 
+struct MenuFrameKey: PreferenceKey {
+    static var defaultValue: CGRect = .zero
+    
+    static func reduce(value: inout CGRect, nextValue: () -> CGRect) {
+        value = nextValue()
+    }
+}

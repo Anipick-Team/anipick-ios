@@ -41,7 +41,7 @@ struct BlockUserPopupView: View {
                     Button {
                         okAction()
                     } label: {
-                        Text("차단하기")
+                        Text("확인")
                             .customFontStyle(size: 16, color: .anipickPrimary)
                             .frame(maxWidth: .infinity)
                     }

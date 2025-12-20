@@ -184,7 +184,6 @@ struct MyInfoView: View {
                     self.profileImage = image
                 }
             }
-            
         }
         .sheet(isPresented: $showImagePicker) {
             ImagePicker(selectedImage: $selectedImage)

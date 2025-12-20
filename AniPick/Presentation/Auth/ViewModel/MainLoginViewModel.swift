@@ -39,7 +39,7 @@ class MainLoginViewModel: ObservableObject {
         self.navigationManager = navigationManager
     }
     
-    private let baseUrl = "http://anipick.p-e.kr:8080"
+    private let baseUrl = "https://anipick.p-e.kr"
 
 }
 
@@ -438,5 +438,7 @@ extension MainLoginViewModel {
     
     func tappedProblemLoginButton() {
         DLog("로그인에 문제있음!!!")
+        let url = URL(string: "https://forms.gle/SJ7mbQfyfoe2HDLd7")!
+        UIApplication.shared.open(url)
     }
 }

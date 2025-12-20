@@ -165,8 +165,6 @@ extension UserDefaultsManager {
         self.setNickname("")
         self.setEmail("")
         self.setSNSAccount(sns: "")
-        self.setImageId(imageId: -1)
-        self.setLastVisitedAnimeId(animeId: 0)
     }
     
     func setImageId(imageId: Int) {

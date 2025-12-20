@@ -181,7 +181,6 @@ extension MyInfoViewModel {
     
     func getProfileImage(completion: @escaping (Image?) -> Void) {
         let imageId = UserDefaultsManager.shared.getImageId()
-      //  session.request(MyInfoAPI.getProfileImage(imageId: imageId))
         session.request(MyInfoAPI.getProfile(imageId: imageId))
             .cURLDescription { description in
                 DLog("\(description)")

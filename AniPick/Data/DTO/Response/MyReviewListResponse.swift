@@ -14,14 +14,15 @@ struct MyReviewListResponse: Codable {
 }
 
 struct MyReviewListResult: Codable, Hashable {
-    let count: Int
-    let cursor: MyReviewCursor
-    let reviews: [MyReview]
+    let count: Int?
+    let cursor: MyReviewCursor?
+    let reviews: [MyReview]?
 }
 
 struct MyReviewCursor: Codable, Hashable {
     let sort: String?
     let lastId: Int?
+   // let lastValue: Double?
 }
 
 struct MyReview: Codable, Hashable {

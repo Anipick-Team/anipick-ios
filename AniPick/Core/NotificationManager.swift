@@ -11,6 +11,7 @@ extension Notification.Name {
     static let didSelectSeason = Notification.Name("didSelectSeason")
     static let presentReportPopup = Notification.Name("presentReportPopup")
     static let presentBlockUserPopup = Notification.Name("presentBlockUserPopup")
+    static let reloadRatedAnime = Notification.Name("reloadRatedAnime")
 }
 
 

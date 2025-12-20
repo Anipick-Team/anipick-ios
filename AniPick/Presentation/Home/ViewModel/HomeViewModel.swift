@@ -34,22 +34,29 @@ final class HomeViewModel: ObservableObject {
 
 extension HomeViewModel {
     
-    func getTrendingAnimes() {
-        session.request(HomeAPI.trending)
-            .cURLDescription { description in
-                DLog("\(description)")
-            }
-            .responseDecodable(of: TrendingAnimesResponse.self) { response in
-                switch response.result {
-                case .success(let value):
-                    DLog("fetch trending success \(value)")
-                    if let animeList = value.result {
-                        self.trendingAnimes = animeList
-                    }
-                case .failure(let error):
-                    DLog("fetch trending error \(error)")
-                }
-            }
+    func getTrendingAnimes() async {
+        do {
+            let response = try await usecase.getTrendingAnimes()
+            self.trendingAnimes = response.result ?? []
+            DLog("trending Anime List success - \(self.trendingAnimes)")
+        } catch {
+            DLog("trending Anime List error - \(error.localizedDescription)")
+        }
+//        session.request(HomeAPI.trending)
+//            .cURLDescription { description in
+//                DLog("\(description)")
+//            }
+//            .responseDecodable(of: TrendingAnimesResponse.self) { response in
+//                switch response.result {
+//                case .success(let value):
+//                    DLog("fetch trending success \(value)")
+//                    if let animeList = value.result {
+//                        self.trendingAnimes = animeList
+//                    }
+//                case .failure(let error):
+//                    DLog("fetch trending error \(error)")
+//                }
+//            }
     }
     
     func fetchRecommendationAnime() {
@@ -106,7 +113,6 @@ extension HomeViewModel {
         }
     }
     
-    // TODO: 작업 필요 -> 유저디폴트로 마지막에 들어간 애니메이션 저장해두고 반환하는 것 필요
     func fetchRecommendationAnimeWithAnimeId() {
         let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
         DLog("lastvisitedAnimeId - \(animeId)")
@@ -172,13 +178,15 @@ extension HomeViewModel {
     }
     
     func moveToRecommendationView() {
+        let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
         // TODO: animeID 저장된 것 보내는 것으로 교체 필요
-        self.navigationManager.push(route: .recommendView(animeId: 16498))
+        self.navigationManager.push(route: .recommendView(animeId: animeId))
     }
     
     func moveToSimilarRecommendationView() {
         // TODO: animeID 저장된 것 보내는 것으로 교체 필요
-        self.navigationManager.push(route: .recommendView(animeId: 16498))
+        let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
+        self.navigationManager.push(route: .recommendView(animeId: animeId))
     }
     
     func moveToRankingView() {

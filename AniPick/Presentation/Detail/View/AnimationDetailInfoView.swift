@@ -203,7 +203,9 @@ struct AnimationDetailInfoView: View {
             .scrollDisabled(false)
             .padding(.bottom, 20)
         }
+        .padding(.horizontal, -20)
         .background(Color.white)
+        .padding(.horizontal, 20)
     }
     
     @ViewBuilder
@@ -248,6 +250,7 @@ struct AnimationDetailInfoView: View {
                         }
                     }
                 }
+                .padding(.top, 10)
             }
         }
     }

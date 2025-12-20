@@ -46,7 +46,7 @@ enum AppRoute: Hashable {
     case homeSearch
     case ranking
     case research
-    case review(starRating: Double, animeId: Int)
+    case review(starRating: Double, animeId: Int, reviewContent: String)
     case explore(season: Int?, seasonYear: Int?)
     case animeDetail(animeId: Int)
     case resetPassword

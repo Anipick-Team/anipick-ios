@@ -28,6 +28,7 @@ struct RecommendedView: View {
             
             ZStack(alignment: .bottomTrailing) {
                 Rectangle()
+                    .fill(Color.black)
                     .frame(height: 151)
                     .background(Color.black)
                     .cornerRadius(8)
@@ -61,6 +62,9 @@ struct RecommendedView: View {
                             height: 162,
                             title: item.title
                         )
+                        .onTapGesture {
+                            self.viewModel.moveToAnimeDetail(animeId: item.animeId ?? 0)
+                        }
                         .onAppear {
                             if item == viewModel.recommendedAnimeList.last {
                                 DLog("recommended 데이터 확인 - \(item) -- \(String(describing: viewModel.recommendedAnimeList.last))")

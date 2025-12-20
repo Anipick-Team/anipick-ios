@@ -10,7 +10,7 @@ import Alamofire
 
 enum NetworkManager {
     // TODO: BaseUrl 입력 필요
-    static let baseUrl: String = "http://anipick.p-e.kr:8080/"
+    static let baseUrl: String = "https://anipick.p-e.kr/"
     
     private static let defaultSession: Session = {
         let configuration = URLSessionConfiguration.default

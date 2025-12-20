@@ -31,37 +31,52 @@ struct HomeSearchView: View {
                 }
                 .padding(.trailing, 12)
                 
-                HStack {
+                
+                HStack(spacing: 0) {
+
+                    ZStack(alignment: .leading) {
+                        // 👇 placeholder (TextField 안쪽에 겹쳐 놓음)
+                        if viewModel.searchText.isEmpty {
+                            HStack(spacing: 0) {
+                                Text("무엇을 검색할까요?")
+                                    .customFontStyle(size: 14, color: .gray8)
+                            }
+                            .padding(.leading, 4)  // 커서와 살짝 띄우기
+                        }
+
+                        // 👇 TextField 자체
+                        TextField("", text: $viewModel.searchText)
+                            .foregroundStyle(.anipickBlack)
+                            .disableAutocorrection(true)
+                            .submitLabel(.done)
+                            .padding(.leading, 4) // placeholder와 동일한 padding
+                            .onSubmit {
+                                viewModel.clearAllList()
+                                if !viewModel.searchText.isEmpty {
+                                    viewModel.saveRecentKeyword(viewModel.searchText)
+                                    if !viewModel.isShowRecentKeyword {
+                                        viewModel.isShowRecentKeyword = true
+                                    }
+                                    selectedTab = .animation
+                                    Task {
+                                        await viewModel.fetchAnimeSearchList()
+                                        await viewModel.fetchPersonSearchList()
+                                        await viewModel.fetchStudioSearchList()
+                                    }
+                                }
+                            }
+                            .onChange(of: viewModel.searchText) { newValue in
+                                if newValue.isEmpty {
+                                    selectedTab = .initSearch
+                                }
+                            }
+                    }
                     if viewModel.searchText.isEmpty {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray8)
+                            .padding(.trailing, 8)
                     }
-                    
-                    TextField("무엇을 검색할까요?", text: $viewModel.searchText)
-                        .foregroundStyle(.anipickBlack)
-                        .disableAutocorrection(true)
-                        .submitLabel(.done)
-                        .onSubmit {
-                            // TODO: 검색어 완료 시, 작품, 인물, 제작사에 데이터 불러오는 api 여기서 불러야함
-                            viewModel.clearAllList()
-                            if !viewModel.searchText.isEmpty {
-                                self.viewModel.saveRecentKeyword(self.viewModel.searchText)
-                                if self.viewModel.isShowRecentKeyword == false {
-                                    self.viewModel.isShowRecentKeyword = true
-                                }
-                                self.selectedTab = .animation
-                                Task {
-                                    await viewModel.fetchAnimeSearchList()
-                                    await viewModel.fetchPersonSearchList()
-                                    await viewModel.fetchStudioSearchList()
-                                }
-                            }
-                        }
-                        .onChange(of: viewModel.searchText) { newValue in
-                            if newValue.isEmpty {
-                                selectedTab = .initSearch // 텍스트가 비면 initSearch로 돌아감
-                            }
-                        }
+
                     
                     Button {
                         self.viewModel.searchText = ""
@@ -70,6 +85,54 @@ struct HomeSearchView: View {
                             .foregroundColor(.gray8)
                     }
                 }
+
+//                HStack {
+//                    if viewModel.searchText.isEmpty {
+//                        HStack(spacing: 0) {
+//                            Image(systemName: "magnifyingglass")
+//                                .foregroundColor(.gray8)
+//                                .padding(.trailing, 8)
+//                            
+//                            Text("무엇을 검색할까요?")
+//                                .customFontStyle(size: 14, color: .gray8)
+//                                .lineLimit(1)
+//                                .fixedSize(horizontal: true, vertical: false)
+//                        }
+//                    }
+//                    
+//                    TextField("", text: $viewModel.searchText)
+//                        .foregroundStyle(.anipickBlack)
+//                        .disableAutocorrection(true)
+//                        .submitLabel(.done)
+//                        .onSubmit {
+//                            // TODO: 검색어 완료 시, 작품, 인물, 제작사에 데이터 불러오는 api 여기서 불러야함
+//                            viewModel.clearAllList()
+//                            if !viewModel.searchText.isEmpty {
+//                                self.viewModel.saveRecentKeyword(self.viewModel.searchText)
+//                                if self.viewModel.isShowRecentKeyword == false {
+//                                    self.viewModel.isShowRecentKeyword = true
+//                                }
+//                                self.selectedTab = .animation
+//                                Task {
+//                                    await viewModel.fetchAnimeSearchList()
+//                                    await viewModel.fetchPersonSearchList()
+//                                    await viewModel.fetchStudioSearchList()
+//                                }
+//                            }
+//                        }
+//                        .onChange(of: viewModel.searchText) { newValue in
+//                            if newValue.isEmpty {
+//                                selectedTab = .initSearch // 텍스트가 비면 initSearch로 돌아감
+//                            }
+//                        }
+//                    
+//                    Button {
+//                        self.viewModel.searchText = ""
+//                    } label: {
+//                        Image(.allClearButton)
+//                            .foregroundColor(.gray8)
+//                    }
+//                }
                 .padding(.vertical, 8)
                 .padding(.horizontal, 16)
                 .background(.gray5)

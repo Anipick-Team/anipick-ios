@@ -6,6 +6,16 @@
 //
 
 import SwiftUI
+import PopupView
+
+struct ScrollOffsetKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = nextValue()
+    }
+}
+
+
 
 struct AnimationInfoView: View {
     @Environment(\.dismiss) private var dismiss
@@ -13,7 +23,7 @@ struct AnimationInfoView: View {
     @State private var starRating: Double = 0.0
     @State private var selectedAnimationStatusTab: AnimationWatchStatus = .empty
     @State private var selectedInfoTab: AnimationInfoTab = .animationInfo
-    @State private var selectedSortOption: SortOption = .latest
+  //  @State private var selectedSortOption: SortOption = .latest
     
     @State private var isPresentBlockUserPopupView: Bool = false
     @State private var isPresentReportView: Bool = false
@@ -23,12 +33,39 @@ struct AnimationInfoView: View {
     
     @State private var headerCollapsed: Bool = false
     
+    @State private var scrollOffset: CGFloat = 0
+    @State private var menuFrame2: CGRect = .zero
+    
+    @State private var isShowToastReportReview: Bool = false
+    @State private var isShowToastBlockUser: Bool = false
+    @State private var isPresentMyReviewPopupView: Bool = false
+    @State private var isShowBlockPopupView: Bool = false
+    @State private var selectedPopupItemReviewId: Int = 0
+    @State private var selectedBlockUserId: Int = 0
+    
+
+    
     var body: some View {
         ZStack {
             EnableSwipeBackGesture()
                   .frame(width: 0, height: 0)
             
             ScrollView(showsIndicators: false) {
+                GeometryReader { geo in
+                    Color.clear
+                        .onChange(of: geo.frame(in: .global).minY) { newValue in
+                            DLog("🌀 스크롤 offset 변경됨: \(newValue)")
+                            self.scrollOffset = newValue
+                            self.isPresentMyReviewPopupView = false
+                            self.isShowBlockPopupView = false
+//                            if self.isShowBlockPopupView {
+//                                self.isShowBlockPopupView = false
+//                            }
+                        }
+                        .preference(key: ScrollOffsetKey.self,
+                                    value: geo.frame(in: .global).minY)
+                }
+                .frame(height: 0)
                 VStack(spacing: 0) {
                     
                     GeometryReader { geo in
@@ -237,11 +274,20 @@ struct AnimationInfoView: View {
                             } else if self.selectedInfoTab == .reviewInfo {
                                 ReviewDetailInfoView(
                                     viewModel: viewModel,
-                                    selectedSortOption: self.$selectedSortOption,
+                                    scrollOffset: self.$scrollOffset,
                                     isShowOnlyReview: self.$viewModel.isShowOnlyReview,
                                     isShowSortOptionView: self.$viewModel.isShowSortOptionView,
                                     starRating: self.$starRating
-                                )
+                                ) { id, frame in
+                                    self.menuFrame2 = frame
+                                    self.isPresentMyReviewPopupView.toggle()
+                                } onMoreButtonTapped: { reviewId, blockUserId, frame in
+                                    self.menuFrame2 = frame
+                                    self.isShowBlockPopupView.toggle()
+                                    self.selectedPopupItemReviewId = reviewId
+                                    self.selectedBlockUserId = blockUserId
+                                    
+                                }
                             }
                             Spacer().frame(height: 30)
                             
@@ -250,7 +296,10 @@ struct AnimationInfoView: View {
                     }
                 }
             }
-            
+            .onPreferenceChange(ScrollOffsetKey.self) { value in
+                DLog("ScrollVIew 😀 - \(value)")
+                self.scrollOffset = value
+            }
             // popup
             if self.isPresentBlockUserPopupView {
                 BlockUserPopupView {
@@ -260,8 +309,10 @@ struct AnimationInfoView: View {
                 } okAction: {
                     DLog("block user action tapped")
                     self.isPresentBlockUserPopupView.toggle()
-                    self.viewModel.postBlockUser(userId: self.selectedUserId ?? 0)
-                    // TODO: 차단 API 필요
+                    self.viewModel.postBlockUser(userId: self.selectedUserId ?? 0) {
+                        self.isShowToastBlockUser.toggle()
+                        self.viewModel.fetchReview()
+                    }
                 }
             }
             
@@ -285,13 +336,59 @@ struct AnimationInfoView: View {
                     self.isPresentReportReasonView.toggle()
                 } okAction: { reason in
                     DLog("report reason - \(reason)")
-                    // TODO: 신고 API 들어가야함
                     self.isPresentReportReasonView.toggle()
                     self.viewModel.postReportReivew(
                         id: self.selectedReviewId ?? 0,
                         message: reason
-                    )
+                    ) { 
+                        self.isShowToastReportReview.toggle()
+                        self.viewModel.fetchReview()
+                    }
                 }
+            }
+            
+            if self.isPresentMyReviewPopupView {
+                MyReviewPopupView(
+                    isShowBlockMenu: self.$isPresentMyReviewPopupView) {
+                        // 삭제 이벤트
+                        DLog("삭제삭제")
+                        self.isPresentMyReviewPopupView.toggle()
+                        self.viewModel.deleteMyReview(reviewId: viewModel.MyReview?.reviewId ?? 0) {
+                            self.viewModel.fetchReview()
+                            self.viewModel.getMyReview()
+                        }
+                    } editAction: {
+                        DLog("수정수정")
+                        self.isPresentMyReviewPopupView.toggle()
+                        self.viewModel.moveToRewriteReview()
+                    }
+                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame2.maxY + 60)
+                    .zIndex(1000)
+            }
+            
+            if self.isShowBlockPopupView {
+                ReportBlockMenuPopup(
+                    isShowBlockMenu: self.$isShowBlockPopupView) {
+                        // 신고 버튼 Tapped
+                        DLog("신고버튼 tapped")
+                        self.isShowBlockPopupView.toggle()
+                        NotificationCenter.default.post(
+                            name: .presentReportPopup,
+                            object: nil,
+                            userInfo: ["reviewId": self.selectedPopupItemReviewId]
+                        )
+                    } blockAction: {
+                        // 차단 버튼 Tapped
+                        DLog("차단버튼 tapped")
+                        self.isShowBlockPopupView.toggle()
+                        NotificationCenter.default.post(
+                            name: .presentBlockUserPopup,
+                            object: nil,
+                            userInfo: ["userId": self.selectedBlockUserId]
+                        )
+                    }
+                    .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame2.maxY + 60)
+                    .zIndex(1000)
             }
             
             
@@ -372,6 +469,34 @@ struct AnimationInfoView: View {
             
         }
         .navigationBarBackButtonHidden()
+        .popup(isPresented: self.$isShowToastBlockUser) {
+            Text("사용자 차단이 완료되었습니다.")
+                .customFontStyle(size: 14, color: .gray5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.anipickBlack)
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.top)
+                .autohideIn(2)
+        }
+        .popup(isPresented: self.$isShowToastReportReview) {
+            Text("신고가 정상적으로 접수되었습니다.")
+                .customFontStyle(size: 14, color: .gray5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.anipickBlack)
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.top)
+                .autohideIn(2)
+        }
     }
         
     private func animationWatchState(animeId: Int, title: AnimationWatchStatus) -> some View {

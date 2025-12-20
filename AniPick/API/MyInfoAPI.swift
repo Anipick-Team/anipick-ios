@@ -13,7 +13,7 @@ enum MyInfoAPI: URLRequestConvertible {
     case toWatchAnimeList(status: String, lastId: Int?)
     case watchingAnimeList(status: String, lastId: Int?)
     case finishedAnimeList(status: String, lastId: Int?)
-    case ratedAnimeList(lastId: Int?, lastLikeCount: Int?, lastRating: String?, sort: String?, reviewOnly: Bool)
+    case ratedAnimeList(lastId: Int?, lastLikeCount: Int?, lastRating: Double?, sort: String?, reviewOnly: Bool)
     case likedAnimeList(lastId: Int?, size: Int)
     case likedPersonList(lastId: Int?)
     case getProfileImage(imageId: Int)

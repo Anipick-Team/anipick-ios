@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PopupView
 
 struct RecentReviewCellInHome: View {
     
@@ -16,6 +17,8 @@ struct RecentReviewCellInHome: View {
     @State private var tmpHeartCount: Int = 0
     @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
     @State private var fullHeight: CGFloat = 0        // 전체 높이
+    
+    @State private var isShowToastBlockUser: Bool = false
     let item: ReviewItem
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
@@ -63,7 +66,7 @@ struct RecentReviewCellInHome: View {
                 Text(item.animeTitle ?? "-")
                     .foregroundStyle(.anipickBlack)
                     .font(.system(size: 16))
-                    .padding(.leading, 8)
+                    .padding(.leading, 12)
             }
             
             HStack(spacing: 0) {
@@ -257,6 +260,20 @@ struct RecentReviewCellInHome: View {
         .cornerRadius(8)
         .onAppear {
             self.currentUserTappedLike = item.likedByCurrentUser ?? false
+        }
+        .popup(isPresented: self.$isShowToastBlockUser) {
+            Text("사용자 차단이 완료되었습니다.")
+                .customFontStyle(size: 14, color: .gray5)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 12)
+                .background(Color.anipickBlack)
+                .cornerRadius(8)
+                .padding(.horizontal, 20)
+        } customize: {
+            $0
+                .type(.floater())
+                .position(.top)
+                .autohideIn(2)
         }
     }
     

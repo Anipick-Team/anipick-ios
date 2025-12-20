@@ -17,7 +17,7 @@ struct WriteReviewView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            NavigationBackButtonView(title: "리뷰 작성") {
+            NavigationBackButtonView(title: self.viewModel.isFirstVisit ? "리뷰 작성" : "리뷰 수정") {
                 dismiss()
             }
             .padding(.horizontal, -20)
@@ -46,11 +46,6 @@ struct WriteReviewView: View {
                     ) { star in
                         self.viewModel.starRating = star
                     }
-//                    self.starView(starRating: $viewModel.starRating)
-//                        .padding(.bottom, 16)
-//                    
-//                    Text(String(format: "%.1f", self.viewModel.starRating))
-//                        .customFontStyle(size: 20, color: .gray6, weight: .bold)
                 }
             }
             .padding(.bottom, 12)
@@ -136,6 +131,8 @@ struct WriteReviewView: View {
             
             Button {
                 DLog("커뮤니티 가이드라인 웹뷰로 이동")
+                let url = URL(string: "https://anipick.p-e.kr/community-guidelines.html")!
+                UIApplication.shared.open(url)
             } label: {
                 Text("커뮤니티 가이드라인 전체보기")
                     .customFontStyle(size: 12, color: .white, weight: .semibold)
@@ -150,7 +147,7 @@ struct WriteReviewView: View {
             
             Spacer()
             
-            FullWidthButton(isEnable: .constant(true), buttonText: "리뷰 작성하기") {
+            FullWidthButton(isEnable: .constant(true), buttonText: self.viewModel.isFirstVisit ? "리뷰 작성하기" : "리뷰 수정하기") {
                 DLog("리뷰 작성 탭탭")
                 viewModel.patchReview()
                 viewModel.pop()
@@ -166,23 +163,6 @@ struct WriteReviewView: View {
         }
     }
     
-    // TODO: 0.5점도 체크 가능하게 만들기 -> 만들어둔거 있음,,,,교체하기
-//    private func starView(starRating: Binding<Double>) -> some View {
-//        return HStack(spacing: 0) {
-//            ForEach(1...5, id: \.self) { starIdx in
-//                Button {
-//                    starRating.wrappedValue = Double(starIdx)
-//                } label: {
-//                    Image(starIdx <= Int(starRating.wrappedValue) ? .fillPickStar : .unfillStar)
-//                        .resizable()
-//                        .frame(width: 32, height: 32)
-//                }
-//                .padding(.trailing, 4)
-//                
-//            }
-//        }
-//    }
-    
     @ViewBuilder
     private func sectionDivder() -> some View {
         Rectangle()
@@ -195,5 +175,5 @@ struct WriteReviewView: View {
 }
 
 #Preview {
-    AppDIContainer.makeReviewView(starRating: 3.7, animeId: 123)
+    AppDIContainer.makeReviewView(starRating: 3.7, animeId: 123, reviewContent: "asdfa")
 }

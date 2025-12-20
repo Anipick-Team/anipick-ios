@@ -10,10 +10,19 @@ import Alamofire
 
 final class AppEntryViewModel: ObservableObject {
     let session = Session(interceptor: TokenInterceptor.shared)
-    func checkAuthentication() {
-        
-    }
     
+    func checkVersion() {
+        session.request(VersionAPI.checkVersion)
+            .cURLDescription { DLog($0) }
+            .responseDecodable(of: VersionResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("version check success - \(value)")
+                case .failure(let error):
+                    DLog("version check에서 error 발생 - \(error)")
+                }
+            }
+    }
     
     func fetchMataData() {
         session.request(MetaDataAPI.metaData)

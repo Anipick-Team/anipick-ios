@@ -28,6 +28,7 @@ struct SeriesDetailView: View {
             
             ZStack(alignment: .bottomTrailing) {
                 Rectangle()
+                    .fill(Color.black)
                     .frame(height: 151)
                     .background(Color.black)
                     .cornerRadius(8)
@@ -67,6 +68,9 @@ struct SeriesDetailView: View {
                             height: 162,
                             title: item.title
                         )
+                        .onTapGesture {
+                            self.viewModel.moveToAnimeDetail(animeId: item.animeId ?? 0)
+                        }
                         .onAppear {
                             if item == viewModel.animeList.last {
                                 DLog("seriesDetail 데이터 확인 - \(item) -- \(String(describing: viewModel.animeList.last))")

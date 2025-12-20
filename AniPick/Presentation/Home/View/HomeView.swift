@@ -81,11 +81,17 @@ struct HomeView: View {
                 
                 sectionDivider()
                 
-                if viewModel.recommendationAnimesWithAnimeId.isEmpty {
+                if UserDefaultsManager.shared.getLastVisitedAnimeId() == 0 && self.viewModel.recommedationAnimes.isEmpty {
                      Image("empty_recommendation")
                         .padding(.bottom, 24)
+                } else if UserDefaultsManager.shared.getLastVisitedAnimeId() == 0 {
+                    self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommedationAnimes) {
+                        viewModel.moveToRecommendationView()
+                        DLog("추천작 탭탭")
+                    }
+                    .padding(.bottom, 24)
                 } else {
-                    self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommendationAnimesWithAnimeId) {
+                    self.sectionView(title: "\(self.viewModel.recommedationTitle) 을 재밌게 보셨다면\n이 작품들도 마음에 드실거에요!", items: viewModel.recommendationAnimesWithAnimeId) {
                         viewModel.moveToRecommendationView()
                         DLog("추천작 탭탭")
                     }
@@ -159,13 +165,17 @@ struct HomeView: View {
             DLog("accessToken - \(UserDefaultsManager.shared.getAccessToken())")
             DLog("refreshToken - \(UserDefaultsManager.shared.getRefreshToken())")
             self.nickname = UserDefaultsManager.shared.getNickname()
-            viewModel.getTrendingAnimes()
-            viewModel.fetchRecommendationAnimeWithAnimeId()
+            //viewModel.getTrendingAnimes()
+            if UserDefaultsManager.shared.getLastVisitedAnimeId() != 0 {
+                viewModel.fetchRecommendationAnimeWithAnimeId()
+            } else {
+                viewModel.fetchRecommendationAnime()
+            }
             viewModel.fetchSimilarAnime()
             Task {
+                await viewModel.getTrendingAnimes()
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
-                await viewModel.getComingSoonSeason()
                 await viewModel.getComingSoonSeason()
             }
         }
