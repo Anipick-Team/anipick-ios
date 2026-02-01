@@ -10,7 +10,7 @@ import Foundation
 
 enum RankingAPI: URLRequestConvertible {
     case realtime(genre: String?, lastId: Int?, lastValue: String?, size: Int?)
-    case yearAndSeason(year: Int, season: Int, genre: String?, lastId: Int?, lastRank: Int?, size: Int)
+    case yearAndSeason(year: Int?, season: Int?, genre: String?, lastId: Int?, lastRank: Int?, size: Int)
     case allTime(genre: String?, lastId: Int?, lastRank: Int?, size: Int?)
 //
 //    init(realtime genre: String? = nil, lastId: Int? = nil, lastValue: Int? = nil, size: Int? = nil) {
@@ -31,7 +31,7 @@ enum RankingAPI: URLRequestConvertible {
             return "api/rankings/real-time"
         case .yearAndSeason:
             return "api/rankings/year-season"
-        case let .allTime(genre, lastId, lastRank, size):
+        case .allTime:
             return "api/rankings/all-time"
         }
     }

@@ -284,7 +284,12 @@ struct RankingView: View {
                 Button {
                     DLog("완료버튼")
                     self.viewModel.selectedYear = self.selectedTmpYear
-                    self.viewModel.selectedSeason = self.selectedTmpSeason
+                    if self.selectedTmpSeason == "전체 분기" {
+                        self.viewModel.selectedSeason = ""
+                    } else {
+                        self.viewModel.selectedSeason = self.selectedTmpSeason
+                    }
+                   
                     self.isPresentYearSeasonModalView.toggle()
                     self.viewModel.fetchFirstPage()
                 } label: {
@@ -300,6 +305,15 @@ struct RankingView: View {
         }
         .background(Color.white.ignoresSafeArea())
         .frame(height: self.sheetHeight)
+        .onAppear {
+            if self.selectedTmpYear == "" {
+                self.selectedTmpYear = yearList.first ?? ""
+            }
+            
+            if self.selectedTmpSeason == "" {
+                self.selectedTmpSeason = quarterList.first ?? "전체 분기"
+            }
+        }
     }
     
     private func rankingAnimationCell(item: RankedAnime) -> some View {

@@ -2,14 +2,14 @@
 //  RecommendedAnimeView.swift
 //  AniPick
 //
-//  Created by cho on 1/20/26.
+//  Created by cho on 6/23/25.
 //
 
 import SwiftUI
 
-struct RecommendedAnimeView: View {
+struct SimilarRecommendedAnimeView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject var viewModel: RecommendViewModel
+    @StateObject var viewModel: SimilarRecommendedAnimeViewModel
     
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     var body: some View {
@@ -47,6 +47,7 @@ struct RecommendedAnimeView: View {
             
             Spacer().frame(height: 24)
             
+
             ScrollView(showsIndicators: false) {
                 
                 ZStack {
@@ -58,8 +59,7 @@ struct RecommendedAnimeView: View {
                     
                     VStack {
                         HStack {
-                            let nickname = UserDefaultsManager.shared.getNickname()
-                            Text("오늘의 추천작, \(nickname) 님의\n취향에 맞춰 준비했어요!")
+                            Text("최근 찾아보신 \(viewModel.recommedationTitle)과\n비슷한 작품이에요")
                                 .customFontStyle(size: 20, color: .gray5, weight: .bold)
                                 .padding(.top, 12)
                                 .padding(.leading, 24)
@@ -79,6 +79,7 @@ struct RecommendedAnimeView: View {
                 }
                 .frame(height: 151)
                 .padding(.bottom, 20)
+
                 
                 LazyVGrid(columns: columns, spacing: 24) {
                     ForEach(viewModel.recommedationAnimes, id: \.self) { item in
@@ -95,7 +96,7 @@ struct RecommendedAnimeView: View {
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .onAppear {
-            viewModel.fetchRecommendationAnime()
+            viewModel.fetchRecommedationAnime()
         }
     }
     

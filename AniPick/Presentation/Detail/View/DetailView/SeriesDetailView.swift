@@ -14,7 +14,7 @@ struct SeriesDetailView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            NavigationBackButtonView(title: "시리즈 정보") {
+            NavigationBackButtonView(title: "관련 작품") {
                 dismiss()
             }
             .padding(.horizontal, -20)
@@ -36,8 +36,7 @@ struct SeriesDetailView: View {
                 
                 VStack(spacing: 0) {
                     HStack(spacing: 0) {
-                        // TODO: 넘어온 값 넣기
-                        Text("'\(self.viewModel.animeTitle)'의\n 시리즈에요!")
+                        Text("\(self.viewModel.animeTitle) 의\n 관련 작품이에요!")
                             .customFontStyle(size: 24, color: .gray7, weight: .bold)
                             .padding(.top, 20)
                             .padding(.leading, 20)

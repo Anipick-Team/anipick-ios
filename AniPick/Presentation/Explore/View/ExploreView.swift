@@ -57,7 +57,7 @@ struct ExploreView: View {
            }
        }
     
-    let quarterList = ["전체 분기", "1", "2", "3", "4"]
+    let quarterList = ["전체", "1", "2", "3", "4"]
     
     @State private var exploreRequestItem: ExploreReqeustItem? = nil
     
@@ -218,7 +218,6 @@ struct ExploreView: View {
             }
         }
     }
-    
 
     private func selectredCategoryView() -> some View {
         return
@@ -235,8 +234,9 @@ struct ExploreView: View {
                     HStack(spacing: 0) {
                         ForEach(self.viewModel.selectedTagList, id: \.self) { item in
                             HStack(spacing: 0) {
+                                let postFix = item.value == "전체 분기" ? "" : "분기"
                                 if item.category == .season {
-                                    Text("\(item.value)분기")
+                                    Text("\(item.value)\(postFix)")
                                         .padding(.trailing, 4)
                                         .customFontStyle(size: 14, color: .anipickPrimary)
                                 } else {
@@ -290,7 +290,7 @@ struct ExploreView: View {
     }
 
     
-    private func filterSelectedHalfModalView() -> some View {
+    private func filterSelectedHalfModalView () -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Button {
@@ -436,6 +436,17 @@ struct ExploreView: View {
         }
         .padding(.vertical, 20)
         .background(.white)
+        .onAppear {
+            if self.tmpSelectedSeason == "" {
+                self.tmpSelectedSeason = quarterList.first ?? "전체 분기"
+            }
+            
+            if selectedTab == .yearQuarter {
+                if self.tmpSelectedYear == "" {
+                    self.tmpSelectedYear = currentList.first ?? ""
+                }
+            }
+        }
     }
     
    private func insertTagIfNotExist(_ tag: ExploreSelectedTag) {

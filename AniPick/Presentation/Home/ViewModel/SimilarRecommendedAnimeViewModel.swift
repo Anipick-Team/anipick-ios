@@ -1,5 +1,5 @@
 //
-//  RecommendedAnimeViewModel.swift
+//  SimilarRecommendedAnimeViewModel.swift
 //  AniPick
 //
 //  Created by cho on 7/26/25.
@@ -8,7 +8,7 @@
 import SwiftUI
 import Alamofire
 
-final class RecommendedAnimeViewModel: ObservableObject {
+final class SimilarRecommendedAnimeViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let animeId: Int?
     
@@ -27,7 +27,7 @@ final class RecommendedAnimeViewModel: ObservableObject {
 }
 
 
-extension RecommendedAnimeViewModel {
+extension SimilarRecommendedAnimeViewModel {
     func fetchRecommedationAnime() {
         if let animeId = self.animeId {
             session.request(

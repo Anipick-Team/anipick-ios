@@ -34,10 +34,10 @@ final class AppEntryViewModel: ObservableObject {
                 case .success(let value):
                     // TODO: 성공했으면 userdefatuls 업데이트하는 로직 필요
                     DLog("meta data fetch 성공 - \(value)")
-                    let seasonYear = value.result.seasonYear
-                    let animeType = value.result.type
-                    let genres = value.result.genres
-                    let season = value.result.season
+                    let seasonYear = value.result?.seasonYear ?? []
+                    let animeType = value.result?.type ?? []
+                    let genres = value.result?.genres ?? []
+                    let season = value.result?.season ?? []
                     
                     UserDefaultsManager.shared.setMetaDataForSeasonYear(seasonYear)
                     UserDefaultsManager.shared.setMetaDataForType(animeType)

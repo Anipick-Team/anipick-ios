@@ -18,6 +18,7 @@ final class HomeViewModel: ObservableObject {
     @Published var recommendationAnimesWithAnimeId: [Anime] = []
     @Published var recommendationSimilarAnimes: [Anime] = []
     @Published var recommedationTitle: String = ""
+    @Published var recommedationFirstTitle: String = ""
     @Published var seasonString: Int = 0
     @Published var seasonYearString: Int = 0
     
@@ -71,6 +72,7 @@ extension HomeViewModel {
                     if let animeList = value.result,
                        let recommend = animeList.animes {
                         self.recommedationAnimes = recommend
+                      //  self.recommedationFirstTitle = animeList.referenceAnimeTitle ?? ""
                     }
                 case .failure(let error):
                     DLog("fetch home recommedation error \(error)")
@@ -138,7 +140,8 @@ extension HomeViewModel {
     
     // TODO: 최근 찾아보신 작품과 비슷한 작품 -> 가장 최근에 들어간 작품 userdefaults로 정리해두어야함
     func fetchSimilarAnime() {
-        session.request(HomeAPI.animeRecommendation(animeId: 16498))
+        let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
+        session.request(HomeAPI.animeRecommendation(animeId: animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
@@ -150,6 +153,8 @@ extension HomeViewModel {
                        let recommend = animeList.animes {
                         self.recommendationSimilarAnimes = recommend
                     }
+                    
+                    self.recommedationFirstTitle = value.result?.referenceAnimeTitle ?? "-"
                 case .failure(let error):
                     DLog("fetch home recommedation with animeid error \(error)")
                 }
@@ -177,14 +182,12 @@ extension HomeViewModel {
         self.navigationManager.push(route: .recentReview)
     }
     
-    func moveToRecommendationView() {
-        let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
-        // TODO: animeID 저장된 것 보내는 것으로 교체 필요
-        self.navigationManager.push(route: .recommendView(animeId: animeId))
+    func moveToRecommendationView(animeId: Int) {
+        self.navigationManager.push(route: .recommend2(animeId: animeId))
+ //       self.navigationManager.push(route: .recommendView(animeId: animeId))
     }
     
     func moveToSimilarRecommendationView() {
-        // TODO: animeID 저장된 것 보내는 것으로 교체 필요
         let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
         self.navigationManager.push(route: .recommendView(animeId: animeId))
     }

@@ -29,11 +29,11 @@ struct MyInfoView: View {
                             DLog("Tapped Setting Button")
                             viewModel.tappedSettingButton()
                         } label: {
-                            Image(systemName: "gearshape") // SF Symbol 사용
+                            Image(systemName: "gearshape")
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 18, height: 18)
-                                .foregroundColor(Color.gray.opacity(0.4)) // 아이콘 색상 (연회색)
+                                .foregroundColor(Color.gray.opacity(0.4))
                                 .padding(4)
                                 .background(
                                     RoundedRectangle(cornerRadius: 8)

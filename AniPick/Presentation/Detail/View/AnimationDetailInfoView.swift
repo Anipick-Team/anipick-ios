@@ -139,8 +139,8 @@ struct AnimationDetailInfoView: View {
             .scrollDisabled(false)
             .padding(.bottom, 20)
             
-            self.sectionCategoryButton(title: "시리즈 정보") {
-                DLog("시리즈 정보로 이동")
+            self.sectionCategoryButton(title: "관련 작품") {
+                DLog("관련 작품으로 이동")
                 self.viewModel.moveToSeriesDetailView(animeId: detailInfo.animeId, animeTitle: detailInfo.title ?? "-")
             }
             .padding(.bottom, 20)

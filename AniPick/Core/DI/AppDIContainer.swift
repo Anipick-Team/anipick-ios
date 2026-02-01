@@ -118,6 +118,12 @@ struct AppDIContainer {
         return WithdrawalView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
+    
+    static func makeRecommemnd2View(animeId: Int) -> some View {
+        let viewModel = RecommendViewModel(navigationManager: navigationManager, animeId: animeId)
+        return RecommendedAnimeView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
 }
 
 
@@ -230,8 +236,8 @@ extension AppDIContainer {
     }
     
     static func makeRecommendationView(animeId: Int?) -> some View {
-        let viewModel = RecommendedAnimeViewModel(navigationManager: navigationManager, animeId: animeId)
-        return RecommendedAnimeView(viewModel: viewModel)
+        let viewModel = SimilarRecommendedAnimeViewModel(navigationManager: navigationManager, animeId: animeId)
+        return SimilarRecommendedAnimeView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
     

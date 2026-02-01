@@ -56,6 +56,7 @@ enum AppRoute: Hashable {
     case mainLoginView
     case recentReview
     case recommendView(animeId: Int?)
+    case recommend2(animeId: Int)
     
     // Setting
     case setting

@@ -81,18 +81,24 @@ struct HomeView: View {
                 
                 sectionDivider()
                 
-                if UserDefaultsManager.shared.getLastVisitedAnimeId() == 0 && self.viewModel.recommedationAnimes.isEmpty {
+                if self.viewModel.recommedationAnimes.isEmpty {
                      Image("empty_recommendation")
                         .padding(.bottom, 24)
-                } else if UserDefaultsManager.shared.getLastVisitedAnimeId() == 0 {
-                    self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommedationAnimes) {
-                        viewModel.moveToRecommendationView()
-                        DLog("추천작 탭탭")
-                    }
-                    .padding(.bottom, 24)
-                } else {
-                    self.sectionView(title: "\(self.viewModel.recommedationTitle) 을 재밌게 보셨다면\n이 작품들도 마음에 드실거에요!", items: viewModel.recommendationAnimesWithAnimeId) {
-                        viewModel.moveToRecommendationView()
+                }
+//                else if UserDefaultsManager.shared.getLastVisitedAnimeId() == 0 {
+//                    self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommedationAnimes) {
+//                        viewModel.moveToRecommendationView()
+//                        DLog("추천작 탭탭")
+//                    }
+//                    .padding(.bottom, 24)
+//                }
+                else {
+                    let nickName = UserDefaultsManager.shared.getNickname()
+                    self.sectionView(
+                        title: "오늘의 추천작, \(nickName) 님의\n취향에 맞춰 준비했어요!",
+                        items: viewModel.recommedationAnimes
+                    ) {
+                        viewModel.moveToRecommendationView(animeId: 0)
                         DLog("추천작 탭탭")
                     }
                     .padding(.bottom, 24)
@@ -147,7 +153,7 @@ struct HomeView: View {
                 sectionDivider()
                 
                 // TODO: 닉네임 글자수가 너무 길 때, 닉네임을 말줄임 하는 것으로 viewModel에서 작업
-                self.sectionView(title: "최근 찾아보신 \(viewModel.recommedationTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
+                self.sectionView(title: "최근 찾아보신 \(viewModel.recommedationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
                     viewModel.moveToSimilarRecommendationView()
                 }
                 
@@ -172,6 +178,7 @@ struct HomeView: View {
                 viewModel.fetchRecommendationAnime()
             }
             viewModel.fetchSimilarAnime()
+            viewModel.fetchRecommendationAnime()
             Task {
                 await viewModel.getTrendingAnimes()
                 await viewModel.getRecentsReviews()

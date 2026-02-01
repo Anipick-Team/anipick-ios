@@ -80,7 +80,7 @@ extension RankingViewModel {
         session.request(
             RankingAPI.yearAndSeason(
                 year: year ?? 2025,
-                season: season ?? 4,
+                season: season,
                 genre: genre,
                 lastId: self.lastId,
                 lastRank: self.lastRank,

@@ -11,14 +11,14 @@ import Foundation
 struct MetaDataResponse: Decodable {
     let code: Int
     let value: String
-    let result: MetaDataResult
+    let result: MetaDataResult?
 }
 
 struct MetaDataResult: Decodable {
-    let seasonYear: [Int]
-    let season: [Season]
-    let genres: [Genre]
-    let type: [String]
+    let seasonYear: [Int]?
+    let season: [Season]?
+    let genres: [Genre]?
+    let type: [String]?
 }
 
 struct Season: Codable {

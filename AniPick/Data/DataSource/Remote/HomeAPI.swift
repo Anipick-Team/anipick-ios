@@ -12,6 +12,7 @@ enum HomeAPI: URLRequestConvertible {
     case recentReviews
     case upcomingSeason
     case comingSoonAnimes
+    case fitAnimeRecommendation
     case animeRecommendation(animeId: Int)
     
     
@@ -25,6 +26,8 @@ enum HomeAPI: URLRequestConvertible {
             return "api/animes/upcoming-season"
         case .comingSoonAnimes:
             return "api/home/animes/coming-soon"
+        case .fitAnimeRecommendation:
+            return "api/home/recommendation/animes"
         case .animeRecommendation(let animeId):
             return "api/home/recommendation/animes/\(animeId)/recent"
         }
@@ -40,6 +43,8 @@ enum HomeAPI: URLRequestConvertible {
             return .get
         case .comingSoonAnimes:
             return .get
+        case .fitAnimeRecommendation:
+            return .get
         case .animeRecommendation:
             return .get
         }
@@ -47,7 +52,7 @@ enum HomeAPI: URLRequestConvertible {
     
     var parameters: Parameters? {
         switch self {
-        case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes, .animeRecommendation:
+        case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes, .fitAnimeRecommendation, .animeRecommendation:
             return nil
         }
     }
@@ -65,6 +70,8 @@ enum HomeAPI: URLRequestConvertible {
         case .upcomingSeason:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .comingSoonAnimes:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .fitAnimeRecommendation:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .animeRecommendation:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)

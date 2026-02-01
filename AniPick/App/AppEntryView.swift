@@ -102,6 +102,8 @@ struct AppEntryView: View {
                     
                 case let .recommend(animeId, animeTitle):
                     AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
+                case let .recommend2(animeId):
+                    AppDIContainer.makeRecommemnd2View(animeId: animeId)
                 default:
                     Text("asdfasdf")
                 }
