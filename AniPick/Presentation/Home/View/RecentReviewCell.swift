@@ -8,18 +8,19 @@
 import SwiftUI
 
 struct RecentReviewCell: View {
-    
+  
     @State private var starRating: Double = 0
     @State private var isShowBlockMenu: Bool = false
     @State private var reviewContentLimit: Int? = 2
     @State private var currentUserTappedLike: Bool = false
     @State private var tmpHeartCount: Int = 0
-    
+    @State private var profileImage: Image? = nil
     @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
     @State private var fullHeight: CGFloat = 0        // 전체 높이
     @State private var isShowBlockPopupView: Bool = false
     
     let item: ReviewItem
+    @StateObject var viewModel: AnimationInfoViewModel
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
     let tappedMoreButton: ((Bool) -> Void)?
@@ -32,6 +33,14 @@ struct RecentReviewCell: View {
         CGFloat(starCount) * starSize + CGFloat(starCount - 1) * spacing
     }
     
+    func convertUrltoProfileId(_ url: String?) -> Int {
+        if let id = url?.components(separatedBy: "/").last {
+            return Int(id) ?? 0
+        } else {
+            return 0
+        }
+    }
+    
    
     var body: some View {
             VStack(alignment: .leading, spacing: 0) {
@@ -40,34 +49,48 @@ struct RecentReviewCell: View {
                     
                     Spacer()
                     
-                    if let url = item.profileImageUrl {
-                        AsyncImage(url: URL(string: url)) { phase in
-                            switch phase {
-                            case .empty:
-                                Circle()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.gray)
-                                    .padding(.trailing, 8)
-                            case .success(let image):
-                                image
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.gray)
-                                    .padding(.trailing, 8)
-                            case .failure:
-                                Circle()
-                                    .frame(width: 30, height: 30)
-                                    .foregroundStyle(.gray)
-                                    .padding(.trailing, 8)
-                                
-                            @unknown default:
-                                EmptyView()
-                            }
-                        }
+                    if let profileImage {
+                        profileImage
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 30, height: 30)
+                            .clipShape(Circle())
+                    } else {
+                        Circle()
+                            .frame(width: 30, height: 30)
+                            .foregroundStyle(.green)
+                            .padding(.trailing, 8)
                     }
+                    
+//                    if let url = item.profileImageUrl {
+//                        AsyncImage(url: URL(string: url)) { phase in
+//                            switch phase {
+//                            case .empty:
+//                                Circle()
+//                                    .frame(width: 30, height: 30)
+//                                    .foregroundStyle(.gray)
+//                                    .padding(.trailing, 8)
+//                            case .success(let image):
+//                                image
+//                                    .frame(width: 30, height: 30)
+//                                    .foregroundStyle(.gray)
+//                                    .padding(.trailing, 8)
+//                            case .failure:
+//                                Circle()
+//                                    .frame(width: 30, height: 30)
+//                                    .foregroundStyle(.gray)
+//                                    .padding(.trailing, 8)
+//                                
+//                            @unknown default:
+//                                EmptyView()
+//                            }
+//                        }
+//                    }
                     
                     Text(item.nickname ?? "--")
                         .foregroundStyle(.anipickBlack)
                         .font(.system(size: 12))
+                        .padding(.leading, 4)
                     
                 }
                 
@@ -225,6 +248,11 @@ struct RecentReviewCell: View {
             .cornerRadius(8)
             .onAppear {
                 self.currentUserTappedLike = item.likedByCurrentUser ?? false
+                if let url = item.profileImageUrl {
+                    self.viewModel.convertProfileImage(url) { image in
+                        self.profileImage = image
+                    }
+                }
             }
     }
     

@@ -49,6 +49,9 @@ struct ContentView: View {
                 }
                 .tag(Tab.myInfo)
         }
+        .onAppear {
+            DLog("")
+        }
         .background(Color.white)
         .navigationBarBackButtonHidden()
         

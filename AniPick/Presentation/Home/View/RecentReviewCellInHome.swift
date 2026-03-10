@@ -20,10 +20,11 @@ struct RecentReviewCellInHome: View {
     
     @State private var isShowToastBlockUser: Bool = false
     let item: ReviewItem
+    @StateObject var viewModel: RecentReviewViewModel
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
     let tappedMoreButton: ((Bool) -> Void)?
-    
+    @State private var profileImage: Image? = nil
     private let starCount = 5
     private let starSize: CGFloat = 18
     private let spacing: CGFloat = 0
@@ -31,7 +32,7 @@ struct RecentReviewCellInHome: View {
         CGFloat(starCount) * starSize + CGFloat(starCount - 1) * spacing
     }
     
-   
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .center, spacing: 0) {
@@ -74,35 +75,48 @@ struct RecentReviewCellInHome: View {
                 
                 Spacer()
                 
-                if let url = item.profileImageUrl {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            Circle()
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.gray)
-                                .padding(.trailing, 8)
-                        case .success(let image):
-                            image
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.gray)
-                                .padding(.trailing, 8)
-                        case .failure:
-                            Circle()
-                                .frame(width: 30, height: 30)
-                                .foregroundStyle(.gray)
-                                .padding(.trailing, 8)
-                            
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
+                if let profileImage {
+                    profileImage
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 30, height: 30)
+                        .clipShape(Circle())
+                } else {
+                    Circle()
+                        .frame(width: 30, height: 30)
+                        .foregroundStyle(.green)
+                        .padding(.trailing, 8)
                 }
-
+                
+                
+                //                    AsyncImage(url: URL(string: url)) { phase in
+                //                        switch phase {
+                //                        case .empty:
+                //                            Circle()
+                //                                .frame(width: 30, height: 30)
+                //                                .foregroundStyle(.red)
+                //                                .padding(.trailing, 8)
+//                        case .success(let image):
+//                            image
+//                                .frame(width: 30, height: 30)
+//                                .padding(.trailing, 8)
+//                        case .failure:
+//                            Circle()
+//                                .frame(width: 30, height: 30)
+//                                .foregroundStyle(.green)
+//                                .padding(.trailing, 8)
+//                            
+//                        @unknown default:
+//                            EmptyView()
+//                        }
+//                    }
+              //  }
+                
                 
                 Text(item.nickname ?? "--")
                     .foregroundStyle(.anipickBlack)
                     .font(.system(size: 12))
+                    .padding(.leading, 8)
                 
             }
             
@@ -133,7 +147,7 @@ struct RecentReviewCellInHome: View {
                                     }
                                 )
                                 .hidden() // 레이아웃 제외됨
-
+                            
                             // full(전체줄) 높이 측정용
                             Text(content)
                                 .customFontStyle(size: 14, color: .anipickBlack)
@@ -170,7 +184,7 @@ struct RecentReviewCellInHome: View {
                                     }
                                 )
                                 .hidden() // 레이아웃 제외됨
-
+                            
                             // full(전체줄) 높이 측정용
                             Text(item.reviewContent ?? "--")
                                 .customFontStyle(size: 14, color: .anipickBlack)
@@ -203,12 +217,12 @@ struct RecentReviewCellInHome: View {
                                 .font(.system(size: 14))
                                 .foregroundStyle(.anipickPrimary)
                                 .padding(.trailing, 4)
-
+                            
                             Image(.chevronDownPrimary)
                                 .rotationEffect(self.reviewContentLimit == 3 ? .degrees(0) : .degrees(180))
                         }
                     }
-
+                    
                     Spacer()
                 }
             }
@@ -260,6 +274,14 @@ struct RecentReviewCellInHome: View {
         .cornerRadius(8)
         .onAppear {
             self.currentUserTappedLike = item.likedByCurrentUser ?? false
+            if let url = item.profileImageUrl {
+                self.viewModel.convertProfileImage(url) { image in
+                    self.profileImage = image
+                }
+            }
+        }
+        .onDisappear {
+            self.isShowToastBlockUser = false
         }
         .popup(isPresented: self.$isShowToastBlockUser) {
             Text("사용자 차단이 완료되었습니다.")
@@ -277,6 +299,9 @@ struct RecentReviewCellInHome: View {
         }
     }
     
+    private func convertImageUrl(_ url: String) {
+        
+    }
     
     private func starRatingView(starRating: Double) -> some View {
         return HStack(spacing: 0) {

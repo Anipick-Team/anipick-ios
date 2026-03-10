@@ -71,7 +71,6 @@ extension PreferenceSelectionViewModel {
     }
     
     func fetchRecommendAnime() {
-        let genreList = UserDefaultsManager.shared.getMetaDataForGenres()
         session.request(
             AnimeAPI.preference(
                 query: self.searchBarString.isEmpty ? nil : self.searchBarString,
@@ -132,10 +131,7 @@ extension PreferenceSelectionViewModel {
     func removeRatedAnime(animeId: Int) {
         self.storedRatedAnimeList.removeAll { $0.animeId == animeId }
     }
-//    func isRatedAnime(animeId: Int) -> Bool {
-//        return storedRatedAnimeList.contains { $0.animeId == animeId }
-//    }
-    // TODO: 완료를 눌렀을 떄, API 통신해서 값 보내기
+
     func tappedDoneRatedAnime() {
         AF.request(AnimeAPI.storedPreference(request: self.storedRatedAnimeList))
             .cURLDescription { description in

@@ -67,11 +67,10 @@ struct AnimationInfoView: View {
                 }
                 .frame(height: 0)
                 VStack(spacing: 0) {
-                    
                     GeometryReader { geo in
                         let minY = geo.frame(in: .global).minY
                         
-                        ZStack(alignment: .topTrailing) {
+                        ZStack(alignment: .top) {
                             if let bannerUrl = viewModel.animeDetailInfo?.bannerImageUrl {
                                 ZStack {
                                     AsyncImage(url: URL(string: bannerUrl)) { phase in
@@ -106,23 +105,11 @@ struct AnimationInfoView: View {
                                 }
                                 
                             } else {
-                                
                                 Image(.emptyBackgroundImg)
                                     .resizable()
                                     .frame(maxWidth: .infinity)
                                     .frame(height: 280)
                                     .ignoresSafeArea(edges: .top)
-//                                ZStack {
-//                                    Rectangle()
-//                                        .frame(maxWidth: .infinity)
-//                                        .frame(height: 280)
-//                                        .foregroundColor(.gray7)
-//                                        .ignoresSafeArea(edges: .top)
-//                                    
-//                                    Color.black.opacity(0.4)
-//                                        .frame(width: UIScreen.main.bounds.width, height: 280)
-//                                }
-                                
                             }
                             
                             HStack(alignment: .top, spacing: 0) {
@@ -143,7 +130,7 @@ struct AnimationInfoView: View {
                                     Spacer()
                                     
                                 }
-                                .zIndex(2)
+                               // .zIndex(2)
                                 .padding(.top, 54)
                                 
                                 VStack(alignment: .leading, spacing: 0) {
@@ -183,15 +170,15 @@ struct AnimationInfoView: View {
                                     }
                                 }
                             }
+                            .padding(.horizontal, self.selectedInfoTab == .animationInfo ? 0 : -10)
                         }
                         .ignoresSafeArea(edges: .top)
                         .padding(.bottom, 25)
                         .onChange(of: minY) { newValue in
-                            withAnimation(.easeInOut(duration: 0.22)) {
                                 self.headerCollapsed = newValue < -120   // 임계값 조정 가능
-                            }
                         }
                     }
+                   
                     .frame(height: 280)
                     
                     if let detailInfo = viewModel.animeDetailInfo {
@@ -226,7 +213,6 @@ struct AnimationInfoView: View {
                             .padding(.top, 8)
                             
                             HStack(alignment: .center, spacing: 0) {
-                                
                                 Image(.fillPickStar)
                                     .resizable()
                                     .frame(width: 18, height: 18)
@@ -263,15 +249,15 @@ struct AnimationInfoView: View {
                             }
                             .padding(.bottom, 13)
                             
-                            
-                            if self.selectedInfoTab == .animationInfo {
+                            switch self.selectedInfoTab {
+                            case .animationInfo:
                                 AnimationDetailInfoView(
                                     detailInfo: detailInfo,
                                     seriesInfo: viewModel.seriesAnimeInfo,
                                     recommendationInfo: viewModel.recommendationInfo,
                                     viewModel: viewModel
                                 )
-                            } else if self.selectedInfoTab == .reviewInfo {
+                            case .reviewInfo:
                                 ReviewDetailInfoView(
                                     viewModel: viewModel,
                                     scrollOffset: self.$scrollOffset,
@@ -286,13 +272,13 @@ struct AnimationInfoView: View {
                                     self.isShowBlockPopupView.toggle()
                                     self.selectedPopupItemReviewId = reviewId
                                     self.selectedBlockUserId = blockUserId
-                                    
                                 }
                             }
+
                             Spacer().frame(height: 30)
                             
                         }
-                        .padding(.horizontal, 20)
+                        .padding(.horizontal, self.selectedInfoTab == .animationInfo ? 20 : 10)
                     }
                 }
             }
@@ -390,8 +376,6 @@ struct AnimationInfoView: View {
                     .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame2.maxY + 60)
                     .zIndex(1000)
             }
-            
-            
         }
         .overlay(alignment: .top) {
             if headerCollapsed {
@@ -445,11 +429,15 @@ struct AnimationInfoView: View {
             }
                 
         }
-        .animation(.easeInOut(duration: 0.22), value: headerCollapsed)
+     //   .animation(.easeInOut(duration: 0.22), value: headerCollapsed)
         .background(Color.white)
         .edgesIgnoringSafeArea(.top)
         .onAppear {
             viewModel.setLastVisitedAnimeId()
+        }
+        .onDisappear {
+            self.isShowToastBlockUser = false
+            self.isShowToastReportReview = false
         }
         .onReceive(NotificationCenter.default.publisher(for: .presentReportPopup)) { notification in
             if let info = notification.userInfo,

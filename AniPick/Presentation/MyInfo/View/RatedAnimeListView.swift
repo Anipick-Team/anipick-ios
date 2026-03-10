@@ -176,6 +176,10 @@ struct RatedAnimeListView: View {
                     self.isShowOptionView = false
                     self.viewModel.deleteMyReview(reviewId: self.myReviewId)
                     self.isShowToastReviewDelete.toggle()
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        self.isShowToastReviewDelete = false
+                    }
                 } editAction: {
                     // 수정 액션
                     // TODO: 리뷰 수정 페이지로 이동
@@ -193,6 +197,9 @@ struct RatedAnimeListView: View {
         .onReceive(NotificationCenter.default.publisher(for: .reloadRatedAnime)) { _ in
             viewModel.fetchRatedAnimeList()
         }
+        .onDisappear {
+            self.isShowToastReviewDelete = false
+        }
         .popup(isPresented: self.$isShowToastReviewDelete) {
             Text("리뷰 삭제가 완료되었습니다.")
                 .customFontStyle(size: 14, color: .gray5)
@@ -206,6 +213,12 @@ struct RatedAnimeListView: View {
                 .type(.floater())
                 .position(.top)
                 .autohideIn(2)
+                .closeOnTap(true)
+                .closeOnTapOutside(true)
+                .dismissCallback {
+                    // popup이 사라질 때 상태 초기화
+                    self.isShowToastReviewDelete = false
+                }
         }
     }
     
@@ -301,11 +314,11 @@ enum SortOption: String, CaseIterable {
         case .latest:
             return "latest"
         case .like:
-            return "like"
+            return "likes"
         case .highRating:
-            return "highRating"
+            return "ratingDesc"
         case .lowRating:
-            return "lowRating"
+            return "ratingAsc"
         }
     }
 }

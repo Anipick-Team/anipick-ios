@@ -65,7 +65,6 @@ extension EmailSignupViewModel {
                 UserDefaultsManager.shared.setEmail(self.emailString)
                 UserDefaultsManager.shared.setSNSAccount(sns: "")
                 self.navigationManager.push(route: .preferenceSelection)
-                // self.navigationManager.push(route: .content)
             } else if response.code == 109 {
                 self.emailGuideText = "이미 가입한 이메일입니다."
             }

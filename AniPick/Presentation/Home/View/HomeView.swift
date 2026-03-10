@@ -84,15 +84,7 @@ struct HomeView: View {
                 if self.viewModel.recommedationAnimes.isEmpty {
                      Image("empty_recommendation")
                         .padding(.bottom, 24)
-                }
-//                else if UserDefaultsManager.shared.getLastVisitedAnimeId() == 0 {
-//                    self.sectionView(title: "오늘의 추천작, \(self.nickname)님의\n취향에 맞춰 준비했어요!", items: viewModel.recommedationAnimes) {
-//                        viewModel.moveToRecommendationView()
-//                        DLog("추천작 탭탭")
-//                    }
-//                    .padding(.bottom, 24)
-//                }
-                else {
+                } else {
                     let nickName = UserDefaultsManager.shared.getNickname()
                     self.sectionView(
                         title: "오늘의 추천작, \(nickName) 님의\n취향에 맞춰 준비했어요!",

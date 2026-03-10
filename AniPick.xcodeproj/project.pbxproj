@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DE1E2B752F547EDA0068A5B0 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = DE1E2B742F547EDA0068A5B0 /* FirebaseAnalytics */; };
+		DE1E2B772F547EDA0068A5B0 /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = DE1E2B762F547EDA0068A5B0 /* FirebaseCrashlytics */; };
+		DE1E2B7A2F603E2E0068A5B0 /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = DE1E2B792F603E2E0068A5B0 /* Kingfisher */; };
 		DE7A22552DEBFDB900B485EA /* KakaoSDK in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22542DEBFDB900B485EA /* KakaoSDK */; };
 		DE7A22572DEBFDB900B485EA /* KakaoSDKAuth in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22562DEBFDB900B485EA /* KakaoSDKAuth */; };
 		DE7A22592DEBFDB900B485EA /* KakaoSDKUser in Frameworks */ = {isa = PBXBuildFile; productRef = DE7A22582DEBFDB900B485EA /* KakaoSDKUser */; };
@@ -142,7 +145,10 @@
 				DE7A22642DEC009800B485EA /* GoogleSignInSwift in Frameworks */,
 				DE7A22572DEBFDB900B485EA /* KakaoSDKAuth in Frameworks */,
 				DE7A22592DEBFDB900B485EA /* KakaoSDKUser in Frameworks */,
+				DE1E2B772F547EDA0068A5B0 /* FirebaseCrashlytics in Frameworks */,
+				DE1E2B7A2F603E2E0068A5B0 /* Kingfisher in Frameworks */,
 				DE7A22812DEC46ED00B485EA /* Auth.framework in Frameworks */,
+				DE1E2B752F547EDA0068A5B0 /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -269,6 +275,9 @@
 				DE7A22612DEC009800B485EA /* GoogleSignIn */,
 				DE7A22632DEC009800B485EA /* GoogleSignInSwift */,
 				DEF90F352ED61EF6001020D4 /* PopupView */,
+				DE1E2B742F547EDA0068A5B0 /* FirebaseAnalytics */,
+				DE1E2B762F547EDA0068A5B0 /* FirebaseCrashlytics */,
+				DE1E2B792F603E2E0068A5B0 /* Kingfisher */,
 			);
 			productName = AniPick;
 			productReference = DEC4D2492DAD24960013C05E /* AniPick.app */;
@@ -365,6 +374,8 @@
 				DE7A225A2DEBFDC200B485EA /* XCRemoteSwiftPackageReference "Alamofire" */,
 				DE7A22602DEC009800B485EA /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				DEF90F342ED61EF6001020D4 /* XCRemoteSwiftPackageReference "PopupView" */,
+				DE1E2B732F547EDA0068A5B0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				DE1E2B782F603E2E0068A5B0 /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = DEC4D24A2DAD24960013C05E /* Products */;
@@ -735,7 +746,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.11;
+				MARKETING_VERSION = 1.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moana.AniPick;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -772,7 +783,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.11;
+				MARKETING_VERSION = 1.1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.moana.AniPick;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -913,6 +924,22 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		DE1E2B732F547EDA0068A5B0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.10.0;
+			};
+		};
+		DE1E2B782F603E2E0068A5B0 /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.8.0;
+			};
+		};
 		DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/kakao/kakao-ios-sdk";
@@ -948,6 +975,21 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		DE1E2B742F547EDA0068A5B0 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1E2B732F547EDA0068A5B0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		DE1E2B762F547EDA0068A5B0 /* FirebaseCrashlytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1E2B732F547EDA0068A5B0 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseCrashlytics;
+		};
+		DE1E2B792F603E2E0068A5B0 /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = DE1E2B782F603E2E0068A5B0 /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
 		DE7A22542DEBFDB900B485EA /* KakaoSDK */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = DE7A22532DEBFDB900B485EA /* XCRemoteSwiftPackageReference "kakao-ios-sdk" */;

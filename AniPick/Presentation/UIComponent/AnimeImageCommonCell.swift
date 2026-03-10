@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Kingfisher
 
 struct AnimeImageCommonCell: View {
     let imageUrl: String?
@@ -13,27 +14,44 @@ struct AnimeImageCommonCell: View {
     let height: CGFloat?
     
     var body: some View {
-        
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
-                if let url = imageUrl {
-                    AsyncImage(url: URL(string: url)) { phase in
-                        switch phase {
-                        case .empty:
-                            placeholder
-                        case .success(let image):
-                            imageView(image)
-                        case .failure:
-                            placeholder
-                            
-                        @unknown default:
-                            EmptyView()
-                        }
-                    }
+                if let url = imageUrl, let imageURL = URL(string: url) {
+                    KFImage(imageURL)
+                        .placeholder { placeholder }  // 로딩/실패 시 placeholder
+                        .resizable()
+                        .scaledToFit()
+                        .modifier(OptionalWidth(width: width))
+                        .frame(height: height)
+                        .clipped()
+                } else {
+                    placeholder
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: 12))
         }
+//        VStack(spacing: 0) {
+//            ZStack(alignment: .topLeading) {
+//                if let url = imageUrl {
+//                    AsyncImage(url: URL(string: url)) { phase in
+//                        switch phase {
+//                        case .empty:
+//                            placeholder
+//                        case .success(let image):
+//                            imageView(image)
+//                        case .failure(let error):
+//                            let _ = DLog("이미지 로드 실패 - \(url) error: \(error)")
+//                            placeholder
+//                            
+//                        @unknown default:
+//                            EmptyView()
+//                        }
+//                    }
+//                    .id(url)
+//                }
+//            }
+//            .clipShape(RoundedRectangle(cornerRadius: 12))
+//        }
     }
     
     private var placeholder: some View {
@@ -44,15 +62,25 @@ struct AnimeImageCommonCell: View {
             .frame(height: height)
             .clipped()
     }
+    
+//    private var placeholder: some View {
+//        Image(.animeThumbnail)
+//            .resizable()
+//            .scaledToFit()
+//            .border(Color.red, width: 4)
+//            .modifier(OptionalWidth(width: width))
+//            .frame(height: height)
+//            .clipped()
+//    }
 
-    private func imageView(_ image: Image) -> some View {
-        image
-            .resizable()
-            .scaledToFit()
-            .modifier(OptionalWidth(width: width))
-            .frame(height: height)
-            .clipped()
-    }
+//    private func imageView(_ image: Image) -> some View {
+//        image
+//            .resizable()
+//            .scaledToFit()
+//            .modifier(OptionalWidth(width: width))
+//            .frame(height: height)
+//            .clipped()
+//    }
 }
 
 

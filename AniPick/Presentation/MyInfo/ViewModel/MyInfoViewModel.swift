@@ -16,6 +16,8 @@ final class MyInfoViewModel: ObservableObject {
     @Published var finishedCount: Int = 0
     @Published var likedAnimeList: [LikedAnime] = []
     @Published var likedPersonList: [LikedRatedPerson] = []
+    @Published var profileImageId: String? = nil
+    @Published var profileImage: Image? = nil
     
     @Published var toWatchList: [ToWatchAnime] = []
     @Published var toWatchListCount: Int = 0
@@ -60,7 +62,7 @@ extension MyInfoViewModel {
 }
 
 extension MyInfoViewModel {
-    func fetchMyInfo() {
+    func fetchMyInfo(completion: ((Image?) -> Void)?) {
         session.request(MyInfoAPI.myInfo)
             .cURLDescription { description in
                 DLog("\(description)")
@@ -74,11 +76,36 @@ extension MyInfoViewModel {
                             self.watchListCount = watchs.watchList ?? 0
                             self.finishedCount = watchs.finished ?? 0
                             self.likedAnimeList = data.likedAnimes ?? []
+                            self.getProfileImage(imageId: self.convertUrltoProfileId(data.profileImageUrl)) { value in
+                                completion?(value)
+                            }
                         }
                 }
                     DLog("✅ 성공: \(value)")
                 case .failure(let error):
                     DLog("❌ 실패: \(error)")
+                }
+            }
+    }
+    
+    func getProfileImage(imageId: Int, completion: @escaping (Image?) -> Void) {
+        //let imageId = Int(self.profileImageId ?? "") ?? 0 //UserDefaultsManager.shared.getImageId()
+        session.request(MyInfoAPI.getProfile(imageId: imageId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .response { response in
+                switch response.result {
+                case .success(let data):
+                    DLog("profile Image get successfully: \(String(describing: data))")
+                    if let data = data, let uiImage = UIImage(data: data) {
+                        let swiftUIImage = Image(uiImage: uiImage)
+                        completion(swiftUIImage)
+                    } else {
+                        completion(nil)
+                    }
+                case .failure(let error):
+                    DLog("Failed to get profile image: \(error.localizedDescription)")
                 }
             }
     }
@@ -179,8 +206,9 @@ extension MyInfoViewModel {
         }
     }
     
+    
     func getProfileImage(completion: @escaping (Image?) -> Void) {
-        let imageId = UserDefaultsManager.shared.getImageId()
+        let imageId = Int(self.profileImageId ?? "") ?? 0 //UserDefaultsManager.shared.getImageId()
         session.request(MyInfoAPI.getProfile(imageId: imageId))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -190,7 +218,7 @@ extension MyInfoViewModel {
                 case .success(let data):
                     DLog("profile Image get successfully: \(String(describing: data))")
                     if let data = data, let uiImage = UIImage(data: data) {
-                        let swiftUIImage = Image(uiImage: uiImage)  // UIImage를 Image로 변환
+                        let swiftUIImage = Image(uiImage: uiImage)
                         completion(swiftUIImage)
                     } else {
                         completion(nil)
@@ -199,6 +227,14 @@ extension MyInfoViewModel {
                     DLog("Failed to get profile image: \(error.localizedDescription)")
                 }
             }
+    }
+    
+    func convertUrltoProfileId(_ url: String?) -> Int {
+        if let id = url?.components(separatedBy: "/").last {
+            return Int(id) ?? 0
+        } else {
+            return 0
+        }
     }
     
     func moveToLikedAnimeListView() {

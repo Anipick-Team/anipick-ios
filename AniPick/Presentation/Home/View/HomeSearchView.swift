@@ -285,6 +285,13 @@ struct HomeSearchView: View {
                 ForEach(studioInfo!, id: \.self) { item in
                     self.producerCell(studio: item)
                         .padding(.vertical, 6)
+                        .onAppear {
+                            if item == viewModel.studioListWithQuery.last {
+                                Task {
+                                    await viewModel.fetchStudioSearchList()
+                                }
+                            }
+                        }
                 }
             }
             .scrollIndicators(.hidden)
@@ -361,7 +368,15 @@ struct HomeSearchView: View {
                 LazyVGrid(columns: personColumns, spacing: 0) {
                     ForEach(info, id: \.self) { item in
                         self.personCell(item: item)
+                            .onAppear {
+                                if item == viewModel.personListWithQuery.last {
+                                    Task {
+                                        await viewModel.fetchPersonSearchList()
+                                    }
+                                }
+                            }
                     }
+
                 }
             }
             .scrollIndicators(.hidden)

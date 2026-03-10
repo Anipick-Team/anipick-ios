@@ -295,7 +295,9 @@ struct ReviewDetailInfoView: View {
                                 .frame(height: 0)
                                 
                                // if item.isMine == false {
-                                    RecentReviewCell(item: item, onReportButtonTapped: { id, buttonFrame in
+                                    RecentReviewCell(item: item,
+                                                     viewModel: viewModel,
+                                                     onReportButtonTapped: { id, buttonFrame in
                                         if item.isMine ?? false {
                                            // self.isPresentMyReviewPopupView.toggle()
                                             onReportButtonTapped(0, buttonFrame)
@@ -346,7 +348,7 @@ struct ReviewDetailInfoView: View {
                     Spacer()
                 }
                 .background(Color.gray7)
-                //.padding(.horizontal, -20)
+                .padding(.horizontal, -20)
             }
             
             if isShowBlockPopupView {
@@ -399,6 +401,7 @@ struct ReviewDetailInfoView: View {
                     selectedOption: self.$viewModel.selectedReviewSortOption) { option in
                         self.viewModel.selectedReviewSortOption = option
                         self.isShowSortOptionView.toggle()
+                        self.viewModel.fetchReview()
                     }
                     .padding(.top, 400)
                     .padding(.trailing, 0)
@@ -411,6 +414,10 @@ struct ReviewDetailInfoView: View {
                 self.viewModel.getMyReview()
                 self.viewModel.fetchReview()
             }
+        }
+        .onDisappear {
+            self.isShowToastReviewDelete = false
+            self.isShowToastCompletedWriteReview = false
         }
         .popup(isPresented: self.$isShowToastReviewDelete) {
             Text("리뷰 삭제가 완료되었습니다.")

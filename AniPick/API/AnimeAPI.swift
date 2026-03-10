@@ -293,18 +293,7 @@ enum AnimeAPI: URLRequestConvertible {
            ]
             return rawParams.compactMapValues { $0 }
         case .storedPreference:
-            // TODO: 배열로 선택한 값 넣는 것 필요함
-            /*
-             let ratedAnimes: [[String: Any]] = [
-                 ["animeId": 12345, "rating": 4.5],
-                 ["animeId": 54321, "rating": 5.0]
-             ]
 
-             let parameters: [String: Any] = [
-                 "ratedAnimes": ratedAnimes
-             ]
-
-             */
             return nil
             
         case let .commingSoonInfo(sort, lastId, includeAdult, lastValue):
@@ -389,19 +378,14 @@ enum AnimeAPI: URLRequestConvertible {
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case let .storedPreference(request):
             urlRequest.httpBody = try JSONEncoder().encode(request)
-            urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
+         //   urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
             
         case .commingSoonInfo:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
             
         case .myReview:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-            
-            
-            
         }
-   
-        
         
         for key in headers.dictionary.keys {
             if let value = headers[key] {

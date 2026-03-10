@@ -20,7 +20,7 @@ struct ImagePicker: UIViewControllerRepresentable {
         func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
             if let selectedImage = info[.originalImage] as? UIImage {
                 parent.selectedImage = selectedImage
-                
+                                
                 let request = ProfileAPI.editProfileImage(image: selectedImage)
                 let url = "http://anipick.p-e.kr:8080/api/image/profile-image"
                 session.upload(multipartFormData: { multidata in

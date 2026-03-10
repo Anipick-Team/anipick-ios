@@ -65,7 +65,10 @@ struct RecentReviewView: View {
                             }
                             .frame(height: 0)
                             ForEach(viewModel.recentReviewList, id: \.self) { item in
-                                RecentReviewCellInHome(item: item, onReportButtonTapped: { id, buttonFrame in
+                                RecentReviewCellInHome(
+                                    item: item,
+                                    viewModel: viewModel,
+                                    onReportButtonTapped: { id, buttonFrame in
                                     self.isShowBlockMenu.toggle()
                                     self.selectedPopupItemReviewId = item.reviewId ?? 0
                                     self.menuFrame = buttonFrame
@@ -114,6 +117,10 @@ struct RecentReviewView: View {
             }
             .background(.gray7)
             .navigationBarBackButtonHidden(true)
+            .onDisappear {
+                self.isShowToastBlockUser = false
+                self.isShowToastReportUser = false
+            }
             .popup(isPresented: self.$isShowToastBlockUser) {
                 Text("사용자 차단이 완료되었습니다.")
                     .customFontStyle(size: 14, color: .gray5)

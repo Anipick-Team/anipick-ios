@@ -47,6 +47,10 @@ struct ExploreView: View {
     @State private var selectedGenreListForUI: [String] = []
     @State private var sheetHeight: CGFloat = 400
     
+    @State private var lastScrollOffset: CGFloat = 0
+     @State private var currentScrollOffset: CGFloat = 0
+    private let scrollThreshold: CGFloat = 10
+
     var currentList: [String] {
            switch selectedTab {
                // quator -> 분기는 1,2,3,4 분기로 나누어져있어서 따로 받아와서 처리 X
@@ -69,17 +73,20 @@ struct ExploreView: View {
                 
                 Spacer().frame(height: 16)
                 
-                HStack(spacing: 0) {
-                    self.filterCategoryButtonView(selectedTab: .yearQuarter)
-                        .padding(.trailing, 8)
-                    
-                    self.filterCategoryButtonView(selectedTab: .genre)
-                        .padding(.trailing, 8)
-                    
-                    self.filterCategoryButtonView(selectedTab: .type)
+                if showFilterBar {
+                    HStack(spacing: 0) {
+                        self.filterCategoryButtonView(selectedTab: .yearQuarter)
+                            .padding(.trailing, 8)
+                        
+                        self.filterCategoryButtonView(selectedTab: .genre)
+                            .padding(.trailing, 8)
+                        
+                        self.filterCategoryButtonView(selectedTab: .type)
+                        
+                    }
+                    .padding(.horizontal, 20)
                     
                 }
-                .padding(.horizontal, 20)
                 
                 if viewModel.selectedTagList.isEmpty == false {
                     self.selectredCategoryView()
@@ -100,13 +107,38 @@ struct ExploreView: View {
                 .padding(.vertical, 20)
                 
                 ScrollView(showsIndicators: false) {
-
                     GeometryReader { geo in
                         Color.clear
-                            .preference(key: ScrollOffsetPreferenceKey.self,
-                                        value: geo.frame(in: .named("explore")).minY)
+                            .onChange(of: geo.frame(in: .global).minY) { newValue in
+                                let diff = newValue - currentScrollOffset
+                                
+                                // 최소 threshold 이상 움직였을 때만 반응
+                                if abs(diff) > scrollThreshold {
+                                    if diff < 0 {  // 아래로 스크롤
+                                      //  DLog("⬇️ 스크롤 다운 - 필터 숨기기")
+                                      //  withAnimation(.easeInOut(duration: 0.2)) {
+                                            showFilterBar = false
+                                       // }
+                                    } else {  // 위로 스크롤
+                                   //     DLog("⬆️ 스크롤 업 - 필터 보이기")
+                                     //   withAnimation(.easeInOut(duration: 0.2)) {
+                                            showFilterBar = true
+                                    //    }
+                                    }
+                                }
+                                
+                                currentScrollOffset = newValue
+                            }
+                            .preference(key: ScrollOffsetKey.self,
+                                        value: geo.frame(in: .global).minY)
                     }
                     .frame(height: 0)
+//                    GeometryReader { geo in
+//                        Color.clear
+//                            .preference(key: ScrollOffsetPreferenceKey.self,
+//                                        value: geo.frame(in: .global).minY)
+//                    }
+//                    .frame(height: 1)
                     
                         LazyVGrid(columns: columns, spacing: 24) {
                             ForEach(viewModel.exploreItems, id: \.animeId) { item in
@@ -122,6 +154,7 @@ struct ExploreView: View {
                             }
                         }
                 }
+                .coordinateSpace(name: "explore")
                 .padding(.horizontal, 20)
             }
             .onChange(of: selectedTab) { newValue in
@@ -154,15 +187,17 @@ struct ExploreView: View {
                     .animation(.easeInOut, value: viewModel.isShowSortOptionView)
             }
         }
-        .coordinateSpace(name: "explore")
-        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-            DLog("스크롤 Y offset: \(y)")
-            handleScroll(yOffset: y)
-        }
+        .onPreferenceChange(ScrollOffsetKey.self) { newValue in
 
+        }
+//        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
+//            DLog("스크롤 Y offset: \(y)")
+//            handleScroll(yOffset: y)
+//        }
     }
     
     func handleScroll(yOffset: CGFloat) {
+        DLog("yoffset - \(yOffset)")
         if yOffset < -50 {
             showFilterBar = false
         } else {

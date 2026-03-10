@@ -101,6 +101,37 @@ extension RecentReviewViewModel {
             }
     }
     
+    func convertProfileImage(_ url: String?, completion: @escaping (Image?) -> Void) {
+        let imageId = self.convertUrltoProfileId(url)
+        session.request(MyInfoAPI.getProfile(imageId: imageId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .response { response in
+                switch response.result {
+                case .success(let data):
+                    DLog("profile Image get successfully: \(String(describing: data))")
+                    if let data = data, let uiImage = UIImage(data: data) {
+                        let swiftUIImage = Image(uiImage: uiImage)
+                        completion(swiftUIImage)
+                    } else {
+                        completion(nil)
+                    }
+                case .failure(let error):
+                    DLog("Failed to get profile image: \(error.localizedDescription)")
+                }
+            }
+    }
+    
+    func convertUrltoProfileId(_ url: String?) -> Int {
+        if let id = url?.components(separatedBy: "/").last {
+            return Int(id) ?? 0
+        } else {
+            return 0
+        }
+    }
+    
+    
     func tappedLikeReviewButton(reviewId: Int) {
         session.request(ReviewAPI.likeReview(id: reviewId))
             .cURLDescription { description in

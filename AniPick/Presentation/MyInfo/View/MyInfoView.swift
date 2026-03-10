@@ -180,7 +180,7 @@ struct MyInfoView: View {
         .navigationBarBackButtonHidden(true)
         .onChange(of: self.showImagePicker) { newValue in
             if newValue == false {
-                viewModel.getProfileImage() { image in
+                viewModel.fetchMyInfo() { image in
                     self.profileImage = image
                 }
             }
@@ -191,12 +191,15 @@ struct MyInfoView: View {
         .padding(.horizontal, 20)
         .background(Color.white)
         .onAppear {
-            viewModel.fetchMyInfo()
-            viewModel.fetchLikePersonList()
-            
-            viewModel.getProfileImage() { image in
+            viewModel.fetchMyInfo() { image in
                 self.profileImage = image
             }
+            viewModel.fetchLikePersonList()
+            
+//            viewModel.getProfileImage() { image in
+//                DLog("Image는 성공했음 - \(image) - \(self.viewModel.profileImageId)")
+//                self.profileImage = image
+//            }
         }
     }
     

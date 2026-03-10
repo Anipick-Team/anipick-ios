@@ -9,6 +9,7 @@ import KakaoSDKCommon
 import KakaoSDKAuth
 import UIKit
 import GoogleSignIn
+import FirebaseCore
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -16,6 +17,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
         // TODO: 보안처리 필요
+        FirebaseApp.configure()
         KakaoSDK.initSDK(appKey: "0342f72c46d8653e8a501fe5704a540c")
         return true
     }

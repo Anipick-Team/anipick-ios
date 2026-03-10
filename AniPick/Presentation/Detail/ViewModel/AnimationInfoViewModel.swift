@@ -59,6 +59,37 @@ final class AnimationInfoViewModel: ObservableObject {
 
 
 extension AnimationInfoViewModel {
+    
+    func convertProfileImage(_ url: String?, completion: @escaping (Image?) -> Void) {
+        let imageId = self.convertUrltoProfileId(url)
+        session.request(MyInfoAPI.getProfile(imageId: imageId))
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .response { response in
+                switch response.result {
+                case .success(let data):
+                    DLog("profile Image get successfully: \(String(describing: data))")
+                    if let data = data, let uiImage = UIImage(data: data) {
+                        let swiftUIImage = Image(uiImage: uiImage)
+                        completion(swiftUIImage)
+                    } else {
+                        completion(nil)
+                    }
+                case .failure(let error):
+                    DLog("Failed to get profile image: \(error.localizedDescription)")
+                }
+            }
+    }
+    
+    func convertUrltoProfileId(_ url: String?) -> Int {
+        if let id = url?.components(separatedBy: "/").last {
+            return Int(id) ?? 0
+        } else {
+            return 0
+        }
+    }
+    
     func fetchAnimationInfo(animeId: Int) {
         session.request(AnimeAPI.animeDetailInfo(animeId: self.animeId))
             .cURLDescription { description in
@@ -312,7 +343,7 @@ extension AnimationInfoViewModel {
     
     // TODO: ReviewAPI가 아닌 AnimeAPI 써야할,,듯,,?
     func tappedAnimeDislike() {
-        session.request(ReviewAPI.cancelReview(id: self.animeId))
+        session.request(AnimeAPI.cancelLikeAnime(animeId: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
