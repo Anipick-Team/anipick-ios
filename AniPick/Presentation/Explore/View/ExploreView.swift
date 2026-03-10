@@ -38,6 +38,7 @@ struct ExploreView: View {
     
     @State private var showFilterBar = true
     @State private var lastOffset: CGFloat = 0
+    @State private var filterBarLocked = false
 
     
     @State private var genreList: [String] = UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
@@ -49,7 +50,7 @@ struct ExploreView: View {
     
     @State private var lastScrollOffset: CGFloat = 0
      @State private var currentScrollOffset: CGFloat = 0
-    private let scrollThreshold: CGFloat = 10
+    private let scrollThreshold: CGFloat = 30
 
     var currentList: [String] {
            switch selectedTab {
@@ -71,21 +72,22 @@ struct ExploreView: View {
                 
                 self.headerView()
                 
-                Spacer().frame(height: 16)
-                
                 if showFilterBar {
+                    
+                    Spacer().frame(height: 16)
+                    
                     HStack(spacing: 0) {
                         self.filterCategoryButtonView(selectedTab: .yearQuarter)
                             .padding(.trailing, 8)
-                        
+
                         self.filterCategoryButtonView(selectedTab: .genre)
                             .padding(.trailing, 8)
-                        
+
                         self.filterCategoryButtonView(selectedTab: .type)
-                        
+
                     }
-                    .padding(.horizontal, 20)
-                    
+                    .padding(.horizontal, showFilterBar ? 20 : 0)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 
                 if viewModel.selectedTagList.isEmpty == false {
@@ -111,23 +113,25 @@ struct ExploreView: View {
                         Color.clear
                             .onChange(of: geo.frame(in: .global).minY) { newValue in
                                 let diff = newValue - currentScrollOffset
-                                
-                                // 최소 threshold 이상 움직였을 때만 반응
+                                currentScrollOffset = newValue
+
+                                guard !filterBarLocked else { return }
+
                                 if abs(diff) > scrollThreshold {
-                                    if diff < 0 {  // 아래로 스크롤
-                                      //  DLog("⬇️ 스크롤 다운 - 필터 숨기기")
-                                      //  withAnimation(.easeInOut(duration: 0.2)) {
-                                            showFilterBar = false
-                                       // }
-                                    } else {  // 위로 스크롤
-                                   //     DLog("⬆️ 스크롤 업 - 필터 보이기")
-                                     //   withAnimation(.easeInOut(duration: 0.2)) {
-                                            showFilterBar = true
-                                    //    }
+                                    if diff < 0 && showFilterBar {
+                                        filterBarLocked = true
+                                        withAnimation(.easeInOut(duration: 0.05)) { showFilterBar = false }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            filterBarLocked = false
+                                        }
+                                    } else if diff > 0 && !showFilterBar {
+                                        filterBarLocked = true
+                                        withAnimation(.easeInOut(duration: 0.05)) { showFilterBar = true }
+                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                            filterBarLocked = false
+                                        }
                                     }
                                 }
-                                
-                                currentScrollOffset = newValue
                             }
                             .preference(key: ScrollOffsetKey.self,
                                         value: geo.frame(in: .global).minY)

@@ -34,7 +34,7 @@ final class RecommendedViewModel: ObservableObject {
             AnimeAPI.recommendationAnime(
                 animeId: self.animeId,
                 lastId: self.lastId,
-                size: 7
+                size: 10
             )
         )
         .cURLDescription { description in
@@ -46,8 +46,10 @@ final class RecommendedViewModel: ObservableObject {
                 DLog("anime recommendation response - \(response)")
                 if let animeList = value.result,
                    let seriesInfo = animeList.animes {
-                    self.recommendedAnimeList = seriesInfo
-                    var lastId = animeList.cursor?.lastId
+                    let existingIds = Set(self.recommendedAnimeList.map { $0.animeId })
+                    let newAnimes = seriesInfo.filter { !existingIds.contains($0.animeId) }
+                    self.recommendedAnimeList += newAnimes
+                    self.lastId = animeList.cursor?.lastId
                     self.animeTitle = animeList.referenceAnimeTitle ?? "-"
                 }
                 
