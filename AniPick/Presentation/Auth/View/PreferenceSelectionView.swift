@@ -24,11 +24,15 @@ struct PreferenceSelectionView: View {
     
     @State private var selectedTab: FilterTab = .genre
     @State private var sheetHeight: CGFloat = 400
-    
+
     //@State private var selectedQuarter: String = ""
-    
+
     @State private var starRating: Int = 0
     @State private var showStarRatingView: Bool = false
+
+    @State private var currentScrollOffset: CGFloat = 0
+    @State private var filterBarLocked = false
+    private let scrollThreshold: CGFloat = 30
     
     
     var body: some View {
@@ -46,7 +50,7 @@ struct PreferenceSelectionView: View {
             Spacer().frame(height: 40)
             
             
-            if self.isHeaderHidden == false {
+            if !isHeaderHidden {
                 Text("평가한 작품 \(viewModel.storedRatedAnimeList.count)")
                     .customFontStyle(size: 14, color: viewModel.storedRatedAnimeList.count > 0 ? .point : .gray6)
                 
@@ -165,41 +169,43 @@ struct PreferenceSelectionView: View {
                     .foregroundStyle(.gray5)
                     .padding(.horizontal, -20)
                     .padding(.vertical, 20)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
-            
+
             ScrollView(showsIndicators: false) {
+                GeometryReader { geo in
+                    Color.clear
+                        .onChange(of: geo.frame(in: .global).minY) { newValue in
+                            let diff = newValue - currentScrollOffset
+                            currentScrollOffset = newValue
+
+                            guard !filterBarLocked else { return }
+
+                            if abs(diff) > scrollThreshold {
+                                if diff < 0 && !isHeaderHidden {
+                                    filterBarLocked = true
+                                    withAnimation(.easeInOut(duration: 0.05)) { isHeaderHidden = true }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        filterBarLocked = false
+                                    }
+                                } else if diff > 0 && isHeaderHidden {
+                                    filterBarLocked = true
+                                    withAnimation(.easeInOut(duration: 0.05)) { isHeaderHidden = false }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        filterBarLocked = false
+                                    }
+                                }
+                            }
+                        }
+                }
+                .frame(height: 0)
+
                 LazyVStack(spacing: 0) {
-//                    GeometryReader { geo in
-//                        Color.clear
-//                            .preference(
-//                                key: ScrollOffsetPreferenceKey.self,
-//                                value: geo.frame(in: .named("scroll")).minY
-//                            )
-//                    }
-//                    .frame(height: 0)
-                    LazyVStack(spacing: 0) {
                         ForEach(Array(viewModel.animeList.enumerated()), id: \.element.self) { index, value in
                             self.animationCell(anime: value, showStarRating: !viewModel.isRatedAnime(animeId: value.animeId ?? 0)) {
                                 self.viewModel.isShowRatedAnime(animeId: value.animeId ?? 0)
                             }
-                            
                             .onAppear {
-                                // 스크롤 방향 감지
-                                if index > 3 {
-                                    if index < (viewModel.lastVisibleIndex)  {
-                                        // 위로 스크롤
-                                        withAnimation(.easeInOut(duration: 0.2)) {
-                                            self.isHeaderHidden = false
-                                        }
-                                    } else if index > (viewModel.lastVisibleIndex) {
-                                        // 아래로 스크롤
-                                        withAnimation(.easeInOut(duration: 0.2)) {
-                                            self.isHeaderHidden = true
-                                        }
-                                    }
-                                    viewModel.lastVisibleIndex = index
-                                }
-                                
                                 // 페이징
                                 if value.animeId == viewModel.animeList.last?.animeId {
                                     self.viewModel.fetchRecommendAnime()
@@ -235,7 +241,7 @@ struct PreferenceSelectionView: View {
 //                        }
 //                    }
                 }
-            }
+            
             .coordinateSpace(name: "scroll") // ⭐️ 중요
 //            .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
 //                DLog("scroll 확인 - \(value)")
