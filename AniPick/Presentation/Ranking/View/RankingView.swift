@@ -331,11 +331,13 @@ struct RankingView: View {
                         
                         HStack(alignment: .center, spacing: 0) {
                             // TODO: 오는 데이터값에 따라 색상과 trianle 변경
-                            //                        Image(.upTrianglePink)
-                            //
-                            //                        Text("12")
-                            //                            .font(.system(size: 14))
-                            //                            .foregroundStyle(.point)
+                            
+                            self.makeRankRatingChangeIcon(item: item)
+//                            Image(.upTrianglePink)
+//                            
+//                            Text("12")
+//                                .font(.system(size: 14))
+//                                .foregroundStyle(.point)
                         }
                     }
                     .padding(.trailing, 15)
@@ -354,18 +356,11 @@ struct RankingView: View {
                             .multilineTextAlignment(.leading)
                         
                         FlowCellLayout(spacing: 4) {
-                      //  LazyVGrid(columns: columns, alignment: .leading, spacing: 4) {
                             ForEach(item.genres ?? [], id: \.self) { genre in
                                 gerneCell(title: genre)
                                     .padding(.trailing, 4)
                             }
                         }
-//                        HStack(alignment: .center, spacing: 0) {
-//                            ForEach(item.genres ?? [], id: \.self) { item in
-//                                self.gerneCell(title: item)
-//                                    .padding(.trailing, 4)
-//                            }
-//                        }
                         .padding(.trailing, 4)
                         .padding(.vertical, 4)
                         
@@ -375,6 +370,48 @@ struct RankingView: View {
             }
          
         }
+        .onAppear {
+            DLog("ranking Item 순위처리 - \(item)")
+        }
+    }
+    
+    private func makeRankRatingChangeIcon(item: RankedAnime) -> some View {
+        return HStack(spacing: 0) {
+            if item.trend == "up" {
+                Image(.upTrianglePink)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8)
+            } else if item.trend == "down" {
+                Image(.downTriangleBlue)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 8)
+            } else {
+                Rectangle()
+                    .fill(.gray8)
+                    .frame(width: 7, height: 1)
+            }
+            
+            Spacer().frame(width: 3)
+            
+            let change = item.change.flatMap { Int($0) }.map { abs($0) }.map { String($0) }
+
+            Text(change ?? "")
+                .foregroundStyle(makeRatingColor(item: item))
+                .font(.system(size: 14))
+        }
+    }
+    
+    private func makeRatingColor(item: RankedAnime) -> Color {
+        if item.trend == "up" {
+            return .point
+        } else if item.trend == "down" {
+            return .anipickSecondary
+        } else {
+            return .gray8
+        }
+
     }
     
     private func gerneCell(title: String) -> some View {
