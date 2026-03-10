@@ -139,74 +139,75 @@ struct AnimationDetailInfoView: View {
             .scrollDisabled(false)
             .padding(.bottom, 20)
             
+            
+            if viewModel.seriesInfoList.isEmpty == false {
             self.sectionCategoryButton(title: "관련 작품") {
                 DLog("관련 작품으로 이동")
                 self.viewModel.moveToSeriesDetailView(animeId: detailInfo.animeId, animeTitle: detailInfo.title ?? "-")
             }
             .padding(.bottom, 20)
             
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .center, spacing: 8) {
-                    ForEach(viewModel.seriesInfoList, id: \.self) { item in
-                        AnimeCommonCellWithTitle(
-                            imageUrl: item.coverImageUrl,
-                            width: 115,
-                            height: 162,
-                            title: item.title
-                        )
-                        .onTapGesture {
-                            // TODO: 시리즈 디테일로 이동
-                            DLog("해당 시리즈로 이동")
-                            self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(alignment: .center, spacing: 8) {
+                        ForEach(viewModel.seriesInfoList, id: \.self) { item in
+                            AnimeCommonCellWithTitle(
+                                imageUrl: item.coverImageUrl,
+                                width: 115,
+                                height: 162,
+                                title: item.title
+                            )
+                            .onTapGesture {
+                                // TODO: 시리즈 디테일로 이동
+                                DLog("해당 시리즈로 이동")
+                                self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                            }
                         }
                     }
+                    .padding(.horizontal, 12)
                 }
-                .padding(.horizontal, 12)
-            }
-            .frame(width: UIScreen.main.bounds.width - 20)   // ★ 가로 영역 고정!
-            .contentShape(Rectangle())                  // 터치영역 명확화
-            .clipped()                                  // 부모 확장 방지
-            .scrollDisabled(false)
-            .padding(.bottom, 20)
+                .frame(width: UIScreen.main.bounds.width - 20)
+                .contentShape(Rectangle())
+                .clipped()
+                .scrollDisabled(false)
+                .padding(.bottom, 20)
             
             
             Spacer().frame(height: 48)
+                
+            }
             
-            
+            if viewModel.recommendAnimeList.isEmpty == false {
             self.sectionCategoryButton(title: "함께 볼만한 작품") {
                 DLog("함께 볼만한 작품으로 이동")
                 self.viewModel.moveToRecommendView(animeId: detailInfo.animeId, animeTitle: detailInfo.title ?? "-")
             }
             .padding(.bottom, 20)
-            
-            ScrollView(.horizontal, showsIndicators: false) {
-                LazyHStack(alignment: .center, spacing: 8) {
-                    ForEach(viewModel.recommendAnimeList, id: \.self) { item in
-                        AnimeCommonCellWithTitle(
-                            imageUrl: item.coverImageUrl,
-                            width: 115,
-                            height: 162,
-                            title: item.title
-                        )
-                        .onTapGesture {
-                            // TODO: 함께볼만한 작품 디테일로 이동
-                            DLog("함께볼만한 작품")
-                            self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+           
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(alignment: .center, spacing: 8) {
+                        ForEach(viewModel.recommendAnimeList, id: \.self) { item in
+                            AnimeCommonCellWithTitle(
+                                imageUrl: item.coverImageUrl,
+                                width: 115,
+                                height: 162,
+                                title: item.title
+                            )
+                            .onTapGesture {
+                                // TODO: 함께볼만한 작품 디테일로 이동
+                                DLog("함께볼만한 작품")
+                                self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                            }
                         }
                     }
+                    .padding(.horizontal, 12)
                 }
-                .padding(.horizontal, 12)
+                .contentShape(Rectangle())                  // 터치영역 명확화
+                .clipped()                                  // 부모 확장 방지
+                .scrollDisabled(false)
+                .padding(.bottom, 20)
             }
-        //    .frame(width: UIScreen.main.bounds.width - 20)   // ★ 가로 영역 고정!
-            .contentShape(Rectangle())                  // 터치영역 명확화
-            .clipped()                                  // 부모 확장 방지
-            .scrollDisabled(false)
-            .padding(.bottom, 20)
-            .padding(.horizontal, 20)
         }
-    //    .padding(.horizontal, -40)
         .background(Color.white)
-      //  .padding(.horizontal, 20)
     }
     
     @ViewBuilder
