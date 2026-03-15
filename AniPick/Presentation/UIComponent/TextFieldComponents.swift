@@ -13,7 +13,7 @@ struct TextFieldComponents: View {
     @Binding var textFieldString: String
     @State var enableEyeIcon: Bool = false
     @State var enableTimer: Bool = false
-    @State var timerCount: String = "sdd"
+    var timerCount: String = ""
     @State private var eyeIconVisible: Bool = false
     
     var body: some View {

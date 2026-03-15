@@ -328,16 +328,10 @@ struct RankingView: View {
                             .foregroundStyle(.anipickBlack)
                             .padding(.bottom, 8)
                         
-                        
-                        HStack(alignment: .center, spacing: 0) {
-                            // TODO: 오는 데이터값에 따라 색상과 trianle 변경
-                            
-                            self.makeRankRatingChangeIcon(item: item)
-//                            Image(.upTrianglePink)
-//                            
-//                            Text("12")
-//                                .font(.system(size: 14))
-//                                .foregroundStyle(.point)
+                        if self.viewModel.isSelectedFilter == .realTime {
+                            HStack(alignment: .center, spacing: 0) {
+                                self.makeRankRatingChangeIcon(item: item)
+                            }
                         }
                     }
                     .padding(.trailing, 15)

@@ -52,15 +52,15 @@ struct ForgetPasswordView: View {
                         await viewModel.tappedValidNumberButton()
                     }
                 } label: {
-                        Text(viewModel.validNumButtonText)
-                            .foregroundColor(.white)
-                            .font(.system(size: 16))
-                            .frame(maxWidth: .infinity)
-                            .frame(width: 120, height: 50)
-                            .background(.anipickPrimary)
-                            .cornerRadius(8)
-                            .padding(.leading, 12)
+                    Text(viewModel.validNumButtonText)
+                        .foregroundColor(.white)
+                        .font(.system(size: 14))
+                        .frame(width: 120, height: 50)
+                        .background(viewModel.isValidNumButtonEnabled ? Color.anipickPrimary : Color.gray)
+                        .cornerRadius(8)
+                        .padding(.leading, 12)
                 }
+                .disabled(!viewModel.isValidNumButtonEnabled)
             }
             
             Text(viewModel.emailGuideText)

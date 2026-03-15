@@ -66,6 +66,9 @@ extension EditPasswordViewModel {
         let trueCount = [hasLetter, hasNumber, hasSpecialChar].filter { $0 }.count
         
         self.isValidatePassword = stringCount && trueCount >= 2
+        if self.isValidatePassword == false {
+            self.NewErrorMessage = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해 주세요."
+        }
     }
     
     func editPassword() {

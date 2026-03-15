@@ -106,7 +106,8 @@ struct ExploreView: View {
                             .padding(.trailing, 20)
                     }
                 }
-                .padding(.vertical, 20)
+                .padding(.bottom, 20)
+                .padding(.top, 8)
                 
                 ScrollView(showsIndicators: false) {
                     GeometryReader { geo in

@@ -55,7 +55,7 @@ struct EditPasswordView: View {
                         "",
                         text: $viewModel.currentPassword,
                         prompt: Text("현재 비밀번호")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.textGray)
                     )
                     .autocapitalization(.none)
@@ -99,7 +99,7 @@ struct EditPasswordView: View {
                         "",
                         text: $viewModel.newPassword,
                         prompt: Text("영문, 숫자, 특수문자 2개 이상 조합, 10자 이상")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.textGray)
                     )
                     .autocapitalization(.none)
@@ -112,7 +112,7 @@ struct EditPasswordView: View {
                         "",
                         text: $viewModel.newPassword,
                         prompt: Text("영문, 숫자, 특수문자 2개 이상 조합, 10자 이상")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.textGray)
                     )
                     .autocapitalization(.none)
@@ -137,7 +137,9 @@ struct EditPasswordView: View {
             
             if viewModel.NewErrorMessage.isEmpty == false {
                 Text(viewModel.NewErrorMessage)
-                    .customFontStyle(size: 14, color: .point, weight: .semibold)
+                    .customFontStyle(size: 12, color: .point, weight: .semibold)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
                     .padding(.top, 8)
             }
             
@@ -156,7 +158,7 @@ struct EditPasswordView: View {
                         "",
                         text: $viewModel.checkNewPassword,
                         prompt: Text("비밀번호 확인")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.textGray)
                     )
                     .autocapitalization(.none)
@@ -169,7 +171,7 @@ struct EditPasswordView: View {
                         "",
                         text: $viewModel.checkNewPassword,
                         prompt: Text("비밀번호 확인")
-                            .font(.system(size: 16, weight: .medium))
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.textGray)
                     )
                     .autocapitalization(.none)
@@ -194,7 +196,9 @@ struct EditPasswordView: View {
             
             if viewModel.checkNewErrorMessage.isEmpty == false {
                 Text(viewModel.checkNewErrorMessage)
-                    .customFontStyle(size: 14, color: .point, weight: .semibold)
+                    .customFontStyle(size: 12, color: .point, weight: .semibold)
+                    .multilineTextAlignment(.leading)
+                    .lineLimit(2)
                     .padding(.top, 8)
             }
     

@@ -9,15 +9,18 @@ import SwiftUI
 
 @MainActor
 class ForgetPasswordViewModel: ObservableObject {
-    private var timer: Timer?
-    private var endDate: Date?
-    private var isRunning = false
-    
-    
+    // 30초 버튼 쿨다운 타이머
+    private var buttonTimer: Timer?
+    private var buttonEndDate: Date?
+    // 3분 인증번호 입력 제한 타이머
+    private var fieldTimer: Timer?
+    private var fieldEndDate: Date?
+
     @Published var emailGuideText: String = "이메일을 입력해주세요."
     @Published var validNumeberGuideText: String = ""
     @Published var timerCount: String = ""
     @Published var validNumButtonText: String = "인증번호 받기"
+    @Published var isValidNumButtonEnabled: Bool = true
     @Published var isTappedValidNumButton: Bool = false
     @Published var editPasswordGuideText: String = ""
     @Published var passwordGuideText: String = ""
@@ -67,54 +70,79 @@ class ForgetPasswordViewModel: ObservableObject {
         self.isEnableFindPasswordButton = checkNewPassword.isEmpty == false
     }
     
-    func sendCodeAndStartTimer() async {
-        isRunning = false
-        startCountdown(duration: 180)  // 3분
+    // MARK: - 버튼 30초 쿨다운 타이머
+    private func startButtonCooldown() {
+        buttonTimer?.invalidate()
+        buttonEndDate = Date().addingTimeInterval(30)
+        isValidNumButtonEnabled = false
+        updateButtonText()
+
+        buttonTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.tickButton() }
+        }
+        RunLoop.main.add(buttonTimer!, forMode: .common)
     }
-    
-    func startCountdown(duration: TimeInterval) {
-           guard !isRunning else { return }
-           isRunning = true
-           endDate = Date().addingTimeInterval(duration)
 
-           updateText()
-
-           timer?.invalidate()
-           timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-               Task { @MainActor in self?.tick() }
-           }
-           RunLoop.main.add(timer!, forMode: .common)
-
-       }
-    
-    private func updateText() {
-        guard let end = endDate else { return }
+    private func updateButtonText() {
+        guard let end = buttonEndDate else { return }
         let remain = max(0, Int(end.timeIntervalSinceNow))
-        validNumButtonText = formatted(remain)
-        if remain == 0 { stopCountdown(resetText: true) }
+        let m = remain / 60, s = remain % 60
+        validNumButtonText = String(format: "전송됨 %02d:%02d", m, s)
     }
-    
-    private func tick() {
-        guard let end = endDate else { stopCountdown(resetText: true); return }
+
+    private func tickButton() {
+        guard let end = buttonEndDate else { return }
         let remain = max(0, Int(end.timeIntervalSinceNow))
-        if remain == 0 { stopCountdown(resetText: true); return }
-        validNumButtonText = formatted(remain)
-    }
-    
-    private func stopCountdown(resetText: Bool) {
-        timer?.invalidate()
-        timer = nil
-        isRunning = false
-        endDate = nil
-        if resetText { validNumButtonText = "인증번호 재전송" }
-    }
-
-    private func formatted(_ seconds: Int) -> String {
-        let m = seconds / 60, s = seconds % 60
-        return String(format: "전송됨 %d:%02d", m, s)
+        if remain == 0 {
+            buttonTimer?.invalidate()
+            buttonTimer = nil
+            buttonEndDate = nil
+            isValidNumButtonEnabled = true
+            validNumButtonText = "인증번호 재전송"
+        } else {
+            let m = remain / 60, s = remain % 60
+            validNumButtonText = String(format: "전송됨 %02d:%02d", m, s)
+        }
     }
 
-    deinit { timer?.invalidate() }
+    // MARK: - 인증번호 입력 3분 제한 타이머
+    private func startFieldTimer() {
+        fieldTimer?.invalidate()
+        fieldEndDate = Date().addingTimeInterval(180)
+        updateFieldTimerText()
+
+        fieldTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.tickField() }
+        }
+        RunLoop.main.add(fieldTimer!, forMode: .common)
+    }
+
+    private func updateFieldTimerText() {
+        guard let end = fieldEndDate else { return }
+        let remain = max(0, Int(end.timeIntervalSinceNow))
+        let m = remain / 60, s = remain % 60
+        timerCount = String(format: "%d:%02d", m, s)
+    }
+
+    private func tickField() {
+        guard let end = fieldEndDate else { return }
+        let remain = max(0, Int(end.timeIntervalSinceNow))
+        if remain == 0 {
+            fieldTimer?.invalidate()
+            fieldTimer = nil
+            fieldEndDate = nil
+            timerCount = "0:00"
+            validNumeberGuideText = "유효 시간이 만료되었습니다. 재발송 후 다시 시도해주세요."
+        } else {
+            let m = remain / 60, s = remain % 60
+            timerCount = String(format: "%d:%02d", m, s)
+        }
+    }
+
+    deinit {
+        buttonTimer?.invalidate()
+        fieldTimer?.invalidate()
+    }
     
     func validateEmailInputs()  {
         print("validateInputs 호출호출!")
@@ -137,28 +165,36 @@ class ForgetPasswordViewModel: ObservableObject {
     }
     
     func tappedValidNumberButton() async {
-        // TODO: 인증번호 받고 처리하는 로직 필요
-        await self.sendCodeAndStartTimer()
+        isValidNumButtonEnabled = false
+        validNumButtonText = "전송중..."
         self.isTappedValidNumButton = true
+        self.validNumeberGuideText = ""
         do {
             let response = try await authUsecase.sendEmailVerificationCode(
                 email: self.emailString
             )
             DLog("validNum Response - \(response)")
             self.emailGuideText = ""
-            self.validNumeberGuideText = ""
             if response.code == 200 {
                 DLog("인증번호 전송 성공")
-                self.validNumButtonText = "전송됨"
-               // self.navigationManager.push(route: .resetPassword)
+                startButtonCooldown()
+                startFieldTimer()
             } else if response.code == 112 {
+                isValidNumButtonEnabled = true
+                validNumButtonText = "인증번호 받기"
                 self.emailGuideText = "해당 이메일로 가입된 계정이 없습니다. 다시 확인해주세요."
             } else if response.code == 103 {
+                isValidNumButtonEnabled = true
+                validNumButtonText = "인증번호 받기"
                 self.emailGuideText = "올바른 이메일 형식이 아닙니다."
             } else if response.code == 102 {
+                isValidNumButtonEnabled = true
+                validNumButtonText = "인증번호 받기"
                 self.emailGuideText = "이메일 주소를 입력해 주세요."
             }
         } catch {
+            isValidNumButtonEnabled = true
+            validNumButtonText = "인증번호 받기"
             DLog("validNumber Error - \(error.localizedDescription)")
         }
     }
