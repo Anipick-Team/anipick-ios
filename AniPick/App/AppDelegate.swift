@@ -29,13 +29,11 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         if AuthApi.isKakaoTalkLoginUrl(url) {
             return AuthController.handleOpenUrl(url: url)
         }
-        
-        return false
-        
+
         if GIDSignIn.sharedInstance.handle(url) {
             return true
         }
-        
+
         return false
     }
 }
