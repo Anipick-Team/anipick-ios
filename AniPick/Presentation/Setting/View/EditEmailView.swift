@@ -164,6 +164,13 @@ struct EditEmailView: View {
         .onTapGesture {
             UIApplication.shared.endEditing()
         }
+        .overlay {
+            if viewModel.isShowEditEmailPopup {
+                EditEmailPopupView {
+                    viewModel.performLogout()
+                }
+            }
+        }
     }
     
     private func obfuscateEmail(_ email: String) -> String {

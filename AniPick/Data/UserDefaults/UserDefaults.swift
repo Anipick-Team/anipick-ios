@@ -160,11 +160,20 @@ extension UserDefaultsManager {
     }
     
     func logoutAllClearInfo() {
+        // 인증 토큰
         self.setAccessToken(accessToken: "")
         self.setRefreshToken(refreshToken: "")
+        // 유저 프로필
         self.setNickname("")
         self.setEmail("")
+        self.setImageId(imageId: 0)
+        // SNS 연동 정보
         self.setSNSAccount(sns: "")
+        self.setAppleUserId("")
+        defaults.removeObject(forKey: UserDefaultKey.appleEmail.rawValue)
+        // 유저 활동 기록
+        self.clearHomeRecentKeyword()
+        defaults.removeObject(forKey: UserDefaultKey.lastVisitedAnime.rawValue)
     }
     
     func setImageId(imageId: Int) {

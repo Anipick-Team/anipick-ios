@@ -146,8 +146,15 @@ extension PreferenceSelectionViewModel {
                 }
             }
     }
+    func searchAnime() {
+        self.lastId = nil
+        self.animeList.removeAll()
+        self.fetchRecommendAnime()
+    }
+
     func tappedAllClearButton() {
         self.searchBarString = ""
+        self.searchAnime()
     }
     
     func moveToMainView() {

@@ -19,6 +19,7 @@ final class EditEmailViewModel: ObservableObject {
     
     @Published var isInvalidPassword: Bool = false
     @Published var isInvalidEmail: Bool = false
+    @Published var isShowEditEmailPopup: Bool = false
     let session = Session(interceptor: TokenInterceptor.shared)
     
     init(navigationManager: NavigationManager) {
@@ -37,6 +38,24 @@ final class EditEmailViewModel: ObservableObject {
     func checkInvalidPassword() {
         // TODO: 비밀번호가 일치하지 않습니다.
     }
+
+    func performLogout() {
+        AF.request(LogoutAPI.logout)
+            .cURLDescription { description in
+                DLog("\(description)")
+            }
+            .responseDecodable(of: BaseResponse.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("logout success - \(value)")
+                case .failure(let error):
+                    DLog("logout error - \(error)")
+                }
+                UserDefaultsManager.shared.logoutAllClearInfo()
+                self.navigationManager.popToRoot()
+                self.navigationManager.push(route: .mainLoginView)
+            }
+    }
     
     func checkEmail() {
         self.isInvalidPassword = false
@@ -52,7 +71,7 @@ final class EditEmailViewModel: ObservableObject {
                         switch value.code {
                         case 200 :
                             UserDefaultsManager.shared.setEmail(self.newEmailString)
-                            self.navigationManager.pop()
+                            self.isShowEditEmailPopup = true
                             
                         case 102:
                             self.isShowErrorMessage = true

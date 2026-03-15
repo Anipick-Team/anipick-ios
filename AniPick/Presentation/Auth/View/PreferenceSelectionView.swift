@@ -33,6 +33,7 @@ struct PreferenceSelectionView: View {
     @State private var currentScrollOffset: CGFloat = 0
     @State private var filterBarLocked = false
     private let scrollThreshold: CGFloat = 30
+    @FocusState private var isSearchFocused: Bool
     
     
     var body: some View {
@@ -69,6 +70,10 @@ struct PreferenceSelectionView: View {
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.textGray)
                     )
+                    .focused($isSearchFocused)
+                    .onSubmit {
+                        viewModel.searchAnime()
+                    }
                     .padding(.horizontal, 4)
                     .background(Color.gray5)
                     .foregroundColor(.anipickBlack)
@@ -282,6 +287,11 @@ struct PreferenceSelectionView: View {
         }
         .onTapGesture {
             UIApplication.shared.endEditing()
+        }
+        .onChange(of: isSearchFocused) { focused in
+            if !focused {
+                viewModel.searchAnime()
+            }
         }
     }
     
