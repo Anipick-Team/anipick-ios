@@ -255,22 +255,33 @@ struct PreferenceSelectionView: View {
 //                }
 //            }
             
-            Rectangle()
-                .frame(maxWidth: .infinity)
-                .frame(height: 1)
-                .foregroundStyle(.gray5)
-                .padding(.horizontal, -20)
-                .padding(.vertical, 20)
-            
-            // 항상 활성화
-            FullWidthButton(isEnable: .constant(true), buttonText: "완료") {
-                DLog("완료 버튼 탭탭")
-                self.viewModel.tappedDoneRatedAnime()
-                self.viewModel.moveToMainView()
-            }
         }
         .navigationBarBackButtonHidden(true)
         .padding(.horizontal, 20)
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            if !isSearchFocused {
+                VStack(spacing: 0) {
+                    Rectangle()
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 1)
+                        .foregroundStyle(.gray5)
+                        .padding(.horizontal, -20)
+
+                    Spacer().frame(height: 20)
+
+                    // 항상 활성화
+                    FullWidthButton(isEnable: .constant(true), buttonText: "완료") {
+                        DLog("완료 버튼 탭탭")
+                        self.viewModel.tappedDoneRatedAnime()
+                        self.viewModel.moveToMainView()
+                    }
+                    .padding(.horizontal, 20)
+
+                    Spacer().frame(height: 20)
+                }
+                .background(Color.white)
+            }
+        }
         .background(Color.white)
         .sheet(isPresented: $viewModel.isPresentModelView) {
             filterSelectedHalfModalView()

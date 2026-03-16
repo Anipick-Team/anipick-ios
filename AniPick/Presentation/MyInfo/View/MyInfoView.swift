@@ -23,8 +23,7 @@ struct MyInfoView: View {
                         Text("마이페이지")
                             .customFontStyle(size: 24, color: .anipickBlack, weight: .bold)
                             .padding(.trailing, 14)
-                        
-                        
+
                         Button {
                             DLog("Tapped Setting Button")
                             viewModel.tappedSettingButton()
@@ -40,66 +39,120 @@ struct MyInfoView: View {
                                         .stroke(Color.gray.opacity(0.4), lineWidth: 1)
                                 )
                         }
-                        
+
                         Spacer()
-                    }
-                    
-                    Spacer().frame(height: 30)
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        ZStack(alignment: .bottomTrailing) {
+
+                        ZStack(alignment: .topTrailing) {
                             if let profileImage {
                                 profileImage
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 95, height: 95)
+                                    .frame(width: 70, height: 70)
                                     .clipShape(Circle())
                             } else {
-                                Image(systemName: "person")
+                                Image("cloud-image")
                                     .resizable()
                                     .scaledToFill()
-                                    .frame(width: 95, height: 95)
+                                    .frame(width: 70, height: 70)
                                     .clipShape(Circle())
                             }
-                            
+
                             Button {
                                 self.showImagePicker.toggle()
                             } label: {
                                 ZStack {
                                     Circle()
-                                        .fill(Color.green)
-                                        .frame(width: 34, height: 34)
-                                    
+                                        .fill(Color.anipickPrimary)
+                                        .frame(width: 28, height: 28)
+
                                     Image("edit-profile-button")
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: 18, height: 18)
-                                        .foregroundColor(.white) // 필요 시 색상 변경
+                                        .frame(width: 14, height: 14)
                                 }
-                                .offset(x: 6, y: 6) // 살짝 튀어나오게
+                                .offset(x: 4, y: 4)
                             }
                         }
-                        .frame(width: 100, height: 100)
-                        .padding(.trailing, 8)
-                        
-                        Spacer()
-                                                
-                        let nickname = UserDefaultsManager.shared.getNickname()
-                        Text(nickname)
-                            .foregroundColor(.anipickPrimary)
-                            .font(.system(size: 16, weight: .bold))
-                        
-                        +  Text("님, 애니픽과 함께\n")
-                            .foregroundColor(.anipickBlack)
-                            .font(.system(size: 16, weight: .bold))
-                        
-                        +  Text("행복한 애니메이션 생활 즐기세요!")
-                            .foregroundColor(.anipickBlack)
-                            .font(.system(size: 16, weight: .bold))
+                        .frame(width: 76, height: 76)
+                        .padding(.trailing, 4)
                     }
-                    
-                    Spacer().frame(height: 32)
-                    
+
+                    Spacer().frame(height: 24)
+
+                    // 피드백 배너 카드
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 20)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.298, green: 0.749, blue: 0.690),
+                                        Color(red: 0.165, green: 0.494, blue: 0.522)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+
+                        VStack(alignment: .leading, spacing: 0) {
+                            // 상단: 제목 + 부제목
+                            Text("애니픽을 사용해 보셨나요?")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .padding(.bottom, 8)
+
+                            Text("더 좋은 서비스를 만들 수 있도록\n여러분의 의견을 들려주세요.")
+                                .font(.system(size: 13, weight: .regular))
+                                .foregroundColor(.white.opacity(0.9))
+                                .lineSpacing(4)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(2)
+                                .padding(.bottom, 16)
+
+                            // 하단: 버튼 + 구름 이미지
+                            HStack(alignment: .bottom, spacing: 12) {
+                                Button {
+                                    UIApplication.shared.open(URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSdV4UANNQuVanRQ99JLJ1PU9ElXMN2iKx9gPaBXAb0QkVreDg/viewform")!)
+                                } label: {
+                                    Text("바로가기")
+                                        .font(.system(size: 15, weight: .medium))
+                                        .foregroundColor(Color(red: 0.165, green: 0.494, blue: 0.522))
+                                        .frame(maxWidth: .infinity)
+                                        .frame(height: 48)
+                                        .background(Color.white)
+                                        .cornerRadius(12)
+                                }
+
+                                ZStack {
+                                    Text("★")
+                                        .font(.system(size: 18))
+                                        .foregroundColor(.white)
+                                        .offset(x: 10, y: -55)
+
+                                    Text("★")
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.white.opacity(0.6))
+                                        .offset(x: -15, y: -65)
+
+                                    Text("★")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.white)
+                                        .offset(x: 25, y: -10)
+
+                                    Image("cloud-image")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 100, height: 82)
+                                }
+                                .frame(width: 110)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 24)
+                    }
+                    .frame(maxWidth: .infinity)
+
+                    Spacer().frame(height: 24)
+
                     HStack(alignment: .center, spacing: 0) {
                         getAnimeWatchStatusButton(title: .wantToWatch, countText: viewModel.watchListCount) {
                             self.viewModel.tappedToWatchList()
