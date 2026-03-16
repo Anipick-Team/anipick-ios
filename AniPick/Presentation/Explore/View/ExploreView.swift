@@ -73,7 +73,6 @@ struct ExploreView: View {
                 self.headerView()
                 
                 if showFilterBar {
-                    
                     Spacer().frame(height: 16)
                     
                     HStack(spacing: 0) {
@@ -535,17 +534,19 @@ struct ExploreView: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 32)
             
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(maxWidth: .infinity)
-                .frame(height: 1)
-                .background(.gray5)
-            
-            Rectangle()
-                .foregroundColor(.clear)
-                .frame(maxWidth: .infinity)
-                .frame(height: 9)
-                .background(.gray7)
+            if showFilterBar {
+                Rectangle()
+                    .foregroundColor(.clear)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 1)
+                    .background(.gray5)
+                
+                Rectangle()
+                    .foregroundColor(.clear)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 9)
+                    .background(.gray7)
+            }
         }
     }
     
