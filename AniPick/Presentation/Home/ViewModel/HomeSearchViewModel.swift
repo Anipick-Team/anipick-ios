@@ -73,14 +73,27 @@ final class HomeSearchViewModel: ObservableObject {
             let response = try await usecase.getAnimeQueryResult(query: self.searchText, lastId: animeLastId)
             if let result = response.result {
                 DLog("home searchView anime with query- \(result)")
-                self.animeListWithQuery += result.animes ?? []
+                let newAnimes = result.animes ?? []
+                self.animeListWithQuery += newAnimes
                 self.animeListCount = result.count ?? 0
                 self.animeLastId = result.cursor?.lastId ?? nil
+                sendLogs(for: newAnimes)
             } else {
                 self.initAnimeList = []
             }
         } catch {
-            
+
+        }
+    }
+
+    private func sendLogs(for animes: [AnimeWithClickLog]) {
+        for anime in animes {
+            if let clickLog = anime.clickLog {
+                AF.request(LogAPI.getLog(log: clickLog)).response { _ in }
+            }
+            if let impressionLog = anime.impressionLogs {
+                AF.request(LogAPI.getLog(log: impressionLog)).response { _ in }
+            }
         }
     }
     
