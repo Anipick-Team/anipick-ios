@@ -21,6 +21,7 @@ final class HomeViewModel: ObservableObject {
     @Published var recommedationFirstTitle: String = ""
     @Published var seasonString: Int = 0
     @Published var seasonYearString: Int = 0
+    @Published var referenceAnimeTitle: String? = nil
     
     let session = Session(interceptor: TokenInterceptor.shared)
     private let usecase: HomeUsecaseProtocol
@@ -72,7 +73,7 @@ extension HomeViewModel {
                     if let animeList = value.result,
                        let recommend = animeList.animes {
                         self.recommedationAnimes = recommend
-                      //  self.recommedationFirstTitle = animeList.referenceAnimeTitle ?? ""
+                        self.referenceAnimeTitle = animeList.referenceAnimeTitle
                     }
                 case .failure(let error):
                     DLog("fetch home recommedation error \(error)")
@@ -165,10 +166,9 @@ extension HomeViewModel {
         self.navigationManager.push(route: AppRoute.homeSearch)
     }
     
-    func moveToExploreView() {
-        SeasonNotificationManager.post(season: self.seasonString, seasonYear: self.seasonYearString)
+    func moveToExploreView(season: Int, year: Int) {
+        AppDIContainer.appState.pushExplore(year: String(year), season: String(season))
         self.navigationManager.push(route: .content(activeTab: .research))
-        DLog("화악인 - \(self.seasonString) \(self.seasonYearString)")
     }
     func moveToAnimeDetailView(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
@@ -182,8 +182,8 @@ extension HomeViewModel {
         self.navigationManager.push(route: .recentReview)
     }
     
-    func moveToRecommendationView(animeId: Int) {
-        self.navigationManager.push(route: .recommend2(animeId: animeId))
+    func moveToRecommendationView(animeId: Int, animeTitle: String? = nil) {
+        self.navigationManager.push(route: .recommend2(animeId: animeId, animeTitle: animeTitle))
  //       self.navigationManager.push(route: .recommendView(animeId: animeId))
     }
     

@@ -59,11 +59,19 @@ struct RecommendedAnimeView: View {
                     VStack {
                         HStack {
                             let nickname = UserDefaultsManager.shared.getNickname()
-                            Text("오늘의 추천작, \(nickname) 님의\n취향에 맞춰 준비했어요!")
-                                .customFontStyle(size: 20, color: .gray5, weight: .bold)
-                                .padding(.top, 12)
-                                .padding(.leading, 24)
-                            Spacer()
+                            if let title = viewModel.animeTitle {
+                                Text("\(title) 을 재밌게 보셨다면,\n이 작품들도 마음에 드실거에요!")
+                                    .customFontStyle(size: 20, color: .gray5, weight: .bold)
+                                    .padding(.top, 12)
+                                    .padding(.leading, 24)
+                                Spacer()
+                            } else {
+                                Text("오늘의 추천작, \(nickname) 님의\n취향에 맞춰 준비했어요!")
+                                    .customFontStyle(size: 20, color: .gray5, weight: .bold)
+                                    .padding(.top, 12)
+                                    .padding(.leading, 24)
+                                Spacer()
+                            }
                         }
                         Spacer()
                     }

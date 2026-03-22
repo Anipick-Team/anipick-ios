@@ -118,9 +118,15 @@ struct AppDIContainer {
         return WithdrawalView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
+
+    static func makeAdultSettingView() -> some View {
+        let viewModel = AdultSettingViewModel(navigationManager: navigationManager)
+        return AdultSettingView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
     
-    static func makeRecommemnd2View(animeId: Int) -> some View {
-        let viewModel = RecommendViewModel(navigationManager: navigationManager, animeId: animeId)
+    static func makeRecommemnd2View(animeId: Int, animeTitle: String?) -> some View {
+        let viewModel = RecommendViewModel(navigationManager: navigationManager, animeId: animeId, animeTitle: animeTitle)
         return RecommendedAnimeView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }

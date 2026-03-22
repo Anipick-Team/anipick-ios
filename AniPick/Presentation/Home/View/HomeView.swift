@@ -86,14 +86,26 @@ struct HomeView: View {
                         .padding(.bottom, 24)
                 } else {
                     let nickName = UserDefaultsManager.shared.getNickname()
-                    self.sectionView(
-                        title: "오늘의 추천작, \(nickName) 님의\n취향에 맞춰 준비했어요!",
-                        items: viewModel.recommedationAnimes
-                    ) {
-                        viewModel.moveToRecommendationView(animeId: 0)
-                        DLog("추천작 탭탭")
+                    if let title = viewModel.referenceAnimeTitle {
+                        self.sectionView(
+                            title: "\(title) 을 재밌게 보셨다면,\n이 작품들도 마음에 드실 거에요!",
+                            items: viewModel.recommedationAnimes
+                        ) {
+                            viewModel.moveToRecommendationView(animeId: 0, animeTitle: viewModel.referenceAnimeTitle)
+                            DLog("추천작 탭탭")
+                        }
+                        .padding(.bottom, 24)
+                    } else {
+                        self.sectionView(
+                            title: "오늘의 추천작, \(nickName) 님의\n취향에 맞춰 준비했어요!",
+                            items: viewModel.recommedationAnimes
+                        ) {
+                            viewModel.moveToRecommendationView(animeId: 0, animeTitle: viewModel.referenceAnimeTitle)
+                            DLog("추천작 탭탭")
+                        }
+                        .padding(.bottom, 24)
                     }
-                    .padding(.bottom, 24)
+
                 }
                 
                 VStack(alignment: .leading, spacing: 0) {
@@ -134,12 +146,10 @@ struct HomeView: View {
                 
                 // TODO: 얘가 기본 default값 UI
                 self.sectionView(title: "\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기 방영예정", items: viewModel.upcomingAnimes) {
-                    self.viewModel.moveToExploreView()
-                    
-                    AppDIContainer.appState.pushExplore(
-                        year: String(self.viewModel.seasonYearString),
-                        season: String(self.viewModel.seasonString)
-                        )
+                    self.viewModel.moveToExploreView(
+                        season: self.viewModel.seasonString,
+                        year: self.viewModel.seasonYearString
+                    )
                 }
                 
                 sectionDivider()

@@ -14,12 +14,15 @@ final class RecommendViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager
     private let animeId: Int
+    let animeTitle: String?
     var lastId: Int? = nil
     
     let session = Session(interceptor: TokenInterceptor.shared)
-    init(navigationManager: NavigationManager, animeId: Int) {
+    init(navigationManager: NavigationManager, animeId: Int, animeTitle: String?) {
         self.navigationManager = navigationManager
         self.animeId = animeId
+        self.animeTitle = animeTitle
+        
     }
     
     func fetchRecommendationAnime() {

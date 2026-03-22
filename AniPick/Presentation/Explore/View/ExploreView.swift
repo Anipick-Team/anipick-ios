@@ -176,8 +176,9 @@ struct ExploreView: View {
             .background(Color.white)
             .navigationBarBackButtonHidden(true)
             .onAppear {
-                self.applyIncomingFilterIfNeeded()
-                viewModel.fetchFiletedExploreData()
+                if !self.applyIncomingFilterIfNeeded() {
+                    viewModel.fetchFiletedExploreData()
+                }
             }
             .onChange(of: AppDIContainer.appState.pendingExploreFilter) { _ in
                 DLog("appState onChange 감지")
@@ -209,23 +210,23 @@ struct ExploreView: View {
         }
     }
     
-    private func applyIncomingFilterIfNeeded() {
-        guard let f = AppDIContainer.appState.consumeExploreFilter() else { return }
+    @discardableResult
+    private func applyIncomingFilterIfNeeded() -> Bool {
+        guard let f = AppDIContainer.appState.consumeExploreFilter() else { return false }
 
-          // 예: 태그로 반영
-          if let y = f.year, !y.isEmpty {
-              let item = ExploreSelectedTag(category: .yearQuarter, value: y)
-              self.insertTagIfNotExist(item)
-          }
-        
-          if let s = f.season, !s.isEmpty {
-              let item = ExploreSelectedTag(category: .season, value: s)
-              self.insertTagIfNotExist(item)
-          }
+        if let y = f.year, !y.isEmpty {
+            let item = ExploreSelectedTag(category: .yearQuarter, value: y)
+            self.insertTagIfNotExist(item)
+        }
 
-          // 데이터 로드
-          viewModel.fetchFiletedExploreData()
-      }
+        if let s = f.season, !s.isEmpty {
+            let item = ExploreSelectedTag(category: .season, value: s)
+            self.insertTagIfNotExist(item)
+        }
+
+        viewModel.fetchInitFilteredExploreData()
+        return true
+    }
     
     private func filterCategoryButtonView(selectedTab: ExploreFilterTab) -> some View {
       //  let isSelectedFilter = self.viewModel.checkFilterColored(selectedTab: selectedTab)
