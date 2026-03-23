@@ -12,7 +12,7 @@ final class WriteReviewViewModel: ObservableObject {
     
     @Published var reviewTextContent: String = ""
     @Published var starRating: Double = 0
-    @Published var isSpoiler: Bool = true
+    @Published var isSpoiler: Bool = false
     @Published var animeId: Int = 0
     @Published var isFirstVisit: Bool = true
     let session = Session(interceptor: TokenInterceptor.shared)

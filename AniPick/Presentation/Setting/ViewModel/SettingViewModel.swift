@@ -18,6 +18,7 @@ final class SettingViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var isShowSNStitle: String = ""
     @Published var isSNSAccount: Bool = false
+    @Published var isAdult: Bool = false
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
@@ -120,6 +121,8 @@ final class SettingViewModel: ObservableObject {
             }
         case .linkedSNS:
             DLog("sns임!!")
+        case .adultCheck:
+            self.moveToDetailSettingView(route: .adultSetting)
         case .appVersion:
             DLog("AppVersion")
         case .inquiry:

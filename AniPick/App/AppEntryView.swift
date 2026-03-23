@@ -79,6 +79,9 @@ struct AppEntryView: View {
                     AppDIContainer.makeContentView(activeTab: activeTab)
                 case .adultSetting:
                     AppDIContainer.makeAdultSettingView()
+                case .adultCheck:
+                    // TODO: 성인인증 화면 구현 시 연결
+                    AppDIContainer.makeAdultSettingView()
                 case .setting:
                     AppDIContainer.makeSettingView()
                 case .inquiry:
