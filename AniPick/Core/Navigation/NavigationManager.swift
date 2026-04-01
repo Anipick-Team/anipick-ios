@@ -88,5 +88,6 @@ enum AppRoute: Hashable {
     case characterAndVoiceActorDetail(animeId: Int)
     case seriesDetail(animeId: Int, animeTitle: String)
     case recommend(animeId: Int, animeTitle: String)
-    
+    case community(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
+
 }

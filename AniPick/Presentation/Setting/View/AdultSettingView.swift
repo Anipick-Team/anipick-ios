@@ -16,7 +16,6 @@ struct AdultSettingView: View {
             NavigationBackButtonView(title: "19세 작품") {
                 dismiss()
             }
-            .padding(.horizontal, -20)
             
             Spacer().frame(height: 30)
 

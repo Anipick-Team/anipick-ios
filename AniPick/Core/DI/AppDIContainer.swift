@@ -271,6 +271,16 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
+    static func makeCommunityView(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String]) -> some View {
+        return CommunityView(
+            animeId: animeId,
+            animeTitle: animeTitle,
+            coverImageUrl: coverImageUrl,
+            genreNames: genreNames
+        )
+        .environmentObject(navigationManager)
+    }
+
     static func makeRecommendView(animeId: Int, animeTitle: String) -> some View {
         let viewModel = RecommendedViewModel(navigationManager: navigationManager, animeId: animeId, animeTitle: animeTitle)
         

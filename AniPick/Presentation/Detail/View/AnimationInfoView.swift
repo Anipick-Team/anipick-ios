@@ -170,7 +170,7 @@ struct AnimationInfoView: View {
                                     }
                                 }
                             }
-                            .padding(.horizontal, self.selectedInfoTab == .animationInfo ? 0 : -10)
+                            .padding(.horizontal, self.selectedInfoTab == .reviewInfo ? -10 : 0)
                         }
                         .ignoresSafeArea(edges: .top)
                         .padding(.bottom, 25)
@@ -246,9 +246,12 @@ struct AnimationInfoView: View {
                             HStack(alignment: .center, spacing: 0) {
                                 selectedTab(title: .animationInfo)
                                 selectedTab(title: .reviewInfo, animationCount: viewModel.reviewCount)
+                                selectedTab(title: .community) {
+                                    viewModel.moveToCommunityView()
+                                }
                             }
                             .padding(.bottom, 13)
-                            
+
                             switch self.selectedInfoTab {
                             case .animationInfo:
                                 AnimationDetailInfoView(
@@ -273,12 +276,14 @@ struct AnimationInfoView: View {
                                     self.selectedPopupItemReviewId = reviewId
                                     self.selectedBlockUserId = blockUserId
                                 }
+                            case .community:
+                                EmptyView()
                             }
 
                             Spacer().frame(height: 30)
                             
                         }
-                        .padding(.horizontal, self.selectedInfoTab == .animationInfo ? 20 : 10)
+                        .padding(.horizontal, self.selectedInfoTab == .reviewInfo ? 10 : 20)
                     }
                 }
             }
@@ -417,6 +422,9 @@ struct AnimationInfoView: View {
                     HStack(alignment: .center, spacing: 0) {
                         selectedTab(title: .animationInfo)
                         selectedTab(title: .reviewInfo, animationCount: viewModel.reviewCount)
+                        selectedTab(title: .community) {
+                            viewModel.moveToCommunityView()
+                        }
                     }
                     .padding(.bottom, 13)
                 }
@@ -509,11 +517,15 @@ struct AnimationInfoView: View {
         .padding(.horizontal, 2)
     }
     
-    private func selectedTab(title: AnimationInfoTab, animationCount: Int = 0) -> some View {
+    private func selectedTab(title: AnimationInfoTab, animationCount: Int = 0, action: (() -> Void)? = nil) -> some View {
         VStack(alignment: .leading, spacing: 0) {
                 Button {
                     DLog("\(title.title) 탭탭")
-                    self.selectedInfoTab = title
+                    if let action {
+                        action()
+                    } else {
+                        self.selectedInfoTab = title
+                    }
                 } label: {
                     if title.title == "리뷰" {
                         Text("\(title.title)(\(animationCount)개)")
@@ -640,7 +652,8 @@ enum AnimationWatchStatus: String, CaseIterable {
 enum AnimationInfoTab: String, CaseIterable {
     case animationInfo = "작품 정보"
     case reviewInfo = "리뷰"
-    
+    case community = "커뮤니티"
+
     var title: String { self.rawValue }
 }
 #Preview {

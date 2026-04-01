@@ -506,4 +506,14 @@ extension AnimationInfoViewModel {
     func moveToRecommendView(animeId: Int, animeTitle: String) {
         self.navigationManager.push(route: .recommend(animeId: animeId, animeTitle: animeTitle))
     }
+
+    func moveToCommunityView() {
+        guard let detail = animeDetailInfo else { return }
+        self.navigationManager.push(route: .community(
+            animeId: detail.animeId,
+            animeTitle: detail.title ?? "",
+            coverImageUrl: detail.coverImageUrl,
+            genreNames: detail.genres?.map { $0.name } ?? []
+        ))
+    }
 }
