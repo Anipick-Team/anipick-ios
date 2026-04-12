@@ -27,7 +27,10 @@ final class AppState: ObservableObject {
         case .anime(let id):
             DLog("Anime Detail 이동 id: \(id)")
             navigationManager.popToRoot()
-            navigationManager.push(route: .animeDetail(animeId: id))
+            // popToRoot Task 처리 후 push 실행되도록 딜레이
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.navigationManager.push(route: .animeDetail(animeId: id))
+            }
         case .producer(let id):
             DLog("Producer Detail 이동 id: \(id)")
         case .unknown:
