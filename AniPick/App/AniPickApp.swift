@@ -43,6 +43,10 @@ struct AniPickApp: App {
                     }
                     self.handleDeepLink(url)
                 }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    guard let url = activity.webpageURL else { return }
+                    self.handleDeepLink(url)
+                }
         }
     }
     
