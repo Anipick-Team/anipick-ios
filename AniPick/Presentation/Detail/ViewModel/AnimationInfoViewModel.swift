@@ -520,15 +520,6 @@ extension AnimationInfoViewModel {
         self.navigationManager.push(route: .recommend(animeId: animeId, animeTitle: animeTitle))
     }
 
-    func moveToCommunityView() {
-        guard let detail = animeDetailInfo else { return }
-        self.navigationManager.push(route: .community(
-            animeId: detail.animeId,
-            animeTitle: detail.title ?? "",
-            coverImageUrl: detail.coverImageUrl,
-            genreNames: detail.genres?.map { $0.name } ?? []
-        ))
-    }
 
     /// 공유할 아이템 목록 반환
     /// - 앱 설치 O: anipick://anime/{id} 딥링크로 바로 이동

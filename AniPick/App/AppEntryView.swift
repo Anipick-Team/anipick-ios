@@ -107,8 +107,6 @@ struct AppEntryView: View {
                     
                 case let .recommend(animeId, animeTitle):
                     AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
-                case let .community(animeId, animeTitle, coverImageUrl, genreNames):
-                    AppDIContainer.makeCommunityView(animeId: animeId, animeTitle: animeTitle, coverImageUrl: coverImageUrl, genreNames: genreNames)
                 case let .recommend2(animeId, animeTitle):
                     AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
                 default:
