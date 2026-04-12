@@ -2,7 +2,7 @@
 //  AdultSettingView.swift
 //  AniPick
 //
-//  Created by cho on 3/23/26.
+
 import SwiftUI
 
 struct AdultSettingView: View {
@@ -16,22 +16,19 @@ struct AdultSettingView: View {
             NavigationBackButtonView(title: "19세 작품") {
                 dismiss()
             }
-            
-            Spacer().frame(height: 30)
+            .padding(.horizontal, 20)
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
-                    self.sectionDivider()
-                        .padding(.horizontal, -20)
+                    sectionDivider()
 
-                    Spacer().frame(height: 20)
-                    
+                    // MARK: - 성인 인증 Row
                     Button {
                         viewModel.tappedVerification()
                     } label: {
                         HStack {
                             Text("성인 인증")
-                                .customFontStyle(size: 16, color: .anipickBlack, weight: .bold)
+                                .customFontStyle(size: 16, color: .anipickBlack)
                             Spacer()
                             Text(viewModel.isAdultVerified ? "완료" : "미완료")
                                 .customFontStyle(
@@ -46,20 +43,22 @@ struct AdultSettingView: View {
                         .padding(.vertical, 18)
                     }
 
+                    rowDivider()
+
                     // MARK: - 19세 작품 Toggle Row
                     HStack {
                         Text("19세 작품")
-                            .customFontStyle(size: 16, color: .anipickBlack, weight: .bold)
+                            .customFontStyle(size: 16, color: .anipickBlack)
                         Spacer()
-                        
-                        Button {
-                            self.viewModel.isAdultContentEnabled.toggle()
-                        } label: {
-                            Image(self.viewModel.isAdultContentEnabled ? .toggleEnable : .grayToggleOff)
-                        }
+                        Toggle("", isOn: $viewModel.isAdultContentEnabled)
+                            .labelsHidden()
+                            .tint(.anipickPrimary)
+                            .disabled(!viewModel.isAdultVerified)
                     }
                     .padding(.horizontal, 20)
                     .padding(.vertical, 14)
+
+                    sectionDivider()
 
                     // MARK: - 안내 문구
                     VStack(alignment: .leading, spacing: 8) {
@@ -67,7 +66,7 @@ struct AdultSettingView: View {
                             .customFontStyle(size: 14, color: .anipickBlack, weight: .bold)
 
                         Text("청소년보호법과 여성가족부의 정책에 따라 연1회 주기로 재인증을\n진행해야 합니다.\n확인 결과는 1년간 애니픽 서비스에 적용됩니다.")
-                            .customFontStyle(size: 13, color: .textGray)
+                            .customFontStyle(size: 13, color: .gray6)
                             .lineSpacing(4)
                     }
                     .padding(.horizontal, 20)
@@ -94,7 +93,6 @@ struct AdultSettingView: View {
             .foregroundColor(.gray7)
             .frame(height: 12)
             .frame(maxWidth: .infinity)
-            .background(.gray5)
     }
 
     @ViewBuilder
