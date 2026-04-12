@@ -18,26 +18,54 @@ final class ExploreViewModel: ObservableObject {
     @Published var selectdCountList: [ExploreFilterTab] = []
     @Published var selectedAllClear: Bool = false
     @Published var selectedGenreList: [Int] = []
-    
+
     @Published var selectedGenreNameList: [String] = []
-    
+
     @Published var selectedTagList: [ExploreSelectedTag] = []
-        
+
     @Published var isToggleAllGenreCondition: Bool = false
     @Published var lastId: Int? = nil
     @Published var exploreRequestItem : ExploreReqeustItem? = nil
     @Published var selectedCategory: ExploreSortCategory = .popularity
-    
+
     @Published var isShowSortOptionView: Bool = false
-    
+
+    @Published var metaGenreList: [String] = UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
+    @Published var metaYearList: [String] = UserDefaultsManager.shared.getMetaDataForSeasonYear().map { String($0) }
+    @Published var metaTypeList: [String] = UserDefaultsManager.shared.getMetaDataForType()
+
     let session = Session(interceptor: TokenInterceptor.shared)
-    
+
     private let usecase: ExploreUsecase
     private let navigationManager: NavigationManager
-    
+
     init(usecase: ExploreUsecase, navigationManager: NavigationManager) {
         self.usecase = usecase
         self.navigationManager = navigationManager
+    }
+
+    func fetchMetaDataIfNeeded() {
+        guard metaGenreList.isEmpty || metaYearList.isEmpty || metaTypeList.isEmpty else { return }
+        session.request(MetaDataAPI.metaData)
+            .responseDecodable(of: MetaDataResponse.self) { [weak self] response in
+                guard let self else { return }
+                switch response.result {
+                case .success(let value):
+                    let seasonYear = value.result?.seasonYear ?? []
+                    let animeType = value.result?.type ?? []
+                    let genres = value.result?.genres ?? []
+                    let season = value.result?.season ?? []
+                    UserDefaultsManager.shared.setMetaDataForSeasonYear(seasonYear)
+                    UserDefaultsManager.shared.setMetaDataForType(animeType)
+                    UserDefaultsManager.shared.setMetaDataForGenres(genres)
+                    UserDefaultsManager.shared.setMetaDataForSeason(season)
+                    self.metaGenreList = genres.map { $0.name }
+                    self.metaYearList = seasonYear.map { String($0) }
+                    self.metaTypeList = animeType
+                case .failure(let error):
+                    DLog("메타데이터 재시도 실패 - \(error)")
+                }
+            }
     }
 }
 

@@ -12,7 +12,7 @@ final class WriteReviewViewModel: ObservableObject {
     
     @Published var reviewTextContent: String = ""
     @Published var starRating: Double = 0
-    @Published var isSpoiler: Bool = true
+    @Published var isSpoiler: Bool = false
     @Published var animeId: Int = 0
     @Published var isFirstVisit: Bool = true
     let session = Session(interceptor: TokenInterceptor.shared)
@@ -43,16 +43,19 @@ extension WriteReviewViewModel {
             DLog("\(description)")
             
         }
-        .responseDecodable(of: BaseResponse.self) { response in
+        .responseDecodable(of: BaseResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let value):
                 DLog("리뷰 성공성공 - \(value)")
+                AnalyticsManager.logReviewWrite(animeId: self.animeId, rating: self.starRating, isSpoiler: self.isSpoiler)
                 NotificationCenter.default.post(
                     name: .reloadRatedAnime,
                     object: nil
                 )
             case .failure(let error):
                 DLog("리이뷰 실패 - \(error)")
+                AnalyticsManager.logError(error, context: "patchReview")
             }
             
         }

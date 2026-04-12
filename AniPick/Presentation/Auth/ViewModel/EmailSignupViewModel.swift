@@ -64,6 +64,7 @@ extension EmailSignupViewModel {
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "nickname - null")
                 UserDefaultsManager.shared.setEmail(self.emailString)
                 UserDefaultsManager.shared.setSNSAccount(sns: "")
+                AnalyticsManager.logSignUp()
                 self.navigationManager.push(route: .preferenceSelection)
             } else if response.code == 109 {
                 self.emailGuideText = "이미 가입한 이메일입니다."

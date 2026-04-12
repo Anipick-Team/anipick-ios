@@ -69,10 +69,10 @@ struct RatedAnimeListView: View {
                                 GeometryReader { proxy in
                                     Color.clear
                                         .onAppear {
-                                            self.sortButtonFrame = proxy.frame(in: .named("SortOverlayArea"))
+                                            self.sortButtonFrame = proxy.frame(in: .global)
                                         }
                                         .onChange(of: viewModel.isShowSortOptionView) { _ in
-                                            self.sortButtonFrame = proxy.frame(in: .named("SortOverlayArea"))
+                                            self.sortButtonFrame = proxy.frame(in: .global)
                                         }
                                 }
                             )
@@ -167,7 +167,7 @@ struct RatedAnimeListView: View {
                     self.viewModel.fetchRatedAnimeList()
                 }
                 .frame(width: 120)
-                .position(x: sortButtonFrame.minX , y: sortButtonFrame.maxY + 140)
+                .position(x: sortButtonFrame.maxX - 40, y: sortButtonFrame.maxY + 64)
             }
             
             if self.isShowOptionView {

@@ -124,6 +124,7 @@ extension MainLoginViewModel {
                 UserDefaultsManager.shared.setAccessToken(accessToken: response.result?.token?.accessToken ?? "")
                 UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "")
+                AnalyticsManager.logLogin(method: provider.rawValue)
                 if response.result?.reviewCompletedYn ?? true {
                     self.navigationManager.push(route: .content(activeTab: .home))
                 } else {

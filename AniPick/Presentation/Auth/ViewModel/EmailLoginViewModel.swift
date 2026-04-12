@@ -61,6 +61,7 @@ extension EmailLoginViewModel {
                     UserDefaultsManager.shared.setEmail(self.emailString)
                     DLog("\(UserDefaultsManager.shared.getNickname())")
                     UserDefaultsManager.shared.setSNSAccount(sns: "")
+                    AnalyticsManager.logLogin(method: "email")
                     self.navigationManager.push(route: AppRoute.content(activeTab: .home))
                 }
             } else if response.code == 110 {

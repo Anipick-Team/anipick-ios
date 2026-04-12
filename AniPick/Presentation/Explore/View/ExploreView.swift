@@ -41,7 +41,7 @@ struct ExploreView: View {
     @State private var filterBarLocked = false
 
     
-    @State private var genreList: [String] = UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
+    @State private var genreList: [String] = []
     
     // UI체크용
     @State private var selectedGenre: String = ""
@@ -53,14 +53,13 @@ struct ExploreView: View {
     private let scrollThreshold: CGFloat = 30
 
     var currentList: [String] {
-           switch selectedTab {
-               // quator -> 분기는 1,2,3,4 분기로 나누어져있어서 따로 받아와서 처리 X
-           case .yearQuarter: return UserDefaultsManager.shared.getMetaDataForSeasonYear().map { String($0) }
-           case .genre: return UserDefaultsManager.shared.getMetaDataForGenres().map { $0.name }
-           case .type: return UserDefaultsManager.shared.getMetaDataForType()
-           case .season: return ["전체 분기", "1분기", "2분기", "3분기", "4분기"]
-           }
-       }
+        switch selectedTab {
+        case .yearQuarter: return viewModel.metaYearList
+        case .genre: return viewModel.metaGenreList
+        case .type: return viewModel.metaTypeList
+        case .season: return ["전체 분기", "1분기", "2분기", "3분기", "4분기"]
+        }
+    }
     
     let quarterList = ["전체", "1", "2", "3", "4"]
     
@@ -176,6 +175,7 @@ struct ExploreView: View {
             .background(Color.white)
             .navigationBarBackButtonHidden(true)
             .onAppear {
+                viewModel.fetchMetaDataIfNeeded()
                 if !self.applyIncomingFilterIfNeeded() {
                     viewModel.fetchFiletedExploreData()
                 }

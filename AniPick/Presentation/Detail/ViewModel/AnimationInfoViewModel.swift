@@ -111,8 +111,10 @@ extension AnimationInfoViewModel {
                     self.reviewCount = value.result.reviewCount ?? 0
                     self.isActiveLike = value.result.isLiked ?? false
                     self.selectedAnimationStatusTab = AnimationWatchStatus.fromStatus(value.result.watchStatus ?? "") ?? .empty
+                    AnalyticsManager.logAnimeDetailView(animeId: self.animeId, animeTitle: value.result.title)
                 case let .failure(error):
                     DLog("Error: \(error)")
+                    AnalyticsManager.logError(error, context: "fetchAnimationInfo")
                 }
             }
     }
@@ -340,6 +342,7 @@ extension AnimationInfoViewModel {
                 case .success(let value):
                     DLog("좋아요 성공 - \(value)")
                     self.isActiveLike.toggle()
+                    AnalyticsManager.logAnimeLike(animeId: self.animeId, animeTitle: self.animeDetailInfo?.title)
                 case .failure(let error):
                     DLog("좋아요 실패 - \(error)")
                 }
@@ -358,6 +361,7 @@ extension AnimationInfoViewModel {
                 case .success(let value):
                     DLog("좋아요 성공 - \(value)")
                     self.isActiveLike.toggle()
+                    AnalyticsManager.logAnimeUnlike(animeId: self.animeId, animeTitle: self.animeDetailInfo?.title)
                 case .failure(let error):
                     DLog("좋아요 실패 - \(error)")
                 }
@@ -528,6 +532,8 @@ extension AnimationInfoViewModel {
         guard let detail = animeDetailInfo else { return [] }
         let title = detail.title ?? "애니픽"
         let animeId = detail.animeId
+
+        AnalyticsManager.logAnimeShare(animeId: animeId, animeTitle: title)
 
         let universalLink = URL(string: "https://anipick.p-e.kr/app/anime/detail/\(animeId)")!
         let shareText = "애니픽에서 '\(title)'을 확인해보세요!"
