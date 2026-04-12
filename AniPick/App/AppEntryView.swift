@@ -10,15 +10,15 @@ import SwiftUI
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
-    @State private var isLoggedIn: Bool = UserDefaultsManager.shared.getAccessToken().isEmpty
+    @State private var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
 
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
                 if isLoggedIn {
-                    AppDIContainer.makeLoginView()
-                } else {
                     AppDIContainer.makeContentView(activeTab: .home)
+                } else {
+                    AppDIContainer.makeLoginView()
                 }
             }
             .background(Color.white)
@@ -79,6 +79,9 @@ struct AppEntryView: View {
                     AppDIContainer.makeContentView(activeTab: activeTab)
                 case .adultSetting:
                     AppDIContainer.makeAdultSettingView()
+                case .adultCheck:
+                    // TODO: 성인인증 화면 구현 시 연결
+                    AppDIContainer.makeAdultSettingView()
                 case .setting:
                     AppDIContainer.makeSettingView()
                 case .inquiry:
@@ -104,6 +107,8 @@ struct AppEntryView: View {
                     
                 case let .recommend(animeId, animeTitle):
                     AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
+                case let .community(animeId, animeTitle, coverImageUrl, genreNames):
+                    AppDIContainer.makeCommunityView(animeId: animeId, animeTitle: animeTitle, coverImageUrl: coverImageUrl, genreNames: genreNames)
                 case let .recommend2(animeId, animeTitle):
                     AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
                 default:

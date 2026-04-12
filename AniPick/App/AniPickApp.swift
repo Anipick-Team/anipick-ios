@@ -47,10 +47,26 @@ struct AniPickApp: App {
     }
     
     func handleDeepLink(_ url: URL) {
-        // 예: anipick://anime/123
+        // Universal Link: https://anipick.p-e.kr/app/anime/detail/123
+        if url.scheme == "https", url.host == "anipick.p-e.kr" {
+            let components = url.pathComponents.filter { $0 != "/" }
+            // /app/anime/detail/{id}
+            if components.count >= 4,
+               components[0] == "app",
+               components[1] == "anime",
+               components[2] == "detail",
+               let id = Int(components[3]) {
+                AppDIContainer.appState.deepLink = .anime(id: id)
+            } else {
+                AppDIContainer.appState.deepLink = .unknown
+            }
+            return
+        }
+
+        // Custom scheme: anipick://anime/123
         let path = url.host ?? ""
         let components = url.pathComponents.filter { $0 != "/" }
-        
+
         if path == "anime", let idStr = components.first, let id = Int(idStr) {
             AppDIContainer.appState.deepLink = .anime(id: id)
         } else if path == "producer", let idStr = components.first, let id = Int(idStr) {

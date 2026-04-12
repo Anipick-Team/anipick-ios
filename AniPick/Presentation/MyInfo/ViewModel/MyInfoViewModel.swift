@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class MyInfoViewModel: ObservableObject {
     
     @Published var myInfoProfileData: UserProfile?
@@ -28,7 +29,7 @@ final class MyInfoViewModel: ObservableObject {
     @Published var finishedList: [ToWatchAnime] = []
     @Published var finishedListCount: Int = 0
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     private let navigationManager: NavigationManager
     
     init(navigationManager: NavigationManager) {
@@ -67,7 +68,8 @@ extension MyInfoViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: MyInfoResponse.self) { response in
+            .responseDecodable(of: MyInfoResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     if let data = value.result {
@@ -80,21 +82,21 @@ extension MyInfoViewModel {
                                 completion?(value)
                             }
                         }
-                }
+                    }
                     DLog("✅ 성공: \(value)")
                 case .failure(let error):
                     DLog("❌ 실패: \(error)")
                 }
             }
     }
-    
+
     func getProfileImage(imageId: Int, completion: @escaping (Image?) -> Void) {
-        //let imageId = Int(self.profileImageId ?? "") ?? 0 //UserDefaultsManager.shared.getImageId()
         session.request(MyInfoAPI.getProfile(imageId: imageId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .response { response in
+            .response { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let data):
                     DLog("profile Image get successfully: \(String(describing: data))")
@@ -109,31 +111,31 @@ extension MyInfoViewModel {
                 }
             }
     }
-    
+
     func fetchLikePersonList() {
         session.request(MyInfoAPI.likedPersonList(lastId: self.likedPersonLastId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: LikedPersonListResponse.self) { response in
+            .responseDecodable(of: LikedPersonListResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch person list success - \(value)")
                     self.likedPersonList = value.result.persons
-                   // self.likedPersonLastId = value.result.cursor.lastId
                 case .failure(let error):
                     DLog("fetch person list error - \(error)")
                 }
             }
-        
     }
-    
+
     func fetchToWatchList() {
         session.request(MyInfoAPI.toWatchAnimeList(status: "WATCHLIST", lastId: watchlistLastId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: ToWatchResponse.self) { response in
+            .responseDecodable(of: ToWatchResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
@@ -145,14 +147,14 @@ extension MyInfoViewModel {
                 }
             }
     }
-    
-    
+
     func fetchWatchingList() {
         session.request(MyInfoAPI.watchingAnimeList(status: "WATCHING", lastId: self.watchlistLastId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: ToWatchResponse.self) { response in
+            .responseDecodable(of: ToWatchResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
@@ -164,15 +166,14 @@ extension MyInfoViewModel {
                 }
             }
     }
-    
-    
-    
+
     func fetchFinishedList() {
         session.request(MyInfoAPI.finishedAnimeList(status: "FINISHED", lastId: self.watchlistLastId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: ToWatchResponse.self) { response in
+            .responseDecodable(of: ToWatchResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")
@@ -184,7 +185,7 @@ extension MyInfoViewModel {
                 }
             }
     }
-    
+
     // TODO: profile 이미지 업로드 하는 것 정리 필요
     func editProfimeImage(image: UIImage) {
         let request = ProfileAPI.editProfileImage(image: image)
@@ -193,10 +194,10 @@ extension MyInfoViewModel {
                 print("Failed to convert image to data")
                 return
             }
-            
             multidata.append(imageData, withName: "profileImageFile", fileName: "profile.jpg", mimeType: "image/jpeg")
         }, to: request.path, method: request.method)
-        .response { response in
+        .response { [weak self] response in
+            guard self != nil else { return }
             switch response.result {
             case .success(let data):
                 print("Image uploaded successfully: \(String(describing: data))")
@@ -205,15 +206,15 @@ extension MyInfoViewModel {
             }
         }
     }
-    
-    
+
     func getProfileImage(completion: @escaping (Image?) -> Void) {
-        let imageId = Int(self.profileImageId ?? "") ?? 0 //UserDefaultsManager.shared.getImageId()
+        let imageId = Int(self.profileImageId ?? "") ?? 0
         session.request(MyInfoAPI.getProfile(imageId: imageId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .response { response in
+            .response { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let data):
                     DLog("profile Image get successfully: \(String(describing: data))")

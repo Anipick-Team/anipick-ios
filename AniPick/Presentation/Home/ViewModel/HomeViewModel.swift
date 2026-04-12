@@ -23,7 +23,7 @@ final class HomeViewModel: ObservableObject {
     @Published var seasonYearString: Int = 0
     @Published var referenceAnimeTitle: String? = nil
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     private let usecase: HomeUsecaseProtocol
     private let navigationManager: NavigationManager
     
@@ -66,7 +66,8 @@ extension HomeViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecommendationResponse.self) { response in
+            .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch home recommedation success \(value)")
@@ -123,7 +124,8 @@ extension HomeViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecommendationResponse.self) { response in
+            .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch home recommedation with animeid success \(value)")
@@ -146,7 +148,8 @@ extension HomeViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecommendationResponse.self) { response in
+            .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch home recommedation with animeid success \(value)")
@@ -154,7 +157,6 @@ extension HomeViewModel {
                        let recommend = animeList.animes {
                         self.recommendationSimilarAnimes = recommend
                     }
-                    
                     self.recommedationFirstTitle = value.result?.referenceAnimeTitle ?? "-"
                 case .failure(let error):
                     DLog("fetch home recommedation with animeid error \(error)")
