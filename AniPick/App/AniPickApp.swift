@@ -51,9 +51,12 @@ struct AniPickApp: App {
     }
     
     func handleDeepLink(_ url: URL) {
+        DLog("handleDeepLink 수신 - scheme: \(url.scheme ?? "nil"), host: \(url.host ?? "nil"), path: \(url.path), components: \(url.pathComponents)")
+
         // Universal Link: https://anipick.p-e.kr/app/anime/detail/123
         if url.scheme == "https", url.host == "anipick.p-e.kr" {
             let components = url.pathComponents.filter { $0 != "/" }
+            DLog("Universal Link components: \(components)")
             // /app/anime/detail/{id}
             if components.count >= 4,
                components[0] == "app",
