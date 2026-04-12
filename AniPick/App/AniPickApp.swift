@@ -70,13 +70,21 @@ struct AniPickApp: App {
             return
         }
 
-        // Custom scheme: anipick://anime/123
-        let path = url.host ?? ""
+        // Custom scheme
+        let host = url.host ?? ""
         let components = url.pathComponents.filter { $0 != "/" }
 
-        if path == "anime", let idStr = components.first, let id = Int(idStr) {
+        if host == "anime", let idStr = components.first, let id = Int(idStr) {
+            // anipick://anime/123
             AppDIContainer.appState.deepLink = .anime(id: id)
-        } else if path == "producer", let idStr = components.first, let id = Int(idStr) {
+        } else if host == "app",
+                  components.count >= 3,
+                  components[0] == "anime",
+                  components[1] == "detail",
+                  let id = Int(components[2]) {
+            // anipick://app/anime/detail/123
+            AppDIContainer.appState.deepLink = .anime(id: id)
+        } else if host == "producer", let idStr = components.first, let id = Int(idStr) {
             AppDIContainer.appState.deepLink = .producer(id: id)
         } else {
             AppDIContainer.appState.deepLink = .unknown
