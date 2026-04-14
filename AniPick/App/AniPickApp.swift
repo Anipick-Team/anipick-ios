@@ -43,17 +43,48 @@ struct AniPickApp: App {
                     }
                     self.handleDeepLink(url)
                 }
+                .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in
+                    guard let url = activity.webpageURL else { return }
+                    self.handleDeepLink(url)
+                }
         }
     }
     
     func handleDeepLink(_ url: URL) {
-        // 예: anipick://anime/123
-        let path = url.host ?? ""
+        DLog("handleDeepLink 수신 - scheme: \(url.scheme ?? "nil"), host: \(url.host ?? "nil"), path: \(url.path), components: \(url.pathComponents)")
+
+        // Universal Link: https://anipick.p-e.kr/app/anime/detail/123
+        if url.scheme == "https", url.host == "anipick.p-e.kr" {
+            let components = url.pathComponents.filter { $0 != "/" }
+            DLog("Universal Link components: \(components)")
+            // /app/anime/detail/{id}
+            if components.count >= 4,
+               components[0] == "app",
+               components[1] == "anime",
+               components[2] == "detail",
+               let id = Int(components[3]) {
+                AppDIContainer.appState.deepLink = .anime(id: id)
+            } else {
+                AppDIContainer.appState.deepLink = .unknown
+            }
+            return
+        }
+
+        // Custom scheme
+        let host = url.host ?? ""
         let components = url.pathComponents.filter { $0 != "/" }
-        
-        if path == "anime", let idStr = components.first, let id = Int(idStr) {
+
+        if host == "anime", let idStr = components.first, let id = Int(idStr) {
+            // anipick://anime/123
             AppDIContainer.appState.deepLink = .anime(id: id)
-        } else if path == "producer", let idStr = components.first, let id = Int(idStr) {
+        } else if host == "app",
+                  components.count >= 3,
+                  components[0] == "anime",
+                  components[1] == "detail",
+                  let id = Int(components[2]) {
+            // anipick://app/anime/detail/123
+            AppDIContainer.appState.deepLink = .anime(id: id)
+        } else if host == "producer", let idStr = components.first, let id = Int(idStr) {
             AppDIContainer.appState.deepLink = .producer(id: id)
         } else {
             AppDIContainer.appState.deepLink = .unknown

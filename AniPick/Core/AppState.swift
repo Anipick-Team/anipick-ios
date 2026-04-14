@@ -26,8 +26,11 @@ final class AppState: ObservableObject {
         switch link {
         case .anime(let id):
             DLog("Anime Detail 이동 id: \(id)")
-            // AnimeDetailView로 이동 로직 추가
-            navigationManager.push(route: .animeDetail(animeId: 20457))
+            navigationManager.popToRoot()
+            // popToRoot Task 처리 후 push 실행되도록 딜레이
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
+                self?.navigationManager.push(route: .animeDetail(animeId: id))
+            }
         case .producer(let id):
             DLog("Producer Detail 이동 id: \(id)")
         case .unknown:

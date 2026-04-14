@@ -77,22 +77,25 @@ final class HomeSearchViewModel: ObservableObject {
                 self.animeListWithQuery += newAnimes
                 self.animeListCount = result.count ?? 0
                 self.animeLastId = result.cursor?.lastId ?? nil
+                if animeLastId == nil {
+                    AnalyticsManager.logSearch(query: self.searchText)
+                }
                 sendLogs(for: newAnimes)
             } else {
                 self.initAnimeList = []
             }
         } catch {
-
+            AnalyticsManager.logError(error, context: "fetchAnimeSearchList")
         }
     }
 
     private func sendLogs(for animes: [AnimeWithClickLog]) {
         for anime in animes {
             if let clickLog = anime.clickLog {
-                AF.request(LogAPI.getLog(log: clickLog)).response { _ in }
+                AF.request(clickLog).response { _ in }
             }
             if let impressionLog = anime.impressionLogs {
-                AF.request(LogAPI.getLog(log: impressionLog)).response { _ in }
+                AF.request(impressionLog).response { _ in }
             }
         }
     }

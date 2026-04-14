@@ -10,15 +10,15 @@ import SwiftUI
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
-    @State private var isLoggedIn: Bool = UserDefaultsManager.shared.getAccessToken().isEmpty
+    @State private var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
 
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
                 if isLoggedIn {
-                    AppDIContainer.makeLoginView()
-                } else {
                     AppDIContainer.makeContentView(activeTab: .home)
+                } else {
+                    AppDIContainer.makeLoginView()
                 }
             }
             .background(Color.white)

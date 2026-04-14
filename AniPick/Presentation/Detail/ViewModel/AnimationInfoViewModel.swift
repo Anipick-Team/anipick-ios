@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class AnimationInfoViewModel: ObservableObject {
     @Published var isShowSortOptionView: Bool = false
     @Published var isShowOnlyReview: Bool = false
@@ -42,7 +43,7 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var selectedReviewSortOption: SortOption = .latest
     
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     init(animeId: Int, navigationManager: NavigationManager) {
         self.animeId = animeId
@@ -66,7 +67,8 @@ extension AnimationInfoViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .response { response in
+            .response { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let data):
                     DLog("profile Image get successfully: \(String(describing: data))")
@@ -95,23 +97,24 @@ extension AnimationInfoViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: AnimeDetailResponse.self) { response in
+            .responseDecodable(of: AnimeDetailResponse.self) { [weak self] response in
+                guard let self else { return }
                 if let data = response.data {
                     let raw = String(data: data, encoding: .utf8) ?? "⚠️ 디코딩 불가"
                     print("📦 원본 응답: \(raw)")
                 }
-                
                 switch response.result {
                 case let .success(value):
                     DLog("anime Detail - \(response)")
                     self.animeDetailInfo = value.result
                     self.averageRating = value.result.averageRating ?? "-"
                     self.reviewCount = value.result.reviewCount ?? 0
-                    //    self.reviewContent = value.result.description ?? ""
                     self.isActiveLike = value.result.isLiked ?? false
                     self.selectedAnimationStatusTab = AnimationWatchStatus.fromStatus(value.result.watchStatus ?? "") ?? .empty
+                    AnalyticsManager.logAnimeDetailView(animeId: self.animeId, animeTitle: value.result.title)
                 case let .failure(error):
                     DLog("Error: \(error)")
+                    AnalyticsManager.logError(error, context: "fetchAnimationInfo")
                 }
             }
     }
@@ -121,12 +124,12 @@ extension AnimationInfoViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: SeriesAnimeResponse.self) { response in
+            .responseDecodable(of: SeriesAnimeResponse.self) { [weak self] response in
+                guard let self else { return }
                 if let data = response.data {
                     let raw = String(data: data, encoding: .utf8) ?? "⚠️ 디코딩 불가"
                     print("📦 원본 응답: \(raw)")
                 }
-                
                 switch response.result {
                 case let .success(value):
                     DLog("anime Recommendation response - \(response)")
@@ -148,24 +151,25 @@ extension AnimationInfoViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: CastResponse.self) { response in
+            .responseDecodable(of: CastResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("animeDetailActorInfo success - \(value)")
                     self.characterInfoList = value.result
-                    
                 case .failure(let error):
                     DLog("animeDetailActorInfo error - \(error)")
                 }
             }
     }
-    
+
     func fetchSeriesInfo(animeId: Int) {
         session.request(AnimeAPI.animeDetailSeriesInfo(animeId: animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: SeriesDetailResponse.self) { response in
+            .responseDecodable(of: SeriesDetailResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch Series Detail fetch Series Detail response - \(value)")
@@ -175,13 +179,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func fetchRecommendAnimeList(animeId: Int) {
         session.request(AnimeAPI.animeDetailRecommendation(animeId: animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecommendedAnimeResponse.self) { response in
+            .responseDecodable(of: RecommendedAnimeResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch recommend Anime success - \(value)")
@@ -209,7 +214,8 @@ extension AnimationInfoViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: RecentReviewsResponse.self) { response in
+        .responseDecodable(of: RecentReviewsResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let value):
                 DLog("리뷰리뷰 최신 리뷰 - \(value)")
@@ -228,7 +234,7 @@ extension AnimationInfoViewModel {
             }
         }
     }
-    
+
     func loadMoreReview() {
         session.request(
             AnimeAPI.reviewList(
@@ -243,7 +249,8 @@ extension AnimationInfoViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: RecentReviewsResponse.self) { response in
+        .responseDecodable(of: RecentReviewsResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let value):
                 DLog("리뷰리뷰 최신 리뷰 - \(value)")
@@ -265,45 +272,43 @@ extension AnimationInfoViewModel {
     
     
     func getMyReview() {
-        AF.request(AnimeAPI.myReview(animeId: self.animeId))
+        session.request(AnimeAPI.myReview(animeId: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: ReviewResponse.self) { response in
+            .responseDecodable(of: ReviewResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("getMyReview  - \(value)")
                     if let result = value.result {
-                       // if let reviewId = result.reviewId {
-                            self.hasMyReview = true
-                            self.reviewContent = result.content ?? ""
-                            self.myReviewCreatedAt = result.createdAt ?? ""
-                            self.storedMyReviewRate = result.rating ?? 0
-                            self.myLikeCount = result.likeCount ?? 0
-                            self.myReviewId = result.reviewId ?? 0
-//                        } else {
-//                            self.hasMyReview = false
-//                        }
+                        self.hasMyReview = true
+                        self.reviewContent = result.content ?? ""
+                        self.myReviewCreatedAt = result.createdAt ?? ""
+                        self.storedMyReviewRate = result.rating ?? 0
+                        self.myLikeCount = result.likeCount ?? 0
+                        self.myReviewId = result.reviewId ?? 0
                     }
                 case .failure(let error):
                     DLog("에러 발생 - \(error)")
                 }
             }
     }
-    
+
     func editMyReviewStar(reviewId: Int, ratedStar: Double) {
-        AF.request(AnimeAPI.editRating(
+        session.request(AnimeAPI.editRating(
             reviewId: reviewId,
             rating: ratedStar)
         )
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: BaseResponse.self) { response in
+        .responseDecodable(of: BaseResponse.self) { [weak self] response in
+            guard self != nil else { return }
             switch response.result {
             case .success(let value):
                 DLog("별점 수정 완 - \(value)")
-            case .failure(let error):
+            case .failure:
                 DLog("별점 수정 에러")
             }
         }
@@ -314,7 +319,8 @@ extension AnimationInfoViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("평점 등록 성공 - \(value)")
@@ -324,46 +330,51 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func tappedAnimeLike() {
         session.request(AnimeAPI.likeAnime(animeId: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("좋아요 성공 - \(value)")
                     self.isActiveLike.toggle()
+                    AnalyticsManager.logAnimeLike(animeId: self.animeId, animeTitle: self.animeDetailInfo?.title)
                 case .failure(let error):
                     DLog("좋아요 실패 - \(error)")
                 }
             }
     }
-    
+
     // TODO: ReviewAPI가 아닌 AnimeAPI 써야할,,듯,,?
     func tappedAnimeDislike() {
         session.request(AnimeAPI.cancelLikeAnime(animeId: self.animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("좋아요 성공 - \(value)")
                     self.isActiveLike.toggle()
+                    AnalyticsManager.logAnimeUnlike(animeId: self.animeId, animeTitle: self.animeDetailInfo?.title)
                 case .failure(let error):
                     DLog("좋아요 실패 - \(error)")
                 }
             }
     }
-    
+
     func tappedLikeReviewButton(reviewId: Int) {
         session.request(ReviewAPI.likeReview(id: reviewId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 좋아요 success - \(value)")
@@ -372,13 +383,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func tappedDislikeReviewButton(reviewId: Int) {
         session.request(ReviewAPI.cancelReview(id: reviewId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 좋아요 취소 success - \(value)")
@@ -387,13 +399,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func postAnimeWatchingStatus(animeId: Int, status: String) {
         session.request(AnimeAPI.animeWatchingStatus(animeId: animeId, status: status))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     if value.code == 128 {
@@ -406,13 +419,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func deleteAnimeWatchingStatus(animeId: Int) {
         session.request(AnimeAPI.deleteAnimeWatchingStatus(animeId: animeId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("애니메이션 시청 상태 삭제 성공 - \(value)")
@@ -421,13 +435,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func postReportReivew(id: Int, message: String, completion: @escaping () -> Void) {
         session.request(ReviewAPI.reportReview(id: id, message: message))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("리뷰 신고 성공 - \(value)")
@@ -437,13 +452,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func postBlockUser(userId: Int, completion: @escaping () -> Void) {
         session.request(ReviewAPI.blockUser(userId: userId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("작성자 차단 성공 - \(value)")
@@ -453,13 +469,14 @@ extension AnimationInfoViewModel {
                 }
             }
     }
-    
+
     func deleteMyReview(reviewId: Int, completion: @escaping () -> Void) {
         session.request(ReviewAPI.deleteReview(id: self.myReviewId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("리뷰 삭제 성공 - \(value)")
@@ -515,5 +532,21 @@ extension AnimationInfoViewModel {
             coverImageUrl: detail.coverImageUrl,
             genreNames: detail.genres?.map { $0.name } ?? []
         ))
+    }
+
+    /// 공유할 아이템 목록 반환
+    /// - 앱 설치 O: anipick://anime/{id} 딥링크로 바로 이동
+    /// - 앱 설치 X: 앱스토어 URL로 이동
+    func makeShareItems() -> [Any] {
+        guard let detail = animeDetailInfo else { return [] }
+        let title = detail.title ?? "애니픽"
+        let animeId = detail.animeId
+
+        AnalyticsManager.logAnimeShare(animeId: animeId, animeTitle: title)
+
+        let universalLink = URL(string: "https://anipick.p-e.kr/app/anime/detail/\(animeId)")!
+        let shareText = "애니픽에서 '\(title)'을 확인해보세요!"
+
+        return [shareText, universalLink]
     }
 }

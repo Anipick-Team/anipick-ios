@@ -204,7 +204,9 @@ struct AnimationInfoView: View {
                                 Spacer()
                                 
                                 Button {
-                                    DLog("공유버튼 탭탭")
+                                    let items = viewModel.makeShareItems()
+                                    guard !items.isEmpty else { return }
+                                    ShareSheet.present(items: items)
                                 } label: {
                                     Image(.shareButton)
                                 }

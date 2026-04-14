@@ -10,6 +10,7 @@ import Alamofire
 
 final class TokenInterceptor: RequestInterceptor {
     static let shared = TokenInterceptor()
+    private let lock = NSLock()
     private var isRefreshing = false
     private var requestsToRetry: [(RetryResult) -> Void] = []
     let excludedPaths = ["/login", "/users", "/auth"]
@@ -76,48 +77,42 @@ final class TokenInterceptor: RequestInterceptor {
             DLog("응답 코드: \(code)")
             
             if code == 119 {
-                DLog("🚫 code 119 - 로그인 이동")
+                DLog("🚫 code 119 - 토큰 갱신 시도")
 
-                
+                lock.lock()
+                if isRefreshing {
+                    requestsToRetry.append(completion)
+                    lock.unlock()
+                    return
+                }
+                isRefreshing = true
+                lock.unlock()
+
                 let refreshToken = UserDefaultsManager.shared.getRefreshToken()
-                AuthAPIService.shared.postRefreshToken(refreshToken: refreshToken) { result in
-                    self.isRefreshing = false
+                AuthAPIService.shared.postRefreshToken(refreshToken: refreshToken) { [weak self] result in
+                    guard let self else { return }
                     DLog("postRefreshToken - \(result)")
+
+                    self.lock.lock()
+                    self.isRefreshing = false
+                    let pending = self.requestsToRetry
+                    self.requestsToRetry.removeAll()
+                    self.lock.unlock()
+
                     switch result {
                     case .success(let response):
-                        if response.code == 119 {
-                            DLog("postRefresh 실패")
-                            DispatchQueue.main.async {
-                                DLog("Login 화면으로 이동이동")
-                                self.navigationManager?.popToRoot()
-                                self.navigationManager?.push(route: .mainLoginView)
-                            }
-                            completion(.doNotRetry)
-                            return
-                        }
-                        
-                        guard let accessToken = response.result?.accessToken,
-                              let refreshToken = response.result?.refreshToken else {
-                            self.requestsToRetry.forEach { $0(.doNotRetry) }
-                            self.requestsToRetry.removeAll()
-                            DLog("refreshToken 실패실패 - 토큰 없음, 로그인 인동")
-                            DispatchQueue.main.async {
-                                DLog("Login 화면으로 이동이동")
-                                self.navigationManager?.popToRoot()
-                                self.navigationManager?.push(route: .mainLoginView)
-                            }
-                            completion(.doNotRetry)
-                            return
-                        }
-                        
-                        if response.code == 200 {
-                            DLog("refreshToken 성공 - accessToken: \(accessToken) / refreshToken: \(refreshToken)")
+                        if response.code == 200,
+                           let accessToken = response.result?.accessToken,
+                           let refreshToken = response.result?.refreshToken {
+                            DLog("refreshToken 성공 - accessToken: \(accessToken)")
                             UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
                             UserDefaultsManager.shared.setRefreshToken(refreshToken: refreshToken)
+                            pending.forEach { $0(.retry) }
                             completion(.retry)
                         } else {
+                            DLog("refreshToken 실패 - 로그인 화면 이동")
+                            pending.forEach { $0(.doNotRetry) }
                             DispatchQueue.main.async {
-                                DLog("token 갱신 실패 - Login 화면으로 이동이동")
                                 self.navigationManager?.popToRoot()
                                 self.navigationManager?.push(route: .mainLoginView)
                             }
@@ -126,17 +121,17 @@ final class TokenInterceptor: RequestInterceptor {
 
                     case .failure(let error):
                         DLog("토큰 갱신 실패: \(error)")
+                        pending.forEach { $0(.doNotRetry) }
                         DispatchQueue.main.async {
-                            DLog("Login 화면으로 이동이동")
                             self.navigationManager?.popToRoot()
                             self.navigationManager?.push(route: .mainLoginView)
                         }
                         completion(.doNotRetry)
                     }
                 }
-                
+
                 return
-                
+
             }
         }
         

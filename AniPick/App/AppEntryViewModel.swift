@@ -24,29 +24,31 @@ final class AppEntryViewModel: ObservableObject {
             }
     }
     
-    func fetchMataData() {
+    func fetchMataData(retryCount: Int = 3) {
         session.request(MetaDataAPI.metaData)
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: MetaDataResponse.self) { response in
+            .responseDecodable(of: MetaDataResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
-                    // TODO: 성공했으면 userdefatuls 업데이트하는 로직 필요
                     DLog("meta data fetch 성공 - \(value)")
                     let seasonYear = value.result?.seasonYear ?? []
                     let animeType = value.result?.type ?? []
                     let genres = value.result?.genres ?? []
                     let season = value.result?.season ?? []
-                    
                     UserDefaultsManager.shared.setMetaDataForSeasonYear(seasonYear)
                     UserDefaultsManager.shared.setMetaDataForType(animeType)
                     UserDefaultsManager.shared.setMetaDataForGenres(genres)
                     UserDefaultsManager.shared.setMetaDataForSeason(season)
-                    
                 case .failure(let error):
-                    // TODO: 실패했을 떄, 그냥 userdefautls 그대로 사용.
                     DLog("meta data fetch 실패 - \(error)")
+                    if retryCount > 0 {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            self.fetchMataData(retryCount: retryCount - 1)
+                        }
+                    }
                 }
             }
     }
