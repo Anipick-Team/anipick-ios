@@ -16,40 +16,42 @@ enum ExploreFilterTab: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+enum ExploreMainTab: String, CaseIterable {
+    case anime = "작품 탐색"
+    case community = "커뮤니티"
+}
+
 struct ExploreView: View {
     @StateObject var viewModel: ExploreViewModel
     @EnvironmentObject var appState: AppState
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
-    
+
+    @State private var selectedMainTab: ExploreMainTab = .anime
+
     @State private var selectedTab: ExploreFilterTab = .yearQuarter
     @State private var isPresentYearFilter: Bool = false
-    
-    @State private var activeFilterTab: ExploreFilterTab? = nil   // NEW
+    @State private var activeFilterTab: ExploreFilterTab? = nil
 
-    
     @State private var isPresentGenreFilter: Bool = false
-    
     @State private var fromHomeupcoming: Bool = false
-    
+
     @State private var tmpSelectedYear: String = ""
     @State private var tmpSelectedSeason: String = ""
     @State private var tmpSelectedGenreList: [String] = []
     @State private var tmpSelectedType: String = ""
-    
+
     @State private var showFilterBar = true
     @State private var lastOffset: CGFloat = 0
     @State private var filterBarLocked = false
 
-    
     @State private var genreList: [String] = []
-    
-    // UI체크용
+
     @State private var selectedGenre: String = ""
     @State private var selectedGenreListForUI: [String] = []
     @State private var sheetHeight: CGFloat = 400
-    
+
     @State private var lastScrollOffset: CGFloat = 0
-     @State private var currentScrollOffset: CGFloat = 0
+    @State private var currentScrollOffset: CGFloat = 0
     private let scrollThreshold: CGFloat = 30
 
     var currentList: [String] {
@@ -60,105 +62,24 @@ struct ExploreView: View {
         case .season: return ["전체 분기", "1분기", "2분기", "3분기", "4분기"]
         }
     }
-    
+
     let quarterList = ["전체", "1", "2", "3", "4"]
-    
+
     @State private var exploreRequestItem: ExploreReqeustItem? = nil
-    
+
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(alignment: .leading, spacing: 0) {
-                
-                self.headerView()
-                
-                if showFilterBar {
-                    Spacer().frame(height: 16)
-                    
-                    HStack(spacing: 0) {
-                        self.filterCategoryButtonView(selectedTab: .yearQuarter)
-                            .padding(.trailing, 8)
 
-                        self.filterCategoryButtonView(selectedTab: .genre)
-                            .padding(.trailing, 8)
+                headerView()
 
-                        self.filterCategoryButtonView(selectedTab: .type)
+                mainTabBarView()
 
-                    }
-                    .padding(.horizontal, showFilterBar ? 20 : 0)
-                    .transition(.opacity.combined(with: .move(edge: .top)))
+                if selectedMainTab == .anime {
+                    animeTabContent()
+                } else {
+                    ExploreCommunityView()
                 }
-                
-                if viewModel.selectedTagList.isEmpty == false {
-                    self.selectredCategoryView()
-                }
-                
-                HStack(spacing: 0) {
-                    Spacer()
-                    
-                    Button {
-                        DLog("인기순 탭탭")
-                        self.viewModel.isShowSortOptionView.toggle()
-                    } label: {
-                        Text(self.viewModel.selectedCategory.title)
-                            .customFontStyle(size: 14, color: .gray8)
-                            .padding(.trailing, 20)
-                    }
-                }
-                .padding(.bottom, 20)
-                .padding(.top, 8)
-                
-                ScrollView(showsIndicators: false) {
-                    GeometryReader { geo in
-                        Color.clear
-                            .onChange(of: geo.frame(in: .global).minY) { newValue in
-                                let diff = newValue - currentScrollOffset
-                                currentScrollOffset = newValue
-
-                                guard !filterBarLocked else { return }
-
-                                if abs(diff) > scrollThreshold {
-                                    if diff < 0 && showFilterBar {
-                                        filterBarLocked = true
-                                        withAnimation(.easeInOut(duration: 0.05)) { showFilterBar = false }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                            filterBarLocked = false
-                                        }
-                                    } else if diff > 0 && !showFilterBar {
-                                        filterBarLocked = true
-                                        withAnimation(.easeInOut(duration: 0.05)) { showFilterBar = true }
-                                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                                            filterBarLocked = false
-                                        }
-                                    }
-                                }
-                            }
-                            .preference(key: ScrollOffsetKey.self,
-                                        value: geo.frame(in: .global).minY)
-                    }
-                    .frame(height: 0)
-//                    GeometryReader { geo in
-//                        Color.clear
-//                            .preference(key: ScrollOffsetPreferenceKey.self,
-//                                        value: geo.frame(in: .global).minY)
-//                    }
-//                    .frame(height: 1)
-                    
-                        LazyVGrid(columns: columns, spacing: 24) {
-                            ForEach(viewModel.exploreItems, id: \.animeId) { item in
-                                animationCell(item: item) {
-                                    self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
-                                }
-                                .onAppear {
-                                    if item == viewModel.exploreItems.last {
-                                        DLog("explore 데이터 확인 - \(item) -- \(String(describing: viewModel.exploreItems.last))")
-                                        viewModel.fetchFiletedExploreData()
-                                    }
-                                }
-                            }
-                        }
-                }
-                .coordinateSpace(name: "explore")
-                .padding(.horizontal, 20)
             }
             .onChange(of: selectedTab) { newValue in
                 DLog("선택된 Tab - \(newValue)")
@@ -170,7 +91,6 @@ struct ExploreView: View {
                 filterSelectedHalfModalView()
                     .id(selectedTab)
                     .presentationDetents([.height(self.sheetHeight)])
-                
             }
             .background(Color.white)
             .navigationBarBackButtonHidden(true)
@@ -184,7 +104,8 @@ struct ExploreView: View {
                 DLog("appState onChange 감지")
                 applyIncomingFilterIfNeeded()
             }
-            if viewModel.isShowSortOptionView {
+
+            if viewModel.isShowSortOptionView && selectedMainTab == .anime {
                 getSortOptionView(sort: viewModel.selectedCategory)
                     .padding(.trailing, 20)
                     .offset(y: 160)
@@ -192,24 +113,125 @@ struct ExploreView: View {
                     .animation(.easeInOut, value: viewModel.isShowSortOptionView)
             }
         }
-        .onPreferenceChange(ScrollOffsetKey.self) { newValue in
+        .onPreferenceChange(ScrollOffsetKey.self) { _ in }
+    }
 
+    // MARK: - 메인 탭 바 (작품 탐색 | 커뮤니티)
+    private func mainTabBarView() -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ForEach(ExploreMainTab.allCases, id: \.self) { tab in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedMainTab = tab
+                        }
+                    } label: {
+                        VStack(spacing: 0) {
+                            Text(tab.rawValue)
+                                .font(.system(size: 16, weight: selectedMainTab == tab ? .semibold : .regular))
+                                .foregroundColor(selectedMainTab == tab ? .anipickBlack : .gray6)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+
+                            Rectangle()
+                                .frame(height: 2)
+                                .foregroundColor(selectedMainTab == tab ? .anipickBlack : .clear)
+                        }
+                    }
+                }
+            }
+
+            Rectangle()
+                .frame(maxWidth: .infinity)
+                .frame(height: 1)
+                .foregroundColor(.gray5)
         }
-//        .onPreferenceChange(ScrollOffsetPreferenceKey.self) { y in
-//            DLog("스크롤 Y offset: \(y)")
-//            handleScroll(yOffset: y)
-//        }
     }
-    
-    func handleScroll(yOffset: CGFloat) {
-        DLog("yoffset - \(yOffset)")
-        if yOffset < -50 {
-            showFilterBar = false
-        } else {
-            showFilterBar = true
+
+    // MARK: - 작품 탐색 탭 컨텐츠
+    @ViewBuilder
+    private func animeTabContent() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            if showFilterBar {
+                Spacer().frame(height: 16)
+
+                HStack(spacing: 0) {
+                    self.filterCategoryButtonView(selectedTab: .yearQuarter)
+                        .padding(.trailing, 8)
+                    self.filterCategoryButtonView(selectedTab: .genre)
+                        .padding(.trailing, 8)
+                    self.filterCategoryButtonView(selectedTab: .type)
+                }
+                .padding(.horizontal, 20)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+
+            if viewModel.selectedTagList.isEmpty == false {
+                self.selectredCategoryView()
+            }
+
+            HStack(spacing: 0) {
+                Spacer()
+                Button {
+                    DLog("인기순 탭탭")
+                    self.viewModel.isShowSortOptionView.toggle()
+                } label: {
+                    Text(self.viewModel.selectedCategory.title)
+                        .customFontStyle(size: 14, color: .gray8)
+                        .padding(.trailing, 20)
+                }
+            }
+            .padding(.bottom, 20)
+            .padding(.top, 8)
+
+            ScrollView(showsIndicators: false) {
+                GeometryReader { geo in
+                    Color.clear
+                        .onChange(of: geo.frame(in: .global).minY) { newValue in
+                            let diff = newValue - currentScrollOffset
+                            currentScrollOffset = newValue
+
+                            guard !filterBarLocked else { return }
+
+                            if abs(diff) > scrollThreshold {
+                                if diff < 0 && showFilterBar {
+                                    filterBarLocked = true
+                                    withAnimation(.easeInOut(duration: 0.05)) { showFilterBar = false }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        filterBarLocked = false
+                                    }
+                                } else if diff > 0 && !showFilterBar {
+                                    filterBarLocked = true
+                                    withAnimation(.easeInOut(duration: 0.05)) { showFilterBar = true }
+                                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                                        filterBarLocked = false
+                                    }
+                                }
+                            }
+                        }
+                        .preference(key: ScrollOffsetKey.self, value: geo.frame(in: .global).minY)
+                }
+                .frame(height: 0)
+
+                LazyVGrid(columns: columns, spacing: 24) {
+                    ForEach(viewModel.exploreItems, id: \.animeId) { item in
+                        animationCell(item: item) {
+                            self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
+                        }
+                        .onAppear {
+                            if item == viewModel.exploreItems.last {
+                                DLog("explore 데이터 확인 - \(item)")
+                                viewModel.fetchFiletedExploreData()
+                            }
+                        }
+                    }
+                }
+            }
+            .coordinateSpace(name: "explore")
+            .padding(.horizontal, 20)
         }
     }
-    
+
     @discardableResult
     private func applyIncomingFilterIfNeeded() -> Bool {
         guard let f = AppDIContainer.appState.consumeExploreFilter() else { return false }
@@ -227,9 +249,8 @@ struct ExploreView: View {
         viewModel.fetchInitFilteredExploreData()
         return true
     }
-    
+
     private func filterCategoryButtonView(selectedTab: ExploreFilterTab) -> some View {
-      //  let isSelectedFilter = self.viewModel.checkFilterColored(selectedTab: selectedTab)
         let isSelectedFilter = self.viewModel.selectedTagList.contains { $0.category == selectedTab }
         return VStack(spacing: 0) {
             Button {
@@ -245,7 +266,7 @@ struct ExploreView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(isSelectedFilter ? .anipickSecondary : .textBlack)
                         .padding(.trailing, 10)
-                    
+
                     Image(isSelectedFilter ? .chevronDownBlue : .chevronDownGray)
                 }
                 .padding(.horizontal, 15)
@@ -260,77 +281,73 @@ struct ExploreView: View {
     }
 
     private func selectredCategoryView() -> some View {
-        return
-            VStack(spacing: 0) {
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 1)
-                    .background(.gray5)
-                
-                Spacer().frame(height: 12)
-                
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 0) {
-                        ForEach(self.viewModel.selectedTagList, id: \.self) { item in
-                            HStack(spacing: 0) {
-                                let postFix = item.value == "전체 분기" ? "" : "분기"
-                                if item.category == .season {
-                                    Text("\(item.value)\(postFix)")
-                                        .padding(.trailing, 4)
-                                        .customFontStyle(size: 14, color: .anipickPrimary)
-                                } else {
-                                    Text(item.value)
-                                        .padding(.trailing, 4)
-                                        .customFontStyle(size: 14, color: .anipickPrimary)
-                                }
-                                
-                                Button {
-                                    DLog("viewModel에서 해당 값 삭제삭제")
-                                    self.viewModel.removeTagView(item: item)
+        return VStack(spacing: 0) {
+            Rectangle()
+                .foregroundColor(.clear)
+                .frame(maxWidth: .infinity)
+                .frame(height: 1)
+                .background(.gray5)
 
-                                    if item.category == .genre {
-                                        if let index = self.selectedGenreListForUI.firstIndex(of: item.value) {
-                                            self.selectedGenreListForUI.remove(at: index)
-                                        }
-                                    }
-                                    
-                                    if item.category == .yearQuarter {
-                                        self.viewModel.selectedTagList.removeAll { $0.category == .yearQuarter || $0.category == .season }
-                                    }
-                                    self.viewModel.fetchInitFilteredExploreData()
+            Spacer().frame(height: 12)
 
-                                } label: {
-                                    Image(.xButtonGreen)
-                                        .resizable()
-                                        .frame(width: 15, height: 15)
-                                }
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 0) {
+                    ForEach(self.viewModel.selectedTagList, id: \.self) { item in
+                        HStack(spacing: 0) {
+                            let postFix = item.value == "전체 분기" ? "" : "분기"
+                            if item.category == .season {
+                                Text("\(item.value)\(postFix)")
+                                    .padding(.trailing, 4)
+                                    .customFontStyle(size: 14, color: .anipickPrimary)
+                            } else {
+                                Text(item.value)
+                                    .padding(.trailing, 4)
+                                    .customFontStyle(size: 14, color: .anipickPrimary)
                             }
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 8)
-                            .background(Color.anipickPrimary.opacity(0.2))
-                            .cornerRadius(32)
+
+                            Button {
+                                DLog("viewModel에서 해당 값 삭제삭제")
+                                self.viewModel.removeTagView(item: item)
+
+                                if item.category == .genre {
+                                    if let index = self.selectedGenreListForUI.firstIndex(of: item.value) {
+                                        self.selectedGenreListForUI.remove(at: index)
+                                    }
+                                }
+
+                                if item.category == .yearQuarter {
+                                    self.viewModel.selectedTagList.removeAll { $0.category == .yearQuarter || $0.category == .season }
+                                }
+                                self.viewModel.fetchInitFilteredExploreData()
+                            } label: {
+                                Image(.xButtonGreen)
+                                    .resizable()
+                                    .frame(width: 15, height: 15)
+                            }
                         }
-                        .padding(.trailing, 4)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 8)
+                        .background(Color.anipickPrimary.opacity(0.2))
+                        .cornerRadius(32)
                     }
+                    .padding(.trailing, 4)
                 }
-                .padding(.horizontal, 20)
-                
-                Spacer().frame(height: 12)
-                
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 1)
-                    .background(.gray5)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-        
+            .padding(.horizontal, 20)
+
+            Spacer().frame(height: 12)
+
+            Rectangle()
+                .foregroundColor(.clear)
+                .frame(maxWidth: .infinity)
+                .frame(height: 1)
+                .background(.gray5)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 16)
     }
 
-    
-    private func filterSelectedHalfModalView () -> some View {
+    private func filterSelectedHalfModalView() -> some View {
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
                 Button {
@@ -341,7 +358,7 @@ struct ExploreView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(self.selectedTab == .yearQuarter ? .anipickBlack : .textGray)
                 }
-                
+
                 Button {
                     self.selectedTab = .genre
                 } label: {
@@ -350,8 +367,7 @@ struct ExploreView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(self.selectedTab == .genre ? .anipickBlack : .textGray)
                 }
-                
-                
+
                 Button {
                     self.selectedTab = .type
                 } label: {
@@ -360,11 +376,9 @@ struct ExploreView: View {
                         .font(.system(size: 16))
                         .foregroundStyle(self.selectedTab == .type ? .anipickBlack : .textGray)
                 }
-                
-                
+
                 Spacer()
-                
-                
+
                 Button {
                     print("닫기 탭탭")
                     self.isPresentYearFilter.toggle()
@@ -377,30 +391,25 @@ struct ExploreView: View {
             .padding(.top, 8)
             .padding(.bottom, 16)
             .padding(.horizontal, 20)
-            
-            
+
             Rectangle()
                 .frame(maxWidth: .infinity)
                 .frame(height: 1)
                 .foregroundStyle(.gray7)
-            
-            
+
             if self.selectedTab == .yearQuarter {
-                // TODO: wheel picker Custom 하게 구현 -> Color 색상 변경 가능하도록 수정
                 self.makeYearAndSeasonView()
             } else if selectedTab == .genre {
                 self.makeGenreView()
             } else if selectedTab == .type {
                 self.makeTypeView()
             }
-            
-            
+
             Spacer()
-            
+
             HStack(spacing: 0) {
-                
                 Spacer()
-                
+
                 Button {
                     DLog("초기화버튼 탭 - 모든 장르 초기화")
                     self.viewModel.selectedAllClear = true
@@ -412,57 +421,49 @@ struct ExploreView: View {
                     self.tmpSelectedType = ""
                     self.tmpSelectedYear = ""
                     self.tmpSelectedSeason = ""
-
                 } label: {
                     Text("초기화")
                         .font(.system(size: 14))
                         .foregroundStyle(.textGray)
                 }
-                
+
                 Spacer().frame(width: 16)
-                
+
                 Button {
                     DLog("완료버튼 탭탭")
                     if tmpSelectedYear.isEmpty == false {
                         let item = ExploreSelectedTag(category: .yearQuarter, value: tmpSelectedYear)
                         self.insertTagReplacingCategory(item)
-                    //    self.insertTagIfNotExist(item)
                     }
-                    
+
                     if tmpSelectedSeason.isEmpty == false {
                         let item = ExploreSelectedTag(category: .season, value: tmpSelectedSeason)
                         self.insertTagReplacingCategory(item)
-                      //  self.insertTagIfNotExist(item)
                     }
-                    
+
                     if tmpSelectedGenreList.isEmpty == false {
                         for item in tmpSelectedGenreList {
                             let genreItem = ExploreSelectedTag(category: .genre, value: item)
                             self.insertTagIfNotExist(genreItem)
                         }
-                       
                     }
-                    
+
                     if tmpSelectedType.isEmpty == false {
                         let item = ExploreSelectedTag(category: .type, value: tmpSelectedType)
                         self.insertTagReplacingCategory(item)
                     }
-                    
-                //    self.tmpSelectedYear = ""
-                 //   self.tmpSelectedSeason = ""
-                 //   self.tmpSelectedType = ""
+
                     self.tmpSelectedGenreList.removeAll()
-                    
+
                     DLog("tagList 확인 - \(self.viewModel.selectedTagList)")
                     self.isPresentYearFilter.toggle()
                     self.viewModel.exploreItems.removeAll()
                     viewModel.fetchInitFilteredExploreData()
-                    
+
                     if viewModel.selectedAllClear {
                         self.viewModel.allClearSelectedCategory()
                         self.viewModel.selectedAllClear = false
                     }
-                    
                 } label: {
                     Text("완료")
                         .frame(width: 60, height: 30)
@@ -480,7 +481,7 @@ struct ExploreView: View {
             if self.tmpSelectedSeason == "" {
                 self.tmpSelectedSeason = quarterList.first ?? "전체 분기"
             }
-            
+
             if selectedTab == .yearQuarter {
                 if self.tmpSelectedYear == "" {
                     self.tmpSelectedYear = currentList.first ?? ""
@@ -488,22 +489,18 @@ struct ExploreView: View {
             }
         }
     }
-    
-   private func insertTagIfNotExist(_ tag: ExploreSelectedTag) {
+
+    private func insertTagIfNotExist(_ tag: ExploreSelectedTag) {
         if !viewModel.selectedTagList.contains(where: { $0.category == tag.category && $0.value == tag.value }) {
             viewModel.selectedTagList.insert(tag, at: 0)
         }
     }
 
     private func insertTagReplacingCategory(_ tag: ExploreSelectedTag) {
-        // 1️⃣ 같은 category 가진 항목이 있으면 모두 제거
         viewModel.selectedTagList.removeAll { $0.category == tag.category }
-
-        // 2️⃣ 새 tag 추가
         viewModel.selectedTagList.insert(tag, at: 0)
     }
 
-    
     private func animationCell(item: Anime, action: @escaping () -> Void) -> some View {
         return Button {
             action()
@@ -512,17 +509,16 @@ struct ExploreView: View {
         }
         .buttonStyle(.plain)
     }
-    
+
     private func headerView() -> some View {
-        // MARK: - 상단 로고 및 searchBar
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Image(.aniPickLogoGreen)
                     .resizable()
                     .frame(width: 110, height: 22)
-                
+
                 Spacer()
-                
+
                 Button {
                     DLog("searchButton Tapped")
                     self.viewModel.moveToSearchView()
@@ -533,24 +529,10 @@ struct ExploreView: View {
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 32)
-            
-            if showFilterBar {
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 1)
-                    .background(.gray5)
-                
-                Rectangle()
-                    .foregroundColor(.clear)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 9)
-                    .background(.gray7)
-            }
+            .padding(.vertical, 16)
         }
     }
-    
+
     private func getSortOptionView(sort: ExploreSortCategory) -> some View {
         return VStack(spacing: 0) {
             ForEach(ExploreSortCategory.allCases, id: \.self) { option in
@@ -576,7 +558,6 @@ struct ExploreView: View {
         .shadow(radius: 4)
         .frame(width: 91)
     }
-    
 }
 
 // MARK: UI Component
@@ -590,7 +571,7 @@ extension ExploreView {
                 }
             }
             .pickerStyle(.wheel)
-            
+
             Picker("", selection: self.$tmpSelectedSeason) {
                 ForEach(quarterList, id: \.self) {
                     Text($0)
@@ -600,21 +581,19 @@ extension ExploreView {
             .pickerStyle(.wheel)
         }
     }
-    
+
     private func makeGenreView() -> some View {
         return VStack(spacing: 0) {
             HStack(spacing: 0) {
                 Spacer()
-                
+
                 Button {
                     self.viewModel.isToggleAllGenreCondition.toggle()
-                  //  self.selectedGenreListForUI.removeAll()
-               //     self.viewModel.tappedAllCondition()
                 } label: {
                     Text("모든 조건 일치")
                         .customFontStyle(size: 14, color: .anipickBlack)
                         .padding(.trailing, 4)
-                    
+
                     Image(self.viewModel.isToggleAllGenreCondition ? .grayToggleOn : .grayToggleOff)
                         .resizable()
                         .frame(width: 40, height: 24)
@@ -622,8 +601,7 @@ extension ExploreView {
             }
             .padding(.bottom, 12)
             .padding(.trailing, 8)
-            
-            
+
             ScrollView(showsIndicators: false) {
                 FlowLayout() {
                     ForEach(currentList, id: \.self) { item in
@@ -635,11 +613,9 @@ extension ExploreView {
                                 self.tmpSelectedGenreList.append(item)
                                 self.selectedGenreListForUI.append(item)
                             }
-                            
                             DLog("check - \(tmpSelectedGenreList)")
                         } label: {
                             let isSelected = selectedGenreListForUI.contains(item)
-                            
                             Text(item)
                                 .font(.system(size: 14))
                                 .padding(.horizontal, 16)
@@ -650,7 +626,6 @@ extension ExploreView {
                                         .stroke(isSelected ? .anipickSecondary : .gray6)
                                 )
                         }
-                        
                     }
                 }
             }
@@ -658,7 +633,7 @@ extension ExploreView {
         .padding(20)
         .background(.white)
     }
-    
+
     private func makeTypeView() -> some View {
         return ScrollView(showsIndicators: false) {
             FlowLayout() {
@@ -666,7 +641,6 @@ extension ExploreView {
                     Button {
                         DLog("Type : \(item)")
                         self.tmpSelectedType = item
-                        // viewModel.selectedType = item
                     } label: {
                         Text(item)
                             .font(.system(size: 14))
@@ -678,13 +652,13 @@ extension ExploreView {
                                     .stroke(self.tmpSelectedType == item ? .anipickSecondary : .gray6)
                             )
                     }
-                    
                 }
             }
         }
         .padding(20)
     }
 }
+
 #Preview {
     AppDIContainer.makeExploreView()
 }
