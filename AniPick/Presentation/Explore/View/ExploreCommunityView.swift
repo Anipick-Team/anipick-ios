@@ -6,6 +6,7 @@
 import SwiftUI
 
 struct ExploreCommunityView: View {
+    @EnvironmentObject private var navigationManager: NavigationManager
     @State private var searchText: String = ""
     @State private var isShowSortOption: Bool = false
     @State private var selectedSort: String = "인기순"
@@ -18,7 +19,7 @@ struct ExploreCommunityView: View {
         CommunityAnimeItem(id: $0, title: "애니메이션 제목", tag: "text", coverImageUrl: nil)
     }
 
-    private let dropdownWidth: CGFloat = 160
+    private let dropdownWidth: CGFloat = 90
 
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -28,24 +29,22 @@ struct ExploreCommunityView: View {
                     .padding(.top, 16)
                     .padding(.bottom, 12)
 
-                HStack {
-                    Spacer()
-                    sortButton()
-                        .padding(.trailing, 20)
-                }
-                .padding(.bottom, 8)
-
                 Rectangle()
                     .frame(maxWidth: .infinity)
                     .frame(height: 4)
                     .foregroundColor(.gray7)
 
+                HStack {
+                    Spacer()
+                    sortButton()
+                        .padding(.trailing, 20)
+                }
+                .padding(.vertical, 8)
+
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 0) {
                         ForEach(dummyItems) { item in
                             communityAnimeCell(item: item)
-                            Divider()
-                                .padding(.horizontal, 20)
                         }
                     }
                 }
@@ -59,16 +58,17 @@ struct ExploreCommunityView: View {
                             isShowSortOption = false
                         } label: {
                             Text(option)
-                                .font(.system(size: 16, weight: .regular))
+                                .font(.system(size: 14, weight: .regular))
                                 .foregroundColor(.anipickBlack)
                                 .frame(maxWidth: .infinity, alignment: .center)
-                                .padding(.vertical, 20)
+                                .padding(.vertical, 13)
                         }
                         if option != sortOptions.last {
                             Rectangle()
                                 .frame(maxWidth: .infinity)
                                 .frame(height: 1)
                                 .foregroundColor(.gray7)
+                                .padding(.horizontal, 15)
                         }
                     }
                 }
@@ -78,11 +78,12 @@ struct ExploreCommunityView: View {
                 .frame(width: dropdownWidth)
                 .position(
                     x: sortButtonFrame.maxX - dropdownWidth / 2,
-                    y: sortButtonFrame.maxY + 8 + (CGFloat(sortOptions.count) * 61 / 2)
+                    y: sortButtonFrame.maxY + 6 + CGFloat(sortOptions.count) * 32
                 )
                 .zIndex(2)
             }
         }
+        .coordinateSpace(name: "communityZStack")
         .contentShape(Rectangle())
         .onTapGesture {
             if isShowSortOption { isShowSortOption = false }
@@ -92,9 +93,17 @@ struct ExploreCommunityView: View {
     @ViewBuilder
     private func searchBar() -> some View {
         HStack(spacing: 12) {
-            TextField("검색어 입력", text: $searchText)
-                .font(.system(size: 15))
-                .foregroundColor(.anipickBlack)
+            ZStack(alignment: .leading) {
+                if searchText.isEmpty {
+                    Text("검색어 입력")
+                        .font(.system(size: 15))
+                        .foregroundColor(.gray6)
+                        .allowsHitTesting(false)
+                }
+                TextField("", text: $searchText)
+                    .font(.system(size: 15))
+                    .foregroundColor(.anipickBlack)
+            }
 
             Spacer()
 
@@ -134,9 +143,9 @@ struct ExploreCommunityView: View {
         .background(
             GeometryReader { proxy in
                 Color.clear
-                    .onAppear { sortButtonFrame = proxy.frame(in: .global) }
+                    .onAppear { sortButtonFrame = proxy.frame(in: .named("communityZStack")) }
                     .onChange(of: isShowSortOption) { _ in
-                        sortButtonFrame = proxy.frame(in: .global)
+                        sortButtonFrame = proxy.frame(in: .named("communityZStack"))
                     }
             }
         )
@@ -144,7 +153,7 @@ struct ExploreCommunityView: View {
 
     @ViewBuilder
     private func communityAnimeCell(item: CommunityAnimeItem) -> some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .center, spacing: 20) {
             if let urlString = item.coverImageUrl, let url = URL(string: urlString) {
                 AsyncImage(url: url) { phase in
                     switch phase {
@@ -152,8 +161,8 @@ struct ExploreCommunityView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 72, height: 72)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                            .frame(width: 116, height: 116)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
                     default:
                         placeholderImage()
                     }
@@ -162,31 +171,41 @@ struct ExploreCommunityView: View {
                 placeholderImage()
             }
 
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 10) {
                 Text(item.title)
-                    .customFontStyle(size: 15, color: .anipickBlack, weight: .semibold)
-                    .lineLimit(1)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.anipickBlack)
+                    .lineLimit(2)
 
                 Text(item.tag)
-                    .customFontStyle(size: 12, color: .anipickPrimary)
+                    .font(.system(size: 12))
+                    .foregroundColor(.anipickPrimary)
                     .padding(.horizontal, 10)
-                    .padding(.vertical, 4)
-                    .background(Color.anipickPrimary.opacity(0.12))
-                    .cornerRadius(4)
+                    .padding(.vertical, 5)
+                    .background(Color.anipickPrimary.opacity(0.1))
+                    .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(Color.anipickPrimary.opacity(0.4), lineWidth: 1)
+                    )
             }
 
             Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
         .background(Color.white)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            navigationManager.push(route: .communityDetail)
+        }
     }
 
     @ViewBuilder
     private func placeholderImage() -> some View {
-        RoundedRectangle(cornerRadius: 8)
+        RoundedRectangle(cornerRadius: 10)
             .foregroundColor(.gray5)
-            .frame(width: 72, height: 72)
+            .frame(width: 116, height: 116)
     }
 }
 

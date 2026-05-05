@@ -89,5 +89,7 @@ enum AppRoute: Hashable {
     case seriesDetail(animeId: Int, animeTitle: String)
     case recommend(animeId: Int, animeTitle: String)
     case community(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
+    case communityDetail
+    case myContent
 
 }
