@@ -16,8 +16,7 @@ struct HomeSearchView: View {
     
     @State private var selectedTab: SearchTab = .initSearch
     @State private var tabWidths: [SearchTab: CGFloat] = [:]
-    let dummy = makeDummyHomeSearchResponse()
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 0) {
@@ -165,7 +164,7 @@ struct HomeSearchView: View {
         }
     }
     
-    private func getCountString(info: HomeSearchResult?, tab: SearchTab) -> Int {
+    private func getCountString(tab: SearchTab) -> Int {
         switch tab {
         case .animation:
             return viewModel.animeListCount
@@ -193,7 +192,7 @@ struct HomeSearchView: View {
                                     .customFontStyle(size: 16, color: selectedTab == tab ? .anipickBlack : .gray8)
                                     .padding(.trailing, 2)
                                 
-                                let count = self.getCountString(info: dummy?.result, tab: tab)
+                                let count = self.getCountString(tab: tab)
                                 Text("\(count)건")
                                     .customFontStyle(size: 14, color: .gray6)
                             }

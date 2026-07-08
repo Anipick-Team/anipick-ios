@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class WriteReviewViewModel: ObservableObject {
     
     @Published var reviewTextContent: String = ""
@@ -15,7 +16,7 @@ final class WriteReviewViewModel: ObservableObject {
     @Published var isSpoiler: Bool = false
     @Published var animeId: Int = 0
     @Published var isFirstVisit: Bool = true
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     private let navigationManager: NavigationManager
     
     init(navigationManager: NavigationManager, starRating: Double, animeId: Int, reviewContent: String) {

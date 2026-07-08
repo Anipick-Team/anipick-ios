@@ -88,8 +88,8 @@ struct AppEntryView: View {
                     InquiryView()
                 case .preferenceSelection:
                     AppDIContainer.makePreferenceSelectionView()
-                case .commingSoonDetail:
-                    AppDIContainer.makeCommingSoonView()
+                case .comingSoonDetail:
+                    AppDIContainer.makeComingSoonView()
                 case .mainLoginView:
                     AppDIContainer.makeLoginView()
                 case .recentReview:

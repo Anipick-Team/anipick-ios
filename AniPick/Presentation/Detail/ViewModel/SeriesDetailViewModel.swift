@@ -8,14 +8,15 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class SeriesDetailViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let animeId: Int
     @Published var animeTitle: String
     @Published var animeList: [SeriesAnime] = []
     @Published var count: Int = 0
-    let session = Session(interceptor: TokenInterceptor.shared)
-    var lastId: Int? = nil
+    private let session = NetworkSession.authenticated
+    private var lastId: Int? = nil
     
     init(
         navigationManager: NavigationManager,
@@ -37,7 +38,8 @@ final class SeriesDetailViewModel: ObservableObject {
         .cURLDescription { des in
             DLog("series Detail Info - \(des)")
         }
-        .responseDecodable(of: SeriesAnimeResponse.self) { response in
+        .responseDecodable(of: SeriesAnimeResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let response):
                 DLog("series Detail success - \(response)")
@@ -61,7 +63,8 @@ final class SeriesDetailViewModel: ObservableObject {
         .cURLDescription { des in
             DLog("series Detail Info - \(des)")
         }
-        .responseDecodable(of: SeriesAnimeResponse.self) { response in
+        .responseDecodable(of: SeriesAnimeResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let response):
                 DLog("series Detail success - \(response)")

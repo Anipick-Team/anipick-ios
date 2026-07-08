@@ -5,6 +5,7 @@
 
 import SwiftUI
 
+@MainActor
 final class AdultSettingViewModel: ObservableObject {
     @Published var isAdultVerified: Bool = false
     @Published var isAdultContentEnabled: Bool = false

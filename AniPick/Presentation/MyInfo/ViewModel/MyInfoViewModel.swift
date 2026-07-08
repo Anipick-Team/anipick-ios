@@ -39,9 +39,9 @@ final class MyInfoViewModel: ObservableObject {
     @Published var isEmptyLikeAnime: Bool = true
     @Published var isEmptyLikePerson: Bool = true
     
-    var watchlistLastId: Int? = nil
-    var watchingListLastId: Int? = nil
-    var likedPersonLastId: Int? = nil
+    private var watchlistLastId: Int? = nil
+    private var watchingListLastId: Int? = nil
+    private var likedPersonLastId: Int? = nil
 }
 
 extension MyInfoViewModel {
@@ -191,7 +191,7 @@ extension MyInfoViewModel {
         let request = ProfileAPI.editProfileImage(image: image)
         session.upload(multipartFormData: { multidata in
             guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-                print("Failed to convert image to data")
+                DLog("Failed to convert image to data")
                 return
             }
             multidata.append(imageData, withName: "profileImageFile", fileName: "profile.jpg", mimeType: "image/jpeg")
@@ -200,9 +200,9 @@ extension MyInfoViewModel {
             guard self != nil else { return }
             switch response.result {
             case .success(let data):
-                print("Image uploaded successfully: \(String(describing: data))")
+                DLog("Image uploaded successfully: \(String(describing: data))")
             case .failure(let error):
-                print("Failed to upload image: \(error.localizedDescription)")
+                DLog("Failed to upload image: \(error.localizedDescription)")
             }
         }
     }

@@ -8,16 +8,17 @@
 import Foundation
 import Alamofire
 
+@MainActor
 final class RecommendViewModel: ObservableObject {
-    @Published var recommedationAnimes: [Anime] = []
-    @Published var recommedationTitle: String = ""
+    @Published var recommendationAnimes: [Anime] = []
+    @Published var recommendationTitle: String = ""
     
     private let navigationManager: NavigationManager
     private let animeId: Int
     let animeTitle: String?
-    var lastId: Int? = nil
+    private var lastId: Int? = nil
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     init(navigationManager: NavigationManager, animeId: Int, animeTitle: String?) {
         self.navigationManager = navigationManager
         self.animeId = animeId
@@ -26,27 +27,28 @@ final class RecommendViewModel: ObservableObject {
     }
     
     func fetchRecommendationAnime() {
-        session.request(RecommendationAPI.recommedation(lastId: lastId, lastValue: nil))
+        session.request(RecommendationAPI.recommendation(lastId: lastId, lastValue: nil))
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecommendationResponse.self) { response in
+            .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
-                    DLog("fetch home recommedation success \(value)")
+                    DLog("fetch home recommendation success \(value)")
                     if let animeList = value.result,
                        let recommend = animeList.animes {
-                        self.recommedationAnimes = recommend
+                        self.recommendationAnimes = recommend
                         self.lastId = animeList.cursor?.lastId
                     }
                 case .failure(let error):
-                    DLog("fetch home recommedation error \(error)")
+                    DLog("fetch home recommendation error \(error)")
                 }
             }
     }
     
     func getNextPage(lastAnimeId: Int) {
-        if lastAnimeId == self.recommedationAnimes.last?.animeId {
+        if lastAnimeId == self.recommendationAnimes.last?.animeId {
             self.fetchRecommendationAnime()
         }
     }

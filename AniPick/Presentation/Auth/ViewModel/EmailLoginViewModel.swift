@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-class EmailLoginViewModel: ObservableObject {
+final class EmailLoginViewModel: ObservableObject {
     @Published var emailString: String = "" {
         didSet {
             DLog(emailString)
@@ -122,7 +122,7 @@ extension EmailLoginViewModel {
     }
     
     func validateInputs()  {
-        print("validateInputs 호출호출!")
+        DLog("validateInputs 호출호출!")
         self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty
     }
     

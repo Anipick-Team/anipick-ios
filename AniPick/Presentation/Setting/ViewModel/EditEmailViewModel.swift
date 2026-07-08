@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class EditEmailViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager
@@ -20,7 +21,7 @@ final class EditEmailViewModel: ObservableObject {
     @Published var isInvalidPassword: Bool = false
     @Published var isInvalidEmail: Bool = false
     @Published var isShowEditEmailPopup: Bool = false
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
@@ -44,7 +45,8 @@ final class EditEmailViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("logout success - \(value)")
@@ -63,7 +65,8 @@ final class EditEmailViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("✅ 성공: \(value)")

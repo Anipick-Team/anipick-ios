@@ -59,7 +59,7 @@ struct SimilarRecommendedAnimeView: View {
                     
                     VStack {
                         HStack {
-                            Text("최근 찾아보신 \(viewModel.recommedationTitle)과\n비슷한 작품이에요")
+                            Text("최근 찾아보신 \(viewModel.recommendationTitle)과\n비슷한 작품이에요")
                                 .customFontStyle(size: 20, color: .gray5, weight: .bold)
                                 .padding(.top, 12)
                                 .padding(.leading, 24)
@@ -82,7 +82,7 @@ struct SimilarRecommendedAnimeView: View {
 
                 
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(viewModel.recommedationAnimes, id: \.self) { item in
+                    ForEach(viewModel.recommendationAnimes, id: \.self) { item in
                         animationCell(item: item)
                             .onAppear {
                                 self.viewModel.getNextPage(lastAnimeId: item.animeId ?? 0)
@@ -96,7 +96,7 @@ struct SimilarRecommendedAnimeView: View {
         .background(Color.white)
         .navigationBarBackButtonHidden(true)
         .onAppear {
-            viewModel.fetchRecommedationAnime()
+            viewModel.fetchRecommendationAnime()
         }
     }
     

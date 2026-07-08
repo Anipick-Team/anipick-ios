@@ -8,18 +8,19 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class ProducerDetailViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let studioId: Int
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     @Published var producerName: String = ""
     @Published var producerList: [(String, [AnimeWithSeasonYear])] = []
     
-    var productCount: Int = 0
-    var lastId: Int? = nil
-    var lastValue: String? = nil
+    private var productCount: Int = 0
+    private var lastId: Int? = nil
+    private var lastValue: String? = nil
     init(navigationManager: NavigationManager, studioId: Int) {
         self.navigationManager = navigationManager
         self.studioId = studioId
@@ -39,7 +40,8 @@ extension ProducerDetailViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: StudioDetailResponse.self) { response in
+            .responseDecodable(of: StudioDetailResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case let .success(value):
                     DLog("studio Detail test - \(response)")

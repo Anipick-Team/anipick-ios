@@ -63,7 +63,7 @@ struct ExploreView: View {
     
     let quarterList = ["전체", "1", "2", "3", "4"]
     
-    @State private var exploreRequestItem: ExploreReqeustItem? = nil
+    @State private var exploreRequestItem: ExploreRequestItem? = nil
     
     var body: some View {
         ZStack(alignment: .topTrailing) {
@@ -151,7 +151,7 @@ struct ExploreView: View {
                                 .onAppear {
                                     if item == viewModel.exploreItems.last {
                                         DLog("explore 데이터 확인 - \(item) -- \(String(describing: viewModel.exploreItems.last))")
-                                        viewModel.fetchFiletedExploreData()
+                                        viewModel.fetchFilteredExploreData()
                                     }
                                 }
                             }
@@ -177,7 +177,7 @@ struct ExploreView: View {
             .onAppear {
                 viewModel.fetchMetaDataIfNeeded()
                 if !self.applyIncomingFilterIfNeeded() {
-                    viewModel.fetchFiletedExploreData()
+                    viewModel.fetchFilteredExploreData()
                 }
             }
             .onChange(of: AppDIContainer.appState.pendingExploreFilter) { _ in
@@ -366,7 +366,7 @@ struct ExploreView: View {
                 
                 
                 Button {
-                    print("닫기 탭탭")
+                    DLog("닫기 탭탭")
                     self.isPresentYearFilter.toggle()
                 } label: {
                     Image(.xButton)

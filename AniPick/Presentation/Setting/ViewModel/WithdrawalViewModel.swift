@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class WithdrawalViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     
@@ -22,7 +23,8 @@ final class WithdrawalViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("withdrawal success - \(value)")

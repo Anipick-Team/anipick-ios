@@ -11,7 +11,7 @@ import SwiftUI
 struct ImagePicker: UIViewControllerRepresentable {
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
         var parent: ImagePicker
-        let session = Session(interceptor: TokenInterceptor.shared)
+        private let session = NetworkSession.authenticated
         
         init(parent: ImagePicker) {
             self.parent = parent
@@ -35,7 +35,8 @@ struct ImagePicker: UIViewControllerRepresentable {
                     DLog("\(description)")
                 }
                 // TODO: 업로드 중이라는 작업 필요 -> 업로드 되고 나서 dismiss가 일어나야함
-                .responseDecodable(of: ProfileImageResponse.self) { response in
+                .responseDecodable(of: ProfileImageResponse.self) { [weak self] response in
+                    guard let self else { return }
                     switch response.result {
                     case .success(let data):
                         DLog("Image uploaded successfully: \(String(describing: data))")

@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class LikeAnimeListViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     
@@ -21,7 +22,7 @@ final class LikeAnimeListViewModel: ObservableObject {
     @Published var lastId: Int? = nil
     @Published var animeList: [LikedAnime] = []
     @Published var count: Int = 0
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
 }
 
 extension LikeAnimeListViewModel {
@@ -30,7 +31,8 @@ extension LikeAnimeListViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: MyInfoLikedAnimeResposne.self) { response in
+            .responseDecodable(of: MyInfoLikedAnimeResposne.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("MyInfo - Liked Anime List  - \(value)")

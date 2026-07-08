@@ -1,20 +1,20 @@
 //
-//  CommingSoonAnimeResponse.swift
+//  ComingSoonAnimeResponse.swift
 //  AniPick
 //
 //  Created by cho on 6/18/25.
 //
 
-struct CommingSoonAnimeResponse: Decodable {
+struct ComingSoonAnimeResponse: Decodable {
     let code: Int
     let value: String
-    let result: CommingSoonResult
+    let result: ComingSoonResult
 }
 
-struct CommingSoonResult: Decodable {
+struct ComingSoonResult: Decodable {
     let count: Int
     let cursor: CursorWithSorted
-    let animes: [CommingSoonAnime]
+    let animes: [ComingSoonAnime]
 }
 
 struct CursorWithSorted: Codable {
@@ -22,7 +22,7 @@ struct CursorWithSorted: Codable {
     let lastId: Int
 }
 
-struct CommingSoonAnime: Decodable {
+struct ComingSoonAnime: Decodable {
     let animeId: Int
     let title: String
     let coverImageUrl: String

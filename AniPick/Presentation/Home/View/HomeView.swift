@@ -23,7 +23,7 @@ struct HomeView: View {
                 Spacer()
                 
                 Button {
-                    print("searchButton Tapped")
+                    DLog("searchButton Tapped")
                     self.viewModel.moveToSearchView()
                 } label: {
                     Image(.searchIconsGray)
@@ -44,6 +44,10 @@ struct HomeView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
+                    InstagramBannerView()
+
+                    Spacer().frame(height: 36)
+
                     HStack(spacing: 0) {
                         Text("실시간 인기 애니메이션")
                             .font(.system(size: 20, weight: .semibold))
@@ -77,11 +81,10 @@ struct HomeView: View {
                         .padding(.horizontal, 20)
                     }
                 }
-                .padding(.top, 36)
-                
+
                 sectionDivider()
                 
-                if self.viewModel.recommedationAnimes.isEmpty {
+                if self.viewModel.recommendationAnimes.isEmpty {
                      Image("empty_recommendation")
                         .padding(.bottom, 24)
                 } else {
@@ -89,7 +92,7 @@ struct HomeView: View {
                     if let title = viewModel.referenceAnimeTitle {
                         self.sectionView(
                             title: "\(title) 을 재밌게 보셨다면,\n이 작품들도 마음에 드실 거에요!",
-                            items: viewModel.recommedationAnimes
+                            items: viewModel.recommendationAnimes
                         ) {
                             viewModel.moveToRecommendationView(animeId: 0, animeTitle: viewModel.referenceAnimeTitle)
                             DLog("추천작 탭탭")
@@ -98,7 +101,7 @@ struct HomeView: View {
                     } else {
                         self.sectionView(
                             title: "오늘의 추천작, \(nickName) 님의\n취향에 맞춰 준비했어요!",
-                            items: viewModel.recommedationAnimes
+                            items: viewModel.recommendationAnimes
                         ) {
                             viewModel.moveToRecommendationView(animeId: 0, animeTitle: viewModel.referenceAnimeTitle)
                             DLog("추천작 탭탭")
@@ -155,15 +158,15 @@ struct HomeView: View {
                 sectionDivider()
                 
                 // TODO: 닉네임 글자수가 너무 길 때, 닉네임을 말줄임 하는 것으로 viewModel에서 작업
-                self.sectionView(title: "최근 찾아보신 \(viewModel.recommedationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
+                self.sectionView(title: "최근 찾아보신 \(viewModel.recommendationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
                     viewModel.moveToSimilarRecommendationView()
                 }
                 
                 sectionDivider()
                 
-                self.sectionView(title: "공개 예정", items: viewModel.commingSoonAnimes) {
+                self.sectionView(title: "공개 예정", items: viewModel.comingSoonAnimes) {
                     DLog("공개 예정 탭탭")
-                    self.viewModel.moveToCommingSoonView()
+                    self.viewModel.moveToComingSoonView()
                 }
             }
         }

@@ -13,12 +13,12 @@ final class HomeViewModel: ObservableObject {
     @Published var trendingAnimes: [TrendingAnimes] = []
     @Published var recentReviews: [Review] = []
     @Published var upcomingAnimes: [Anime] = []
-    @Published var commingSoonAnimes: [Anime] = []
-    @Published var recommedationAnimes: [Anime] = []
+    @Published var comingSoonAnimes: [Anime] = []
+    @Published var recommendationAnimes: [Anime] = []
     @Published var recommendationAnimesWithAnimeId: [Anime] = []
     @Published var recommendationSimilarAnimes: [Anime] = []
-    @Published var recommedationTitle: String = ""
-    @Published var recommedationFirstTitle: String = ""
+    @Published var recommendationTitle: String = ""
+    @Published var recommendationFirstTitle: String = ""
     @Published var seasonString: Int = 0
     @Published var seasonYearString: Int = 0
     @Published var referenceAnimeTitle: String? = nil
@@ -44,21 +44,6 @@ extension HomeViewModel {
         } catch {
             DLog("trending Anime List error - \(error.localizedDescription)")
         }
-//        session.request(HomeAPI.trending)
-//            .cURLDescription { description in
-//                DLog("\(description)")
-//            }
-//            .responseDecodable(of: TrendingAnimesResponse.self) { response in
-//                switch response.result {
-//                case .success(let value):
-//                    DLog("fetch trending success \(value)")
-//                    if let animeList = value.result {
-//                        self.trendingAnimes = animeList
-//                    }
-//                case .failure(let error):
-//                    DLog("fetch trending error \(error)")
-//                }
-//            }
     }
     
     func fetchRecommendationAnime() {
@@ -70,14 +55,14 @@ extension HomeViewModel {
                 guard let self else { return }
                 switch response.result {
                 case .success(let value):
-                    DLog("fetch home recommedation success \(value)")
+                    DLog("fetch home recommendation success \(value)")
                     if let animeList = value.result,
                        let recommend = animeList.animes {
-                        self.recommedationAnimes = recommend
+                        self.recommendationAnimes = recommend
                         self.referenceAnimeTitle = animeList.referenceAnimeTitle
                     }
                 case .failure(let error):
-                    DLog("fetch home recommedation error \(error)")
+                    DLog("fetch home recommendation error \(error)")
                 }
             }
     }
@@ -101,7 +86,6 @@ extension HomeViewModel {
             self.seasonString = response.result.season
             self.seasonYearString = response.result.seasonYear
             DLog("방영 예정 잘 받아와짐")
-           // DLog("upcoming Animes - \(self.upcomingAnimes)")
         } catch {
             DLog("upcoming Animes - \(error.localizedDescription)")
         }
@@ -110,7 +94,7 @@ extension HomeViewModel {
     func getComingSoonSeason() async {
         do {
             let response = try await usecase.getComingSoonAnimes()
-            self.commingSoonAnimes = response.result
+            self.comingSoonAnimes = response.result
             DLog("공개 예정 잘 받아와짐")
         } catch {
             DLog("coming Soon - \(error.localizedDescription)")
@@ -128,14 +112,14 @@ extension HomeViewModel {
                 guard let self else { return }
                 switch response.result {
                 case .success(let value):
-                    DLog("fetch home recommedation with animeid success \(value)")
+                    DLog("fetch home recommendation with animeid success \(value)")
                     if let animeList = value.result,
                        let recommend = animeList.animes {
                         self.recommendationAnimesWithAnimeId = recommend
-                        self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
+                        self.recommendationTitle = animeList.referenceAnimeTitle ?? "--"
                     }
                 case .failure(let error):
-                    DLog("fetch home recommedation with animeid error \(error)")
+                    DLog("fetch home recommendation with animeid error \(error)")
                 }
             }
     }
@@ -152,14 +136,14 @@ extension HomeViewModel {
                 guard let self else { return }
                 switch response.result {
                 case .success(let value):
-                    DLog("fetch home recommedation with animeid success \(value)")
+                    DLog("fetch home recommendation with animeid success \(value)")
                     if let animeList = value.result,
                        let recommend = animeList.animes {
                         self.recommendationSimilarAnimes = recommend
                     }
-                    self.recommedationFirstTitle = value.result?.referenceAnimeTitle ?? "-"
+                    self.recommendationFirstTitle = value.result?.referenceAnimeTitle ?? "-"
                 case .failure(let error):
-                    DLog("fetch home recommedation with animeid error \(error)")
+                    DLog("fetch home recommendation with animeid error \(error)")
                 }
             }
     }
@@ -176,8 +160,8 @@ extension HomeViewModel {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))
     }
     
-    func moveToCommingSoonView() {
-        self.navigationManager.push(route: .commingSoonDetail)
+    func moveToComingSoonView() {
+        self.navigationManager.push(route: .comingSoonDetail)
     }
     
     func moveToRecentReviewView() {
@@ -186,7 +170,6 @@ extension HomeViewModel {
     
     func moveToRecommendationView(animeId: Int, animeTitle: String? = nil) {
         self.navigationManager.push(route: .recommend2(animeId: animeId, animeTitle: animeTitle))
- //       self.navigationManager.push(route: .recommendView(animeId: animeId))
     }
     
     func moveToSimilarRecommendationView() {

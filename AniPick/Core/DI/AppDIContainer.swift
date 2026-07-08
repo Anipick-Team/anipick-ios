@@ -229,9 +229,9 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeCommingSoonView() -> some View {
-        let viewModel = CommingSoonViewModel(navigationManager: navigationManager)
-        return CommingSoonView(viewModel: viewModel)
+    static func makeComingSoonView() -> some View {
+        let viewModel = ComingSoonViewModel(navigationManager: navigationManager)
+        return ComingSoonView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
     

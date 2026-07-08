@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class RatedAnimeListViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     
@@ -23,9 +24,9 @@ final class RatedAnimeListViewModel: ObservableObject {
     @Published var lastLikeCount: Int? = nil
     @Published var totalCount: Int? = nil
     @State private var isLoading = false
-    var lastId: Int? = nil
-    var lastRating: Double? = nil
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private var lastId: Int? = nil
+    private var lastRating: Double? = nil
+    private let session = NetworkSession.authenticated
 }
 
 extension RatedAnimeListViewModel {
@@ -44,8 +45,8 @@ extension RatedAnimeListViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: MyReviewListResponse.self) { resposne in
-            switch resposne.result {
+        .responseDecodable(of: MyReviewListResponse.self) { response in
+            switch response.result {
             case .success(let value):
                 self.ratedReviewList = []
                 DLog("MyInfo - Rated Review List fetct- \(value)")
@@ -86,9 +87,9 @@ extension RatedAnimeListViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: MyReviewListResponse.self) { resposne in
+        .responseDecodable(of: MyReviewListResponse.self) { response in
             self.isLoading = false
-            switch resposne.result {
+            switch response.result {
             case .success(let value):
                 self.tmpReviewList += value.result.reviews ?? []
                 let existingIds = Set(self.ratedReviewList.map { $0.reviewId })
@@ -117,7 +118,8 @@ extension RatedAnimeListViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("success - delete myreview \(value)")

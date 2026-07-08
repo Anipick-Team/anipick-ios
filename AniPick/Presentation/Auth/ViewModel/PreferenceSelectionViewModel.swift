@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class PreferenceSelectionViewModel: ObservableObject {
     
     @Published var animeList: [AnimePreference] = []
@@ -25,7 +26,7 @@ final class PreferenceSelectionViewModel: ObservableObject {
     @Published var selectedAnimeList: Set<Int> = []
     @Published var isPresentModelView: Bool = false
         
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     private let navigationManager: NavigationManager
     
@@ -40,7 +41,8 @@ extension PreferenceSelectionViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: MetaDataResponse.self) { response in
+            .responseDecodable(of: MetaDataResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     // TODO: 성공했으면 userdefatuls 업데이트하는 로직 필요
@@ -83,7 +85,8 @@ extension PreferenceSelectionViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: AnimePreferenceResponse.self) { response in
+            .responseDecodable(of: AnimePreferenceResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     if let anime = value.result,
@@ -137,7 +140,8 @@ extension PreferenceSelectionViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("회원가입 시, 취향선택 탭탭 - \(value)")

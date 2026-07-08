@@ -14,7 +14,7 @@ import AuthenticationServices
 import KakaoSDKAuth
 
 @MainActor
-class MainLoginViewModel: ObservableObject {
+final class MainLoginViewModel: ObservableObject {
     
     @Published var moveToEmailSignupView: Bool = false
     
@@ -140,23 +140,6 @@ extension MainLoginViewModel {
         }
     }
     
-//    func refreshAccessToken() async {
-//        do {
-//            // TODO: UserDefaults에서 refresh 가져와서 넣기
-//            let response = try await authUsecase.postRefreshToken(refreshToken: "")
-//        } catch {
-//            DLog("refresh access Toekn errer - \(error.localizedDescription)")
-//        }
-//    }
-    
-//    func logout() async {
-//        do {
-//            // TODO: UserDefaults에서 accessToken 가져와서 넣기
-//            let response = try await authUsecase.postLogout(accessToken: "")
-//        } catch {
-//            DLog("logout fail - \(error.localizedDescription)")
-//        }
-//    }
 }
 
 extension MainLoginViewModel {
@@ -177,41 +160,13 @@ extension MainLoginViewModel {
         .responseDecodable (of: BaseResponse.self) { response in
             switch response.result {
             case .success(let value):
-                print("✅ 성공: \(value)")
+                DLog("✅ 성공: \(value)")
             case .failure(let error):
-                print("❌ 실패: \(error)")
+                DLog("❌ 실패: \(error)")
             }
         }
     }
 
-    func findPassword() {
-        let url = baseUrl + "/api/auth/email/send"
-        
-        let parameter: Parameters = [
-            "email": "slpm3957@naver.com"
-        ]
-        
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json"
-        ]
-        
-        AF.request(
-            url,
-            method: .post,
-            parameters: parameter,
-            encoding: JSONEncoding.default,
-            headers: headers
-        )
-        .responseDecodable(of: BaseResponse.self) { response in
-            switch response.result {
-            case .success(let value):
-                print("✅ 성공: \(value)")
-            case .failure(let error):
-                print("❌ 실패: \(error)")
-            }
-        }
-    }
-    
     func configure(_ request: ASAuthorizationAppleIDRequest) {
         request.requestedScopes = [.fullName, .email]
     }

@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 final class ContentViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     @Published var activeTab: Tab = .home

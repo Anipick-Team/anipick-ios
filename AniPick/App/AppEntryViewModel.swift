@@ -8,13 +8,15 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class AppEntryViewModel: ObservableObject {
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     func checkVersion() {
         session.request(VersionAPI.checkVersion)
             .cURLDescription { DLog($0) }
-            .responseDecodable(of: VersionResponse.self) { response in
+            .responseDecodable(of: VersionResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("version check success - \(value)")

@@ -8,18 +8,19 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class VoiceActorViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let animeId: Int
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     @Published var actorImageUrl: String = ""
     @Published var actorName: String = ""
     @Published var workCount: Int = 0
     @Published var workList: [PersonWork] = []
     @Published var isLiked: Bool = false
-    var lastId: Int? = nil
+    private var lastId: Int? = nil
     
     init(navigationManager: NavigationManager, animeId: Int) {
         self.navigationManager = navigationManager
@@ -34,7 +35,8 @@ extension VoiceActorViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: PersonDetailResponse.self) { response in
+            .responseDecodable(of: PersonDetailResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch voice Actor Info success - \(value)")
@@ -63,7 +65,8 @@ extension VoiceActorViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch person like success - \(value)")
@@ -79,7 +82,8 @@ extension VoiceActorViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("fetch person cancel like success - \(value)")

@@ -7,18 +7,16 @@
 
 import SwiftUI
 
+@MainActor
 final class NavigationManager: ObservableObject {
-    
-    static let shared = NavigationManager() // ✅ 싱글톤
-    
 
     @Published var path = NavigationPath()
     
     func push(route: AppRoute) {
         Task { @MainActor in
-            print("🔥 pushing route: \(route)")
+            DLog("🔥 pushing route: \(route)")
             path.append(route)
-            print("📦 current path: \(path)")
+            DLog("📦 current path: \(path)")
         }
     }
     
@@ -52,7 +50,7 @@ enum AppRoute: Hashable {
     case resetPassword
     case preferenceSelection
     case content(activeTab: Tab)
-    case commingSoonDetail
+    case comingSoonDetail
     case mainLoginView
     case recentReview
     case recommendView(animeId: Int?)

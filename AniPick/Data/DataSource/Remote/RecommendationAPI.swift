@@ -9,14 +9,14 @@ import Alamofire
 import Foundation
 
 enum RecommendationAPI: URLRequestConvertible {
-    case recommedation(lastId: Int?, lastValue: String?)
-    case recommedationWithAnimeId(animeId: Int, lastId: Int?, lastValue: String?)
+    case recommendation(lastId: Int?, lastValue: String?)
+    case recommendationWithAnimeId(animeId: Int, lastId: Int?, lastValue: String?)
     
     var path: String {
         switch self {
-        case .recommedation:
+        case .recommendation:
             return "api/recommendation/animes"
-        case let .recommedationWithAnimeId(animeId, _, _):
+        case let .recommendationWithAnimeId(animeId, _, _):
             return "api/recommendation/animes/\(animeId)/recent"
             
         }
@@ -24,22 +24,22 @@ enum RecommendationAPI: URLRequestConvertible {
     
     var method: HTTPMethod {
         switch self {
-        case .recommedation:
+        case .recommendation:
             return .get
-        case .recommedationWithAnimeId:
+        case .recommendationWithAnimeId:
             return .get
         }
     }
     
     var parameters: Parameters? {
         switch self {
-        case let .recommedation(lastId, lastValue):
+        case let .recommendation(lastId, lastValue):
             let rawParams: [String: Any?] = [
                 "lastId": lastId,
                 "lastValue": lastValue
             ]
             return rawParams.compactMapValues { $0 }
-        case let .recommedationWithAnimeId(_, lastId, lastValue):
+        case let .recommendationWithAnimeId(_, lastId, lastValue):
             let rawParams: [String: Any?] = [
                 "lastId": lastId,
                 "lastValue": lastValue
@@ -54,9 +54,9 @@ enum RecommendationAPI: URLRequestConvertible {
         urlRequest.httpMethod = self.method.rawValue
         
         switch self {
-        case .recommedation:
+        case .recommendation:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
-        case .recommedationWithAnimeId:
+        case .recommendationWithAnimeId:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         

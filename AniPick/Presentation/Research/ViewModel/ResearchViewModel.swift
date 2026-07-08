@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 final class ResearchViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager

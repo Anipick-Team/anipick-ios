@@ -8,14 +8,15 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class RecentReviewViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager
     
     @Published var recentReviewList: [ReviewItem] = []
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
-    var lastId: Int? = nil
+    private var lastId: Int? = nil
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
         self.fetchRecentReview()
@@ -31,7 +32,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecentReviewsResponse.self) { response in
+            .responseDecodable(of: RecentReviewsResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 뷰 - \(value)")
@@ -51,7 +53,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: RecentReviewsResponse.self) { response in
+            .responseDecodable(of: RecentReviewsResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 뷰 - \(value)")
@@ -71,7 +74,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("리뷰 신고 success - \(value)")
@@ -89,7 +93,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("사용자 차단 success - \(value)")
@@ -107,7 +112,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .response { response in
+            .response { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let data):
                     DLog("profile Image get successfully: \(String(describing: data))")
@@ -137,7 +143,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 좋아요 success - \(value)")
@@ -152,7 +159,8 @@ extension RecentReviewViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 좋아요 취소 success - \(value)")

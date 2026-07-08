@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-class ForgetPasswordViewModel: ObservableObject {
+final class ForgetPasswordViewModel: ObservableObject {
     // 30초 버튼 쿨다운 타이머
     private var buttonTimer: Timer?
     private var buttonEndDate: Date?
@@ -145,7 +145,7 @@ class ForgetPasswordViewModel: ObservableObject {
     }
     
     func validateEmailInputs()  {
-        print("validateInputs 호출호출!")
+        DLog("validateInputs 호출호출!")
         // TODO: 해당 이메일이 없다면, "해당 이메일로 가입된 계정이 없습니다. 다시 확인해주세요."
         if self.emailString.isEmpty {
             self.emailGuideText = "이메일을 입력해주세요."

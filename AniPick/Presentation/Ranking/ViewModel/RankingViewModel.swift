@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class RankingViewModel: ObservableObject {
     
     @Published var rankingAnimeList: [RankedAnime] = []
@@ -20,9 +21,9 @@ final class RankingViewModel: ObservableObject {
     
     @Published var isSelectedFilter: RankingFilter = .realTime
     
-    var lastId: Int? = nil
-    var lastValue: String? = nil
-    var lastRank: Int? = nil
+    private var lastId: Int? = nil
+    private var lastValue: String? = nil
+    private var lastRank: Int? = nil
   // private var lastId: Int? = nil
     private var seenIds = Set<Int>()
     private let pageSize: Int = 20
@@ -34,7 +35,7 @@ final class RankingViewModel: ObservableObject {
         self.navigationManager = navigationManager
        // self.fetchRankingDataList()
     }
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     
 }

@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class SettingViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     @Published var newNickname: String = ""
@@ -53,7 +54,8 @@ final class SettingViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("logout success - \(value)")
@@ -62,7 +64,6 @@ final class SettingViewModel: ObservableObject {
                 case .failure(let error):
                     DLog("logout error - \(error)")
                 }
-                
             }
     }
  
@@ -75,7 +76,8 @@ final class SettingViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("withdrawal success - \(value)")
@@ -90,7 +92,6 @@ final class SettingViewModel: ObservableObject {
                 case .failure(let error):
                     DLog("withdrawal error - \(error)")
                 }
-                
             }
     }
     

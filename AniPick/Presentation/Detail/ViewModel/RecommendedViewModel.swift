@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class RecommendedViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let animeId: Int
@@ -15,9 +16,9 @@ final class RecommendedViewModel: ObservableObject {
     
     @Published var recommendedAnimeList: [Anime] = []
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
-    var lastId: Int? = nil
+    private var lastId: Int? = nil
     
     init(
         navigationManager: NavigationManager,
@@ -40,7 +41,8 @@ final class RecommendedViewModel: ObservableObject {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: RecommendationResponse.self) { response in
+        .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case let .success(value):
                 DLog("anime recommendation response - \(response)")
