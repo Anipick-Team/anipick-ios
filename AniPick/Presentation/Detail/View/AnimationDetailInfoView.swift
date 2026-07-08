@@ -219,7 +219,7 @@ struct AnimationDetailInfoView: View {
             HStack(alignment: .center, spacing: 0) {
                 let genres = detailInfo.genres ?? []
                 ForEach(genres) { genre in
-                    GerneTagComponents(title: genre.name)
+                    GenreTagComponents(title: genre.name)
                 }
             }
         case .release:

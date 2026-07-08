@@ -108,9 +108,9 @@ struct MainLoginView: View {
             }
             .background(Color.white.ignoresSafeArea())
             
-            if viewModel.isShowWithdrawlUserPopup {
-                WithdrawlUserPopupView {
-                    self.viewModel.isShowWithdrawlUserPopup.toggle()
+            if viewModel.isShowWithdrawalUserPopup {
+                WithdrawalUserPopupView {
+                    self.viewModel.isShowWithdrawalUserPopup.toggle()
                 }
             }
             

@@ -22,7 +22,7 @@ final class MainLoginViewModel: ObservableObject {
     @Published var userName: String = ""
     @Published var userEmail: String = ""
     
-    @Published var isShowWithdrawlUserPopup: Bool = false
+    @Published var isShowWithdrawalUserPopup: Bool = false
     @Published var isShowSNSSignupPopup: Bool = false
     
     var kakaoToken: String = ""
@@ -37,9 +37,6 @@ final class MainLoginViewModel: ObservableObject {
         self.authUsecase = authUsecase
         self.navigationManager = navigationManager
     }
-    
-    private let baseUrl = "https://anipick.p-e.kr"
-
 }
 
 extension MainLoginViewModel {
@@ -131,7 +128,7 @@ extension MainLoginViewModel {
                     self.navigationManager.push(route: .preferenceSelection)
                 }
             } else if response.code == 132 {
-                self.isShowWithdrawlUserPopup.toggle()
+                self.isShowWithdrawalUserPopup.toggle()
             } else if response.code == 133 {
                 self.isShowSNSSignupPopup.toggle()
             }
@@ -143,30 +140,6 @@ extension MainLoginViewModel {
 }
 
 extension MainLoginViewModel {
-    func tappedLogout(accessToken: String) {
-        let url = baseUrl + "/api/users/logout"
-
-        let headers: HTTPHeaders = [
-            "Content-Type": "application/json",
-            "Authorization": "Bearer \(accessToken)"
-        ]
-        
-        
-        AF.request(
-            url,
-            method: .post,
-            headers: headers
-        )
-        .responseDecodable (of: BaseResponse.self) { response in
-            switch response.result {
-            case .success(let value):
-                DLog("✅ 성공: \(value)")
-            case .failure(let error):
-                DLog("❌ 실패: \(error)")
-            }
-        }
-    }
-
     func configure(_ request: ASAuthorizationAppleIDRequest) {
         request.requestedScopes = [.fullName, .email]
     }

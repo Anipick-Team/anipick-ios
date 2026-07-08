@@ -167,9 +167,9 @@ struct EmailLoginView: View {
             .padding(.horizontal, 20)
             .background(Color.white)
             
-            if viewModel.isShowWithdrawlUserPopup {
-                WithdrawlUserPopupView {
-                    self.viewModel.isShowWithdrawlUserPopup.toggle()
+            if viewModel.isShowWithdrawalUserPopup {
+                WithdrawalUserPopupView {
+                    self.viewModel.isShowWithdrawalUserPopup.toggle()
                     self.viewModel.popToMainLoginView()
                 }
             }

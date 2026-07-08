@@ -70,31 +70,7 @@ final class SettingViewModel: ObservableObject {
     func moveToDeleteAccount() {
         self.navigationManager.push(route: .deleteAccount)
     }
-    
-    func tappedWithdrawal() {
-        AF.request(SettingAPI.withdrawal)
-            .cURLDescription { description in
-                DLog("\(description)")
-            }
-            .responseDecodable(of: BaseResponse.self) { [weak self] response in
-                guard let self else { return }
-                switch response.result {
-                case .success(let value):
-                    DLog("withdrawal success - \(value)")
-                    if value.code == 200 {
-                        self.navigationManager.popToRoot()
-                        self.navigationManager.push(route: .mainLoginView)
-                        // TODO: User정보 전부 clear하는 값 필요
-                        UserDefaultsManager.shared.setAccessToken(accessToken: "")
-                        UserDefaultsManager.shared.setRefreshToken(refreshToken: "")
-                        UserDefaultsManager.shared.setNickname("")
-                    }
-                case .failure(let error):
-                    DLog("withdrawal error - \(error)")
-                }
-            }
-    }
-    
+
     func resetData() {
         self.nickname = UserDefaultsManager.shared.getNickname()
         self.email = UserDefaultsManager.shared.getEmail()
@@ -139,8 +115,6 @@ final class SettingViewModel: ObservableObject {
         case .logout:
             self.isShowLogoutPopup = true
         case .deleteAccount:
-            DLog("탈퇴 APIAPI")
-         //   self.tappedWithdrawal()
             self.moveToDeleteAccount()
         }
         

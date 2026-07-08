@@ -1,5 +1,5 @@
 //
-//  WithdrawlUserPopupView.swift
+//  WithdrawalUserPopupView.swift
 //  AniPick
 //
 //  Created by cho on 11/23/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct WithdrawlUserPopupView: View {
+struct WithdrawalUserPopupView: View {
     var closeAction: () -> Void
 
     var body: some View {

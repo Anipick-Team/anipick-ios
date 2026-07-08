@@ -94,7 +94,7 @@ final class HomeSearchViewModel: ObservableObject {
                 self.personLastId = result.cursor?.lastId ?? nil
             }
         } catch {
-            
+            DLog("fetchPersonSearchList error - \(error.localizedDescription)")
         }
     }
     
@@ -108,7 +108,7 @@ final class HomeSearchViewModel: ObservableObject {
                 self.studioLastId = result.cursor?.lastId ?? nil
             }
         } catch {
-            
+            DLog("fetchStudioSearchList error - \(error.localizedDescription)")
         }
     }
     

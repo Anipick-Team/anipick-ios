@@ -1,5 +1,5 @@
 //
-//  GerneTagComponents.swift
+//  GenreTagComponents.swift
 //  AniPick
 //
 //  Created by cho on 5/25/25.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct GerneTagComponents: View {
+struct GenreTagComponents: View {
     
     let title: String
     

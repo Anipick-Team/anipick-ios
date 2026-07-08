@@ -29,7 +29,7 @@ final class EmailLoginViewModel: ObservableObject {
     @Published var commonGuideText: String = ""
 
     @Published var isEnableLoginButton: Bool = false
-    @Published var isShowWithdrawlUserPopup: Bool = false
+    @Published var isShowWithdrawalUserPopup: Bool = false
     
     private let authUsecase: AuthUsecaseProtocol
     private let navigationManager: NavigationManager
@@ -73,7 +73,7 @@ extension EmailLoginViewModel {
             }  else if response.code == 112 {
                 self.emailGuideText = "가입된 계정이 없습니다. 이메일을 다시 확인해주세요."
             } else if response.code == 132 {
-                self.isShowWithdrawlUserPopup.toggle()
+                self.isShowWithdrawalUserPopup.toggle()
                 
             } else if response.code == 102 {
                 self.emailGuideText = "이메일 주소를 입력해 주세요."
