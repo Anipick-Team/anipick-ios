@@ -11,6 +11,7 @@ struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
     @State private var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
+    @State private var showServerRecoveryNotice: Bool = false
 
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
@@ -26,6 +27,9 @@ struct AppEntryView: View {
                 TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
                 viewModel.checkVersion()
+                if !UserDefaultsManager.shared.getHasSeenServerRecoveryNotice() {
+                    showServerRecoveryNotice = true
+                }
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -115,5 +119,13 @@ struct AppEntryView: View {
             }
         }
         .background(Color.white)
+        .overlay {
+            if showServerRecoveryNotice {
+                ServerRecoveryNoticePopupView {
+                    UserDefaultsManager.shared.setHasSeenServerRecoveryNotice(true)
+                    showServerRecoveryNotice = false
+                }
+            }
+        }
     }
 }
