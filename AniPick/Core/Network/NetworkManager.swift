@@ -34,8 +34,10 @@ enum NetworkManager {
     ) async throws -> T {
         
         let session: Session = {
-            if path.contains("/login") {
-                DLog("🔓 login 관련 요청, interceptor 없이 plainSession 사용")
+            // 로그인 계열 요청(이메일 로그인 /login, 소셜 로그인 /oauth)은 토큰 인터셉터 없이 요청.
+            // 이전 세션의 낡은 accessToken이 Authorization 헤더로 붙어 로그인이 간헐적으로 실패하는 문제 방지.
+            if path.contains("/login") || path.contains("/oauth") {
+                DLog("🔓 로그인 관련 요청, interceptor 없이 plainSession 사용 - \(path)")
                 return plainSession
             } else {
                 return defaultSession

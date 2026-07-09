@@ -89,22 +89,47 @@ extension MainLoginViewModel {
     }
     
     func getGoogleIDToken() {
-        DLog("Tapped google Button")
-        guard let presentVC = (UIApplication.shared.connectedScenes.first as? UIWindowScene)?.windows.first?.rootViewController else { return }
-        
-        GIDSignIn.sharedInstance.signIn(withPresenting: presentVC) { signInResult, error in
-            
+        DLog("🔐 [Login][Google] 구글 로그인 버튼 탭")
+        // 포그라운드 활성 씬의 키윈도우 기준으로 최상단 VC를 안전하게 획득 (Set.first 비결정성 방지)
+        guard let presentVC = Self.topMostViewController() else {
+            DLog("❌ [Login][Google] presentingViewController를 찾지 못함 - 로그인 중단")
+            return
+        }
+
+        GIDSignIn.sharedInstance.signIn(withPresenting: presentVC) { [weak self] signInResult, error in
+            guard let self else { return }
+            if let error {
+                DLog("❌ [Login][Google] signIn 오류: \(error.localizedDescription)")
+                return
+            }
             guard let result = signInResult else {
-                   DLog("❌ 로그인 결과 없음")
-                   return
-               }
-            
-            let user = result.user
-            let idToken = user.idToken?.tokenString ?? "ID Token 없음"
+                DLog("❌ [Login][Google] signInResult 없음 - 로그인 중단")
+                return
+            }
+            guard let idToken = result.user.idToken?.tokenString, !idToken.isEmpty else {
+                DLog("❌ [Login][Google] idToken이 nil/빈값 - 서버 전송 중단 (기존엔 문자열이 전송되어 실패)")
+                return
+            }
+            DLog("🔐 [Login][Google] idToken 획득 (길이=\(idToken.count)) - 서버 전송")
             Task {
                 await self.postSocialLogin(provider: .google, code: idToken)
             }
         }
+    }
+
+    /// 포그라운드 활성 씬의 키윈도우에서 최상단(모달 포함) VC를 반환한다.
+    private static func topMostViewController() -> UIViewController? {
+        guard let scene = UIApplication.shared.connectedScenes
+                .compactMap({ $0 as? UIWindowScene })
+                .first(where: { $0.activationState == .foregroundActive }),
+              let root = scene.windows.first(where: { $0.isKeyWindow })?.rootViewController
+        else { return nil }
+
+        var top = root
+        while let presented = top.presentedViewController {
+            top = presented
+        }
+        return top
     }
     
     func postSocialLogin(

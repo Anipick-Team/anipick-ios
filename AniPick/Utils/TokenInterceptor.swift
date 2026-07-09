@@ -13,7 +13,7 @@ final class TokenInterceptor: RequestInterceptor {
     private let lock = NSLock()
     private var isRefreshing = false
     private var requestsToRetry: [(RetryResult) -> Void] = []
-    let excludedPaths = ["/login", "/users", "/auth"]
+    let excludedPaths = ["/login", "/users", "/auth", "/oauth"]
     weak var navigationManager: NavigationManager?
     
     // accessToken 붙이기
