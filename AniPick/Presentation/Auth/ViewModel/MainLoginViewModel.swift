@@ -120,23 +120,34 @@ extension MainLoginViewModel {
             )
             DLog("Social 로그인 - \(response)")
             if response.code == 200 {
+                let accessToken = response.result?.token?.accessToken ?? ""
                 UserDefaultsManager.shared.setSNSAccount(sns: provider.rawValue)
-                UserDefaultsManager.shared.setAccessToken(accessToken: response.result?.token?.accessToken ?? "")
+                UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
                 UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "")
+                DLog("🔐 [Login][Social:\(provider.rawValue)] 서버 200, 토큰 저장 완료 (accessToken 길이=\(accessToken.count))")
+                if accessToken.isEmpty {
+                    DLog("⚠️ [Login][Social:\(provider.rawValue)] 200이지만 accessToken이 비어있음 - 서버 응답 확인 필요")
+                }
                 AnalyticsManager.logLogin(method: provider.rawValue)
                 if response.result?.reviewCompletedYn ?? true {
-                    self.navigationManager.push(route: .content(activeTab: .home))
+                    DLog("🔐 [Login][Social:\(provider.rawValue)] 리뷰완료 사용자 → completeLogin (홈)")
+                    self.navigationManager.completeLogin()
                 } else {
+                    DLog("🔐 [Login][Social:\(provider.rawValue)] 신규 사용자 → 취향선택 이동")
                     self.navigationManager.push(route: .preferenceSelection)
                 }
             } else if response.code == 132 {
+                DLog("🔐 [Login][Social:\(provider.rawValue)] 탈퇴된 계정 (132)")
                 self.isShowWithdrawlUserPopup.toggle()
             } else if response.code == 133 {
+                DLog("🔐 [Login][Social:\(provider.rawValue)] SNS 재가입 안내 (133)")
                 self.isShowSNSSignupPopup.toggle()
+            } else {
+                DLog("⚠️ [Login][Social:\(provider.rawValue)] 처리되지 않은 응답코드: \(response.code) - 화면 전환 없음")
             }
         } catch {
-            DLog("socialLogin Error - \(error.localizedDescription)")
+            DLog("❌ [Login][Social:\(provider.rawValue)] 예외 발생: \(error.localizedDescription)")
         }
     }
     

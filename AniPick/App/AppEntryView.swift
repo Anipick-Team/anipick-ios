@@ -10,18 +10,20 @@ import SwiftUI
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
-    @State private var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
 
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
-                if isLoggedIn {
+                if navigationManager.isLoggedIn {
                     AppDIContainer.makeContentView(activeTab: .home)
                 } else {
                     AppDIContainer.makeLoginView()
                 }
             }
             .background(Color.white)
+            .onChange(of: navigationManager.isLoggedIn) { newValue in
+                DLog("🔐 [Login] AppEntryView 루트 전환 - isLoggedIn=\(newValue) → \(newValue ? "홈" : "로그인") 화면")
+            }
             .onAppear {
                 TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()

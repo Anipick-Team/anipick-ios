@@ -110,21 +110,19 @@ final class TokenInterceptor: RequestInterceptor {
                             pending.forEach { $0(.retry) }
                             completion(.retry)
                         } else {
-                            DLog("refreshToken 실패 - 로그인 화면 이동")
+                            DLog("🔐 [Login] refreshToken 실패 - 토큰 만료로 로그아웃 처리")
                             pending.forEach { $0(.doNotRetry) }
                             DispatchQueue.main.async {
-                                self.navigationManager?.popToRoot()
-                                self.navigationManager?.push(route: .mainLoginView)
+                                self.navigationManager?.completeLogout()
                             }
                             completion(.doNotRetry)
                         }
 
                     case .failure(let error):
-                        DLog("토큰 갱신 실패: \(error)")
+                        DLog("🔐 [Login] 토큰 갱신 실패: \(error) - 로그아웃 처리")
                         pending.forEach { $0(.doNotRetry) }
                         DispatchQueue.main.async {
-                            self.navigationManager?.popToRoot()
-                            self.navigationManager?.push(route: .mainLoginView)
+                            self.navigationManager?.completeLogout()
                         }
                         completion(.doNotRetry)
                     }
