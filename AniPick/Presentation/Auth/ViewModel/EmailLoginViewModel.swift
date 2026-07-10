@@ -97,10 +97,7 @@ extension EmailLoginViewModel {
         self.commonGuideText = ""
         self.passwordGuideText = ""
     }
-    private func moveToHomeView() {
-        self.navigationManager.push(route: AppRoute.content(activeTab: .home))
-    }
-    
+
     func validateEmailInputs()  {
         DLog("validateInputs 호출호출!")
         // TODO: 이미 가입한 이메일일 경우, "이미 가입한 이메일입니다. 표시"
