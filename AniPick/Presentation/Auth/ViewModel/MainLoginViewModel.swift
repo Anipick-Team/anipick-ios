@@ -210,38 +210,63 @@ extension MainLoginViewModel {
     func handle(_ result: Result<ASAuthorization, Error>) {
         switch result {
         case .success(let auth):
-            if let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential {
-                let userIdentifier = appleIDCredential.user
-                let fullName = appleIDCredential.fullName
-                let email = appleIDCredential.email
-                
-                if let data = String(data: appleIDCredential.authorizationCode!, encoding: .utf8) {
-                    DLog("authCode: \(data)")
-                }
-                DLog("User ID: \(userIdentifier)")
-                DLog("Full Name: \(String(describing: fullName))")
-                DLog("Email: \(String(describing: email))")
-                
+            guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential else {
+                DLog("❌ [Login][Apple] AppleIDCredential 캐스팅 실패 - 로그인 중단")
+                return
+            }
 
-                if let email = appleIDCredential.email {
-                    let usernamePart = email.components(separatedBy: "@").first ?? ""
-                    let appleEmail = "\(usernamePart)@apple.com"
-                    DLog("appleLogin Email: \(appleEmail)")
-                    UserDefaultsManager.shared.setAppleUserId(appleEmail)
-                    Task {
-                        await self.postSocialLogin(provider: .apple, code: appleEmail)
-                    }
-                } else {
-                    let appleEmail = UserDefaultsManager.shared.getAppleUserId()
-                    Task {
-                        await self.postSocialLogin(provider: .apple, code: appleEmail)
-                    }
-                }
-          //      self.navigationManager.push(route: .content(activeTab: .home))
+            // 이메일 확보 우선순위:
+            // 1) credential.email (최초 로그인 시에만 제공됨)
+            // 2) identityToken(JWT)의 email 클레임 (재로그인에서도 매번 존재)
+            let resolvedEmail = appleIDCredential.email
+                ?? Self.email(fromIdentityToken: appleIDCredential.identityToken)
+
+            let appleCode: String
+            if let resolvedEmail, !resolvedEmail.isEmpty {
+                // 서버 규약: 이메일 앞부분 + "@apple.com" 을 code로 전송
+                let usernamePart = resolvedEmail.components(separatedBy: "@").first ?? ""
+                appleCode = "\(usernamePart)@apple.com"
+                UserDefaultsManager.shared.setAppleUserId(appleCode)   // 이후 재사용 위해 저장
+                DLog("🔐 [Login][Apple] 이메일 확보 → code=\(appleCode)")
+            } else {
+                // 어디서도 이메일을 못 얻으면 이전에 저장한 값으로 최종 폴백
+                appleCode = UserDefaultsManager.shared.getAppleUserId()
+                DLog("⚠️ [Login][Apple] credential/identityToken에서 이메일 추출 실패 → 저장값 사용: \(appleCode)")
+            }
+
+            guard !appleCode.isEmpty else {
+                DLog("❌ [Login][Apple] 보낼 code(이메일)가 비어있음 - 로그인 중단. 최초 동의가 필요하면 설정 → Apple ID → Apple로 로그인 → AniPick 사용중단 후 재시도")
+                return
+            }
+
+            DLog("🔐 [Login][Apple] code 전송 - \(appleCode)")
+            Task {
+                await self.postSocialLogin(provider: .apple, code: appleCode)
             }
         case .failure(let error):
-            DLog("Authorization failed: \(error.localizedDescription)")
+            DLog("❌ [Login][Apple] Authorization 실패: \(error.localizedDescription)")
         }
+    }
+
+    /// Apple identityToken(JWT) 페이로드에서 email 클레임을 추출한다.
+    /// credential.email이 nil인 재로그인에서도 이메일을 얻기 위함.
+    private static func email(fromIdentityToken tokenData: Data?) -> String? {
+        guard let tokenData,
+              let jwt = String(data: tokenData, encoding: .utf8) else { return nil }
+
+        let segments = jwt.components(separatedBy: ".")
+        guard segments.count >= 2 else { return nil }
+
+        // JWT payload는 base64url 인코딩 → base64로 변환 후 패딩 보정
+        var base64 = segments[1]
+            .replacingOccurrences(of: "-", with: "+")
+            .replacingOccurrences(of: "_", with: "/")
+        while base64.count % 4 != 0 { base64 += "=" }
+
+        guard let payload = Data(base64Encoded: base64),
+              let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
+              let email = json["email"] as? String else { return nil }
+        return email
     }
     
     func tappedProblemLoginButton() {
