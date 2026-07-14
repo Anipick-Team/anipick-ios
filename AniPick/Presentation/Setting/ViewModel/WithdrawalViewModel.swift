@@ -29,8 +29,7 @@ final class WithdrawalViewModel: ObservableObject {
                 case .success(let value):
                     DLog("withdrawal success - \(value)")
                     if value.code == 200 {
-                        self.navigationManager.popToRoot()
-                        self.navigationManager.push(route: .mainLoginView)
+                        self.navigationManager.completeLogout()
                         // TODO: User정보 전부 clear하는 값 필요
                         UserDefaultsManager.shared.setAccessToken(accessToken: "")
                         UserDefaultsManager.shared.setRefreshToken(refreshToken: "")

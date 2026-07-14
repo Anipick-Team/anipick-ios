@@ -54,15 +54,23 @@ extension EmailLoginViewModel {
             self.clearGuideText()
             if response.code == 200 {
                 if let result = response.result {
-                    UserDefaultsManager.shared.setAccessToken(accessToken: result.token?.accessToken ?? "")
-                    DLog("\(UserDefaultsManager.shared.getAccessToken())")
+                    let accessToken = result.token?.accessToken ?? ""
+                    UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
                     UserDefaultsManager.shared.setRefreshToken(refreshToken: result.token?.refreshToken ?? "")
                     UserDefaultsManager.shared.setNickname(result.nickname ?? "---")
                     UserDefaultsManager.shared.setEmail(self.emailString)
-                    DLog("\(UserDefaultsManager.shared.getNickname())")
                     UserDefaultsManager.shared.setSNSAccount(sns: "")
+                    DLog("🔐 [Login][Email] 서버 200, 토큰 저장 완료 (accessToken 길이=\(accessToken.count))")
+                    if accessToken.isEmpty {
+                        DLog("⚠️ [Login][Email] 200이지만 accessToken이 비어있음 - 서버 응답 확인 필요")
+                        AnalyticsManager.logLoginIssue(provider: "email", reason: "200 but empty accessToken")
+                    }
                     AnalyticsManager.logLogin(method: "email")
-                    self.navigationManager.push(route: AppRoute.content(activeTab: .home))
+                    DLog("🔐 [Login][Email] completeLogin (홈)")
+                    self.navigationManager.completeLogin()
+                } else {
+                    DLog("⚠️ [Login][Email] 200이지만 result가 nil - 화면 전환 없음")
+                    AnalyticsManager.logLoginIssue(provider: "email", reason: "200 but result nil")
                 }
             } else if response.code == 110 {
                 self.passwordGuideText = "8~16자의 영문 대/소문자, 숫자, 특수문자를 조합하여 입력해주세요."
@@ -77,10 +85,14 @@ extension EmailLoginViewModel {
                 
             } else if response.code == 102 {
                 self.emailGuideText = "이메일 주소를 입력해 주세요."
+            } else {
+                DLog("⚠️ [Login][Email] 처리되지 않은 응답코드: \(response.code) - 화면 전환 없음")
+                AnalyticsManager.logLoginIssue(provider: "email", reason: "unhandled response code: \(response.code)")
             }
-            
+
         } catch {
-            DLog("login with email failed - \(error.localizedDescription)")
+            DLog("❌ [Login][Email] 예외 발생: \(error.localizedDescription)")
+            AnalyticsManager.logError(error, context: "login_email")
         }
     }
 
@@ -89,10 +101,7 @@ extension EmailLoginViewModel {
         self.commonGuideText = ""
         self.passwordGuideText = ""
     }
-    private func moveToHomeView() {
-        self.navigationManager.push(route: AppRoute.content(activeTab: .home))
-    }
-    
+
     func validateEmailInputs()  {
         DLog("validateInputs 호출호출!")
         // TODO: 이미 가입한 이메일일 경우, "이미 가입한 이메일입니다. 표시"

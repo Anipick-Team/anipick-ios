@@ -54,8 +54,8 @@ final class EditEmailViewModel: ObservableObject {
                     DLog("logout error - \(error)")
                 }
                 UserDefaultsManager.shared.logoutAllClearInfo()
-                self.navigationManager.popToRoot()
-                self.navigationManager.push(route: .mainLoginView)
+                DLog("🔐 [Login] 이메일 변경 후 로그아웃 - completeLogout")
+                self.navigationManager.completeLogout()
             }
     }
     
