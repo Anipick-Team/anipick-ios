@@ -84,6 +84,7 @@ extension MainLoginViewModel {
                 await self.postSocialLogin(provider: .kakao, code: accessToken)
             } catch {
                 DLog("KakaoLogin failed - \(error)")
+                AnalyticsManager.logError(error, context: "login_kakao")
             }
         }
     }
@@ -93,6 +94,7 @@ extension MainLoginViewModel {
         // 포그라운드 활성 씬의 키윈도우 기준으로 최상단 VC를 안전하게 획득 (Set.first 비결정성 방지)
         guard let presentVC = Self.topMostViewController() else {
             DLog("❌ [Login][Google] presentingViewController를 찾지 못함 - 로그인 중단")
+            AnalyticsManager.logLoginIssue(provider: "google", reason: "presentingViewController not found")
             return
         }
 
@@ -100,14 +102,17 @@ extension MainLoginViewModel {
             guard let self else { return }
             if let error {
                 DLog("❌ [Login][Google] signIn 오류: \(error.localizedDescription)")
+                AnalyticsManager.logError(error, context: "login_google_signIn")
                 return
             }
             guard let result = signInResult else {
                 DLog("❌ [Login][Google] signInResult 없음 - 로그인 중단")
+                AnalyticsManager.logLoginIssue(provider: "google", reason: "signInResult nil")
                 return
             }
             guard let idToken = result.user.idToken?.tokenString, !idToken.isEmpty else {
                 DLog("❌ [Login][Google] idToken이 nil/빈값 - 서버 전송 중단 (기존엔 문자열이 전송되어 실패)")
+                AnalyticsManager.logLoginIssue(provider: "google", reason: "idToken nil or empty")
                 return
             }
             DLog("🔐 [Login][Google] idToken 획득 (길이=\(idToken.count)) - 서버 전송")
@@ -153,6 +158,7 @@ extension MainLoginViewModel {
                 DLog("🔐 [Login][Social:\(provider.rawValue)] 서버 200, 토큰 저장 완료 (accessToken 길이=\(accessToken.count))")
                 if accessToken.isEmpty {
                     DLog("⚠️ [Login][Social:\(provider.rawValue)] 200이지만 accessToken이 비어있음 - 서버 응답 확인 필요")
+                    AnalyticsManager.logLoginIssue(provider: provider.rawValue, reason: "200 but empty accessToken")
                 }
                 AnalyticsManager.logLogin(method: provider.rawValue)
                 if response.result?.reviewCompletedYn ?? true {
@@ -170,9 +176,11 @@ extension MainLoginViewModel {
                 self.isShowSNSSignupPopup.toggle()
             } else {
                 DLog("⚠️ [Login][Social:\(provider.rawValue)] 처리되지 않은 응답코드: \(response.code) - 화면 전환 없음")
+                AnalyticsManager.logLoginIssue(provider: provider.rawValue, reason: "unhandled response code: \(response.code)")
             }
         } catch {
             DLog("❌ [Login][Social:\(provider.rawValue)] 예외 발생: \(error.localizedDescription)")
+            AnalyticsManager.logError(error, context: "login_social_\(provider.rawValue)")
         }
     }
     
@@ -212,6 +220,7 @@ extension MainLoginViewModel {
         case .success(let auth):
             guard let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential else {
                 DLog("❌ [Login][Apple] AppleIDCredential 캐스팅 실패 - 로그인 중단")
+                AnalyticsManager.logLoginIssue(provider: "apple", reason: "credential cast failed")
                 return
             }
 
@@ -236,6 +245,7 @@ extension MainLoginViewModel {
 
             guard !appleCode.isEmpty else {
                 DLog("❌ [Login][Apple] 보낼 code(이메일)가 비어있음 - 로그인 중단. 최초 동의가 필요하면 설정 → Apple ID → Apple로 로그인 → AniPick 사용중단 후 재시도")
+                AnalyticsManager.logLoginIssue(provider: "apple", reason: "empty email code (email not resolved from credential/identityToken)")
                 return
             }
 
@@ -245,6 +255,7 @@ extension MainLoginViewModel {
             }
         case .failure(let error):
             DLog("❌ [Login][Apple] Authorization 실패: \(error.localizedDescription)")
+            AnalyticsManager.logError(error, context: "login_apple_authorization")
         }
     }
 
