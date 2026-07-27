@@ -11,7 +11,8 @@ struct HomeView: View {
     @State private var nickname: String = ""
     @StateObject var viewModel: HomeViewModel
     @EnvironmentObject var appState: AppState
-    
+    @State private var showRollbackDetail: Bool = false
+
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - 상단 로고 및 searchBar
@@ -44,6 +45,14 @@ struct HomeView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
+                    Spacer().frame(height: 16)
+
+                    DataRollbackBannerView {
+                        showRollbackDetail = true
+                    }
+
+                    Spacer().frame(height: 24)
+
                     InstagramBannerView()
 
                     Spacer().frame(height: 36)
@@ -189,6 +198,13 @@ struct HomeView: View {
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
+            }
+        }
+        .overlay {
+            if showRollbackDetail {
+                ServerRecoveryNoticePopupView {
+                    showRollbackDetail = false
+                }
             }
         }
     }
