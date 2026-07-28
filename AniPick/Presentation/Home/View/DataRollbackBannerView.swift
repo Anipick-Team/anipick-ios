@@ -43,7 +43,7 @@ struct DataRollbackBannerView: View {
 
                 Text("서버 복구 과정에서 일부 데이터가 롤백되었음을 안내 드립니다.\n서비스 이용에 큰 불편을 드린 점 진심으로 사과드립니다.")
                     .font(.system(size: 13))
-                    .foregroundColor(.gray6)
+                    .foregroundColor(.anipickBlack)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
