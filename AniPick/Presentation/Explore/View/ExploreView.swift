@@ -422,35 +422,29 @@ struct ExploreView: View {
                 Spacer().frame(width: 16)
                 
                 Button {
-                    DLog("완료버튼 탭탭")
-                    if tmpSelectedYear.isEmpty == false {
-                        let item = ExploreSelectedTag(category: .yearQuarter, value: tmpSelectedYear)
-                        self.insertTagReplacingCategory(item)
-                    //    self.insertTagIfNotExist(item)
-                    }
-                    
-                    if tmpSelectedSeason.isEmpty == false {
-                        let item = ExploreSelectedTag(category: .season, value: tmpSelectedSeason)
-                        self.insertTagReplacingCategory(item)
-                      //  self.insertTagIfNotExist(item)
-                    }
-                    
-                    if tmpSelectedGenreList.isEmpty == false {
-                        for item in tmpSelectedGenreList {
-                            let genreItem = ExploreSelectedTag(category: .genre, value: item)
-                            self.insertTagIfNotExist(genreItem)
+                    DLog("완료버튼 탭탭 - 현재 탭: \(selectedTab)")
+                    // 현재 열려있는 탭의 선택만 반영한다.
+                    // (예: 장르 탭에서 완료했는데 연도 탭 기본값 2027이 딸려 들어가던 버그 방지)
+                    switch selectedTab {
+                    case .yearQuarter:
+                        if tmpSelectedYear.isEmpty == false {
+                            self.insertTagReplacingCategory(ExploreSelectedTag(category: .yearQuarter, value: tmpSelectedYear))
                         }
-                       
+                        if tmpSelectedSeason.isEmpty == false {
+                            self.insertTagReplacingCategory(ExploreSelectedTag(category: .season, value: tmpSelectedSeason))
+                        }
+                    case .genre:
+                        for item in tmpSelectedGenreList {
+                            self.insertTagIfNotExist(ExploreSelectedTag(category: .genre, value: item))
+                        }
+                    case .type:
+                        if tmpSelectedType.isEmpty == false {
+                            self.insertTagReplacingCategory(ExploreSelectedTag(category: .type, value: tmpSelectedType))
+                        }
+                    default:
+                        break
                     }
-                    
-                    if tmpSelectedType.isEmpty == false {
-                        let item = ExploreSelectedTag(category: .type, value: tmpSelectedType)
-                        self.insertTagReplacingCategory(item)
-                    }
-                    
-                //    self.tmpSelectedYear = ""
-                 //   self.tmpSelectedSeason = ""
-                 //   self.tmpSelectedType = ""
+
                     self.tmpSelectedGenreList.removeAll()
                     
                     DLog("tagList 확인 - \(self.viewModel.selectedTagList)")
