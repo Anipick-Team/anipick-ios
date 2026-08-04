@@ -51,10 +51,6 @@ struct HomeView: View {
                         showRollbackDetail = true
                     }
 
-                    Spacer().frame(height: 24)
-
-                    InstagramBannerView()
-
                     Spacer().frame(height: 36)
 
                     HStack(spacing: 0) {
