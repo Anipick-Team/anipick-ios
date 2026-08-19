@@ -2,124 +2,153 @@
 //  ReportReviewWithReasonPopupView.swift
 //  AniPick
 //
-//  Created by cho on 7/13/25.
-//
 
 import SwiftUI
-import Alamofire
 
 struct ReportReviewWithReasonPopupView: View {
-    var cancelAction: () -> Void
-    var okAction: (String) -> Void
-    
-    @State private var reasonReportString: String = ""
+    let cancelAction: () -> Void
+    let okAction: (String) -> Void
+
+    @State private var selectedReason: ReportReason?
+    @State private var isShowingReasonList = false
+    @State private var showsValidationMessage = false
 
     var body: some View {
         ZStack {
-            Color.black.opacity(0.5)
+            Color.black.opacity(0.72)
                 .ignoresSafeArea()
-            
-            // TODO: 가운데 정렬 필요함
+
             VStack(spacing: 0) {
-                Text("신고하는 사유를 선택해주세요.")
-                    .customFontStyle(size: 20, color: .anipickBlack, weight: .bold)
-                    .padding(.bottom, 8)
-                    .padding(.top, 37)
+                Text("신고")
+                    .customFontStyle(size: 28, color: .anipickBlack, weight: .bold)
+                    .padding(.top, 55)
 
-                Text("신고 시, 검토 후 처리되어요.")
-                    .customFontStyle(size: 14, color: .settingSubTitle)
+                Text("신고 유형 선택")
+                    .customFontStyle(size: 22, color: .anipickBlack)
+                    .padding(.top, 46)
+                    .padding(.bottom, 14)
 
-                Spacer().frame(height: 34)
-                
-                VStack(alignment: .leading, spacing: 0) {
-                    HStack(alignment: .center, spacing: 0) {
-                        self.reportCategoryButton(title: .spoiler, isSelected: false)
-                        
-                        self.reportCategoryButton(title: .biasedBehaviro, isSelected: false)
-                        
-                    }
-                    .padding(.bottom, 16)
-                    
-                    
-                    HStack(alignment: .center, spacing: 0) {
-                        self.reportCategoryButton(title: .profanity, isSelected: false)
-                        self.reportCategoryButton(title: .promotional, isSelected: false)
-                    }
-                    .padding(.bottom, 16)
-                    
-                    
-                    self.reportCategoryButton(title: .obscenity, isSelected: false)
+                reasonSelector
+
+                if showsValidationMessage {
+                    Text("신고 유형을 선택해 주세요.")
+                        .customFontStyle(size: 16, color: .anipickPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.top, 10)
                 }
-                .padding(.horizontal, 20)
-                
-                Spacer().frame(height: 40)
-                
-                HStack {
-                    Button {
-                        cancelAction()
-                    } label: {
-                        Text("취소")
-                            .customFontStyle(size: 16, color: .textGray)
-                            .frame(maxWidth: .infinity)
-                    }
 
-                    Divider()
+                Spacer(minLength: 28)
 
-                    Button {
-                        okAction(self.reasonReportString)
-                    } label: {
-                        Text("신고하기")
-                            .customFontStyle(size: 16, color: .anipickPrimary)
-                            .frame(maxWidth: .infinity)
-                    }
-                }
-                .frame(height: 22)
-                
-                Spacer().frame(height: 37)
+                actionButtons
+                    .padding(.bottom, 42)
             }
+            .frame(maxWidth: 724)
+            .padding(.horizontal, 80)
             .background(Color.white)
-            .cornerRadius(16)
-            .padding(.horizontal, 20)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal, 40)
         }
     }
-    
-    private func reportCategoryButton(title: ReportReason, isSelected: Bool) -> some View {
-        return Button {
-            self.reasonReportString = title.rawValue
-        } label: {
-            HStack(alignment: .center, spacing: 0) {
-                Image(self.reasonReportString == title.rawValue ? .selectIcon : .unSelectIcon)
-                    .resizable()
-                    .frame(width: 19, height: 19)
-                    .padding(.trailing, 8)
-                
-                Text(title.rawValue)
-                    .customFontStyle(size: 16, color: .anipickBlack)
-                
-                Spacer()
+
+    private var reasonSelector: some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.15)) {
+                    isShowingReasonList.toggle()
+                }
+            } label: {
+                HStack(spacing: 0) {
+                    Text(selectedReason?.rawValue ?? "신고 유형 선택")
+                        .customFontStyle(
+                            size: 20,
+                            color: selectedReason == nil ? .gray8 : .anipickBlack
+                        )
+
+                    Spacer()
+
+                    Image(systemName: isShowingReasonList ? "chevron.up" : "chevron.down")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundStyle(.anipickBlack)
+                }
+                .padding(.horizontal, 32)
+                .frame(height: 92)
+                .background(Color.gray7)
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
-            .frame(maxWidth: .infinity)
+            .buttonStyle(.plain)
+
+            if isShowingReasonList {
+                VStack(spacing: 0) {
+                    ForEach(ReportReason.allCases) { reason in
+                        Button {
+                            selectedReason = reason
+                            showsValidationMessage = false
+                            withAnimation(.easeInOut(duration: 0.15)) {
+                                isShowingReasonList = false
+                            }
+                        } label: {
+                            Text(reason.rawValue)
+                                .customFontStyle(size: 20, color: .anipickBlack)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .frame(height: 70)
+                                .padding(.horizontal, 32)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .background(Color.gray7)
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
         }
     }
-    
-    private func reportReview() {
-        
+
+    private var actionButtons: some View {
+        HStack(spacing: 0) {
+            Button {
+                cancelAction()
+            } label: {
+                Text("닫기")
+                    .customFontStyle(size: 20, color: .textGray)
+                    .frame(maxWidth: .infinity)
+            }
+
+            Rectangle()
+                .fill(Color.gray6)
+                .frame(width: 1, height: 28)
+
+            Button {
+                guard let selectedReason else {
+                    showsValidationMessage = true
+                    return
+                }
+                okAction(selectedReason.rawValue)
+            } label: {
+                Text("신고하기")
+                    .customFontStyle(
+                        size: 20,
+                        color: showsValidationMessage ? .primaryColor : .anipickPrimary
+                    )
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .frame(height: 28)
     }
 }
 
-enum ReportReason: String {
-    case spoiler = "스포일러"
-    case biasedBehaviro = "편파적인 언행"
-    case profanity = "욕설 및 비하"
-    case promotional = "홍보성 및 영리 목적"
-    case obscenity = "음란성 및 선정성"
+enum ReportReason: String, CaseIterable, Identifiable {
+    case profanity = "욕설/비하/혐오 표현"
+    case personalInformation = "개인정보 노출"
+    case spam = "도배/스팸/광고성 내용"
+    case harmfulContent = "불법/유해/부적절한 내용"
+    case policyViolation = "기타 운영정책 위반"
+
+    var id: String { rawValue }
 }
 
 #Preview {
     ReportReviewWithReasonPopupView {
         DLog("cancel")
-    } okAction: { reportReason in
-        DLog(reportReason)
+    } okAction: { reason in
+        DLog(reason)
     }
-
 }

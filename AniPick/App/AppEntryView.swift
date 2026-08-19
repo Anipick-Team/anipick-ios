@@ -96,6 +96,8 @@ struct AppEntryView: View {
                     AppDIContainer.makePreferenceSelectionView()
                 case .comingSoonDetail:
                     AppDIContainer.makeComingSoonView()
+                case .weekdayNewAnime(let day):
+                    AppDIContainer.makeWeekdayNewAnimeView(day: day)
                 case .mainLoginView:
                     AppDIContainer.makeLoginView()
                 case .recentReview:

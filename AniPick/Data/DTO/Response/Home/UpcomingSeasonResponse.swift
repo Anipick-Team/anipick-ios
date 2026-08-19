@@ -23,3 +23,15 @@ struct Anime: Hashable, Codable {
     let coverImageUrl: String?
     let releaseDate: String?
 }
+
+struct WeekdayAnimeListResponse: Decodable {
+    let code: Int
+    let value: String
+    let result: WeekdayAnimeResult?
+}
+
+struct WeekdayAnimeResult: Decodable {
+    let count: Int?
+    let cursor: Cursor?
+    let animes: [Anime]?
+}

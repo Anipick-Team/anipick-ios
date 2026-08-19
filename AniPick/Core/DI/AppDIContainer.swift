@@ -234,6 +234,12 @@ extension AppDIContainer {
         return ComingSoonView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
+
+    static func makeWeekdayNewAnimeView(day: Int) -> some View {
+        let viewModel = WeekdayNewAnimeViewModel(day: day, navigationManager: navigationManager)
+        return WeekdayNewAnimeView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
     
     static func makeRecentReviewView() -> some View {
         let viewModel = RecentReviewViewModel(navigationManager: navigationManager)
@@ -278,5 +284,4 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
 }
-
 

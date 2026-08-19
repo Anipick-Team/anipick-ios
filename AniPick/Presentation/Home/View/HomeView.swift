@@ -115,6 +115,10 @@ struct HomeView: View {
                     }
 
                 }
+
+                sectionDivider()
+
+                weekdayNewAnimeSection()
                 
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
@@ -194,6 +198,7 @@ struct HomeView: View {
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
+                await viewModel.getWeekdayNewAnimes()
             }
         }
         .overlay {
@@ -252,6 +257,54 @@ struct HomeView: View {
             Spacer().frame(height: 28)
         }
         .ignoresSafeArea()
+    }
+
+    private func weekdayNewAnimeSection() -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 0) {
+                Text("요일별 신작")
+                    .customFontStyle(size: 20, color: .anipickBlack, weight: .semibold)
+
+                Spacer()
+
+                Button {
+                    viewModel.moveToWeekdayNewAnimeView()
+                } label: {
+                    Image(.chevronLeftGray)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 14)
+
+            HStack(spacing: 8) {
+                ForEach(WeekdayNewAnimeDay.allCases) { day in
+                    Text(day.title)
+                        .customFontStyle(
+                            size: 14,
+                            color: day == .today ? .white : .gray8,
+                            weight: .semibold
+                        )
+                        .frame(width: 38, height: 38)
+                        .background(day == .today ? Color.primaryColor : Color.gray7)
+                        .clipShape(Circle())
+                }
+            }
+            .padding(.horizontal, 20)
+            .padding(.bottom, 16)
+
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 12) {
+                    ForEach(viewModel.weekdayNewAnimes, id: \.self) { item in
+                        animationCell(anime: item) {
+                            viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
     }
     
     private func recentReviewCell() -> some View {
@@ -344,6 +397,137 @@ struct HomeView: View {
                 title: anime.title
             )
         }
+    }
+}
+
+struct WeekdayNewAnimeView: View {
+    @Environment(\.dismiss) private var dismiss
+    @StateObject var viewModel: WeekdayNewAnimeViewModel
+
+    private let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+
+    var body: some View {
+        VStack(spacing: 0) {
+            header
+
+            Rectangle()
+                .frame(height: 9)
+                .foregroundStyle(.gray7)
+
+            ScrollView(showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 0) {
+                    weekdayPicker
+
+                    HStack(spacing: 0) {
+                        Spacer()
+                        Menu {
+                            ForEach(WeekdayNewAnimeSort.allCases) { sort in
+                                Button(sort.title) {
+                                    viewModel.selectedSort = sort
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 4) {
+                                Text(viewModel.selectedSort.title)
+                                    .customFontStyle(size: 14, color: .gray8)
+                                Image(systemName: "chevron.down")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .foregroundStyle(.gray8)
+                            }
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, 20)
+
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                    } else if viewModel.animes.isEmpty {
+                        Text("해당 요일에 등록된 신작이 없어요.")
+                            .customFontStyle(size: 14, color: .gray8)
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 80)
+                    } else {
+                        LazyVGrid(columns: columns, alignment: .leading, spacing: 24) {
+                            ForEach(viewModel.animes, id: \.self) { item in
+                                Button {
+                                    viewModel.tappedAnime(item)
+                                } label: {
+                                    AnimeCommonCellWithTitle(
+                                        imageUrl: item.coverImageUrl,
+                                        width: nil,
+                                        height: 162,
+                                        title: item.title
+                                    )
+                                }
+                                .buttonStyle(.plain)
+                                .onAppear {
+                                    Task { await viewModel.loadMoreIfNeeded(item: item) }
+                                }
+                            }
+                        }
+
+                        if viewModel.isLoadingMore {
+                            ProgressView()
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 20)
+                        }
+                    }
+                }
+                .padding(.horizontal, 20)
+            }
+        }
+        .background(Color.white)
+        .navigationBarBackButtonHidden(true)
+        .task {
+            await viewModel.loadIfNeeded()
+        }
+    }
+
+    private var header: some View {
+        ZStack {
+            HStack(spacing: 0) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(.chevronLeft)
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, 20)
+
+            Text("요일별 신작")
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .semibold)
+        }
+        .frame(height: 58)
+        .background(Color.white)
+        .shadow(color: .black.opacity(0.08), radius: 6, y: 4)
+    }
+
+    private var weekdayPicker: some View {
+        HStack(spacing: 8) {
+            ForEach(WeekdayNewAnimeDay.allCases) { day in
+                Button {
+                    Task { await viewModel.select(day: day) }
+                } label: {
+                    Text(day.title)
+                        .customFontStyle(
+                            size: 14,
+                            color: viewModel.selectedDay == day ? .white : .gray8,
+                            weight: .semibold
+                        )
+                        .frame(width: 44, height: 44)
+                        .background(viewModel.selectedDay == day ? Color.primaryColor : Color.gray7)
+                        .clipShape(Circle())
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(.top, 22)
+        .padding(.bottom, 38)
     }
 }
 
