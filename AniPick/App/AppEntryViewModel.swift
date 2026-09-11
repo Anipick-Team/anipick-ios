@@ -12,7 +12,7 @@ import Alamofire
 final class AppEntryViewModel: ObservableObject {
     private let session = NetworkSession.authenticated
     
-    func checkVersion() {
+    func checkVersion(completion: @escaping (VersionResult?) -> Void = { _ in }) {
         session.request(VersionAPI.checkVersion)
             .cURLDescription { DLog($0) }
             .responseDecodable(of: VersionResponse.self) { [weak self] response in
@@ -20,8 +20,10 @@ final class AppEntryViewModel: ObservableObject {
                 switch response.result {
                 case .success(let value):
                     DLog("version check success - \(value)")
+                    completion(value.result)
                 case .failure(let error):
                     DLog("version check에서 error 발생 - \(error)")
+                    completion(nil)
                 }
             }
     }

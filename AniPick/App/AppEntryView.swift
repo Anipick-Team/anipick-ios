@@ -11,6 +11,8 @@ struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
     @State private var showServerRecoveryNotice: Bool = false
+    @State private var showVersionNotice: Bool = false
+    @State private var versionNotice = VersionNoticeContent.fallback
 
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
@@ -28,7 +30,25 @@ struct AppEntryView: View {
             .onAppear {
                 TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
-                viewModel.checkVersion()
+                // 서버가 내려가도 공지가 보이도록 앱에 포함된 비상 공지를 먼저 준비합니다.
+                showVersionNotice = UserDefaultsManager.shared.getSeenVersionNoticeTitle() != versionNotice.title
+                viewModel.checkVersion { result in
+                    guard let result,
+                          let type = result.type,
+                          type == "notice" || type == "update" else {
+                        DLog("version notice 없음 - 비상 공지 사용")
+                        return
+                    }
+
+                    let serverNotice = VersionNoticeContent(
+                        title: result.title ?? versionNotice.title,
+                        content: result.content ?? versionNotice.content,
+                        url: result.url
+                    )
+                    DLog("version notice popup 대상 - title: \(serverNotice.title), type: \(type)")
+                    versionNotice = serverNotice
+                    showVersionNotice = UserDefaultsManager.shared.getSeenVersionNoticeTitle() != serverNotice.title
+                }
                 if !UserDefaultsManager.shared.getHasSeenServerRecoveryNotice() {
                     showServerRecoveryNotice = true
                 }
@@ -122,7 +142,16 @@ struct AppEntryView: View {
         }
         .background(Color.white)
         .overlay {
-            if showServerRecoveryNotice {
+            if showVersionNotice {
+                VersionNoticePopupView(
+                    title: versionNotice.title,
+                    content: versionNotice.content,
+                    url: versionNotice.url
+                ) {
+                    UserDefaultsManager.shared.setSeenVersionNoticeTitle(versionNotice.title)
+                    showVersionNotice = false
+                }
+            } else if showServerRecoveryNotice {
                 ServerRecoveryNoticePopupView {
                     UserDefaultsManager.shared.setHasSeenServerRecoveryNotice(true)
                     showServerRecoveryNotice = false
@@ -130,4 +159,16 @@ struct AppEntryView: View {
             }
         }
     }
+}
+
+private struct VersionNoticeContent {
+    let title: String
+    let content: String
+    let url: String?
+
+    static let fallback = VersionNoticeContent(
+        title: "업데이트 1.0.8.................",
+        content: "IOS 업데이트 1.0.8.................IOS 업데이트 1.0.8.................IOS 업데이트 1.0.8.................IOS 업데이트 1.0.8.................",
+        url: nil
+    )
 }
