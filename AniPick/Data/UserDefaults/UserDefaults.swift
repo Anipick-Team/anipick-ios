@@ -26,6 +26,7 @@ enum UserDefaultKey: String {
     case imageId
 
     case hasSeenServerRecoveryNotice
+    case seenVersionNoticeTitle
 
 }
 
@@ -207,3 +208,13 @@ extension UserDefaultsManager {
     }
 }
 
+// MARK: - 버전 공지
+extension UserDefaultsManager {
+    func setSeenVersionNoticeTitle(_ title: String) {
+        defaults.set(title, forKey: UserDefaultKey.seenVersionNoticeTitle.rawValue)
+    }
+
+    func getSeenVersionNoticeTitle() -> String {
+        return defaults.string(forKey: UserDefaultKey.seenVersionNoticeTitle.rawValue) ?? ""
+    }
+}
