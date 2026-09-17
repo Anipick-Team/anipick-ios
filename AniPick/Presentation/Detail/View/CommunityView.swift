@@ -13,6 +13,7 @@ struct CommunityView: View {
 
     @StateObject private var viewModel: CommunityViewModel
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var navigationManager: NavigationManager
 
     init(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String]) {
         self.animeId = animeId
@@ -31,24 +32,21 @@ struct CommunityView: View {
                     dismiss()
                 }
 
-                Spacer().frame(height: 30)
-                
-                self.sectionDivder()
-                    .padding(.horizontal, -20)
-                
-                Spacer().frame(height: 20)
-                
-
                 // MARK: - Scrollable Content
-                ScrollView {
+                ScrollView(showsIndicators: false) {
                     VStack(spacing: 0) {
                         animeInfoHeader()
                             .background(Color.white)
-                        filterBar()
+                        spoilerBar()
                             .background(Color.white)
                         LazyVStack(spacing: 12) {
-                            ForEach(viewModel.posts) { post in
+                            ForEach(viewModel.posts.filter { viewModel.isShowSpoiler || !$0.isSpoiler }) { post in
                                 postCell(post)
+                                    .onAppear {
+                                        if post.id == viewModel.posts.last?.id {
+                                            viewModel.fetchPosts()
+                                        }
+                                    }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -62,7 +60,11 @@ struct CommunityView: View {
             .background(Color.white)
             // MARK: - FAB
             Button {
-                // TODO: 글쓰기 화면으로 이동
+                guard let seriesId = viewModel.seriesId else {
+                    DLog("커뮤니티 글쓰기 이동 실패 - 게시판 정보 로딩 전")
+                    return
+                }
+                navigationManager.push(route: .communityWrite(seriesId: seriesId, animeTitle: animeTitle))
             } label: {
                 Image(systemName: "pencil")
                     .font(.system(size: 20, weight: .semibold))
@@ -76,6 +78,13 @@ struct CommunityView: View {
             .padding(.bottom, 20)
         }
         .navigationBarHidden(true)
+        .onAppear { viewModel.fetchPosts(reset: true) }
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            communityTabBar()
+        }
+        .onChange(of: viewModel.selectedFilter) { _ in
+            viewModel.fetchPosts(reset: true)
+        }
     }
     
     @ViewBuilder
@@ -101,7 +110,7 @@ struct CommunityView: View {
                         image
                             .resizable()
                             .scaledToFill()
-                            .frame(width: 88, height: 88)
+                            .frame(width: 115, height: 105)
                             .clipShape(RoundedRectangle(cornerRadius: 8))
                     default:
                         coverPlaceholder()
@@ -134,44 +143,21 @@ struct CommunityView: View {
     private func coverPlaceholder() -> some View {
         RoundedRectangle(cornerRadius: 8)
             .foregroundColor(.gray5)
-            .frame(width: 88, height: 88)
+            .frame(width: 115, height: 105)
             .overlay(
                 Image(.animeThumbnail)
                     .resizable()
                     .scaledToFit()
-                    .frame(width: 60, height: 60)
+                    .frame(width: 70, height: 70)
             )
     }
 
-    // MARK: - 필터 바
+    // MARK: - 스포일러 표시 설정
     @ViewBuilder
-    private func filterBar() -> some View {
-        VStack(spacing: 0) {
-            HStack(spacing: 8) {
-                ForEach(CommunityFilter.allCases, id: \.self) { filter in
-                    Button {
-                        viewModel.selectedFilter = filter
-                    } label: {
-                        Text(filter.rawValue)
-                            .customFontStyle(
-                                size: 14,
-                                color: viewModel.selectedFilter == filter ? .white : .anipickBlack
-                            )
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 8)
-                            .background(
-                                viewModel.selectedFilter == filter
-                                    ? Color.anipickPrimary
-                                    : Color.clear
-                            )
-                            .cornerRadius(20)
-                    }
-                }
-                Spacer()
-            }
-
+    private func spoilerBar() -> some View {
+        HStack {
+            Spacer()
             HStack {
-                Spacer()
                 Text("스포일러")
                     .customFontStyle(size: 14, color: .anipickPrimary)
                     .padding(.trailing, 6)
@@ -181,10 +167,9 @@ struct CommunityView: View {
                     Image(viewModel.isShowSpoiler ? .toggleEnable : .grayToggleOff)
                 }
             }
-            .padding(.top, 8)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 14)
+        .padding(.vertical, 10)
     }
 
     // MARK: - 포스트 셀
@@ -214,8 +199,16 @@ struct CommunityView: View {
             }
 
             // 본문
+            if !post.title.isEmpty {
+                Text(post.title)
+                    .customFontStyle(size: 15, color: .anipickBlack, weight: .medium)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
             Text(post.content)
                 .customFontStyle(size: 14, color: .anipickBlack)
+                .foregroundColor(.gray8)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -226,11 +219,11 @@ struct CommunityView: View {
 
             // 반응 + 스포일러 태그
             HStack(spacing: 0) {
+                reactionItem(icon: "eye", count: 0)
+                Text("  |  ").customFontStyle(size: 13, color: .gray6)
                 reactionItem(icon: "heart", count: post.likeCount)
                 Text("  |  ").customFontStyle(size: 13, color: .gray6)
-                reactionItem(icon: "heart", count: post.dislikeCount)
-                Text("  |  ").customFontStyle(size: 13, color: .gray6)
-                reactionItem(icon: "heart", count: post.commentCount)
+                reactionItem(icon: "bubble.left", count: post.commentCount)
 
                 Spacer()
 
@@ -249,6 +242,10 @@ struct CommunityView: View {
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
         .background(Color.white)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            navigationManager.push(route: .communityDetail(postId: post.id))
+        }
         .cornerRadius(12)
     }
 
@@ -273,9 +270,21 @@ struct CommunityView: View {
         HStack(spacing: 4) {
             ForEach(0..<displayCount, id: \.self) { idx in
                 ZStack {
-                    RoundedRectangle(cornerRadius: 4)
-                        .foregroundColor(.gray5)
+                    if let url = URL(string: urls[idx]), !urls[idx].isEmpty {
+                        AsyncImage(url: url) { phase in
+                            if case .success(let image) = phase {
+                                image.resizable().scaledToFill()
+                            } else {
+                                Color.gray5
+                            }
+                        }
                         .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    } else {
+                        RoundedRectangle(cornerRadius: 4)
+                            .foregroundColor(.gray5)
+                            .frame(width: 56, height: 56)
+                    }
 
                     if idx == displayCount - 1 && overflow > 0 {
                         RoundedRectangle(cornerRadius: 4)
@@ -287,6 +296,39 @@ struct CommunityView: View {
                     }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func communityTabBar() -> some View {
+        HStack(spacing: 0) {
+            tabBarItem(image: .homeUnfilled, title: "홈", selected: false)
+            tabBarItem(image: .rankingUnfilled, title: "랭킹", selected: false)
+            tabBarItem(image: .reseachFilled, title: "탐색", selected: true)
+            tabBarItem(image: .myInfoUnfilled, title: "마이", selected: false)
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+        .background(Color.white)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Color.gray5).frame(height: 1)
+        }
+    }
+
+    @ViewBuilder
+    private func tabBarItem(image: ImageResource, title: String, selected: Bool) -> some View {
+        Button {
+            DLog("커뮤니티 하단 탭 선택 - \(title)")
+        } label: {
+            VStack(spacing: 4) {
+                Image(image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+                Text(title)
+                    .customFontStyle(size: 11, color: selected ? .anipickPrimary : .gray6)
+            }
+            .frame(maxWidth: .infinity)
         }
     }
 }

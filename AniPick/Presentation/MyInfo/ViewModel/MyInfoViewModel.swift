@@ -60,6 +60,10 @@ extension MyInfoViewModel {
     func tappedSettingButton() {
         self.navigationManager.push(route: .setting)
     }
+
+    func tappedMyContent() {
+        self.navigationManager.push(route: .myContent)
+    }
 }
 
 extension MyInfoViewModel {

@@ -79,7 +79,34 @@ enum NetworkManager {
             }
         }
     }
+
+    static func request<T: Decodable>(_ convertible: URLRequestConvertible) async throws -> T {
+        try await defaultSession.request(convertible)
+            .validate()
+            .serializingDecodable(T.self)
+            .value
+    }
+
+    static func upload<T: Decodable>(
+        data: Data,
+        path: String,
+        fieldName: String,
+        fileName: String,
+        mimeType: String
+    ) async throws -> T {
+        try await defaultSession.upload(
+            multipartFormData: { formData in
+                formData.append(data, withName: fieldName, fileName: fileName, mimeType: mimeType)
+            },
+            to: baseUrl + path,
+            method: .post,
+            headers: [
+                "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"
+            ]
+        )
+        .validate()
+        .serializingDecodable(T.self)
+        .value
+    }
 }
-
-
 

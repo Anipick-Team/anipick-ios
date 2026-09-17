@@ -109,10 +109,13 @@ struct AppEntryView: View {
                     AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
                 case let .community(animeId, animeTitle, coverImageUrl, genreNames):
                     AppDIContainer.makeCommunityView(animeId: animeId, animeTitle: animeTitle, coverImageUrl: coverImageUrl, genreNames: genreNames)
+                case let .communityWrite(seriesId, animeTitle):
+                    CommunityWriteView(seriesId: seriesId, animeTitle: animeTitle)
+                        .environmentObject(navigationManager)
                 case let .recommend2(animeId, animeTitle):
                     AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
-                case .communityDetail:
-                    CommunityDetailView()
+                case let .communityDetail(postId):
+                    CommunityDetailView(postId: postId)
                 case .myContent:
                     MyContentView()
                 default:

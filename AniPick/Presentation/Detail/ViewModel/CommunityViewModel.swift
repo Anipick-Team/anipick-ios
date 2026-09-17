@@ -17,6 +17,7 @@ struct CommunityPost: Identifiable {
     let authorName: String
     let authorImageUrl: String?
     let date: String
+    let title: String
     let content: String
     let imageUrls: [String]
     let likeCount: Int
@@ -29,55 +30,96 @@ final class CommunityViewModel: ObservableObject {
     @Published var posts: [CommunityPost] = []
     @Published var selectedFilter: CommunityFilter = .all
     @Published var isShowSpoiler: Bool = true
+    @Published var isLoading: Bool = false
+    @Published var hasNextPage: Bool = true
 
     let animeId: Int
+    @Published private(set) var seriesId: Int?
+    private var lastId: Int?
+    private var lastValue: String?
 
     init(animeId: Int) {
         self.animeId = animeId
-        // TODO: API 연결 시 fetchPosts() 호출
-        self.posts = Self.dummyPosts
+        fetchPosts(reset: true)
     }
 
-    func fetchPosts() {
-        // TODO: API 연결
+    func fetchPosts(reset: Bool = false) {
+        guard !isLoading, reset || hasNextPage else { return }
+
+        if reset {
+            lastId = nil
+            lastValue = nil
+            hasNextPage = true
+        }
+
+        isLoading = true
+        Task {
+            do {
+                let resolvedSeriesId: Int
+                do {
+                    let board = try await CommunityAPIService.shared.boardByAnime(animeId: animeId)
+                    if let seriesId = board.result?.seriesId {
+                        resolvedSeriesId = seriesId
+                    } else {
+                        // 일부 응답에서는 애니 ID와 게시판의 series ID가 동일하게 사용됩니다.
+                        resolvedSeriesId = animeId
+                        DLog("커뮤니티 게시판 응답에 seriesId 없음 - animeId를 seriesId로 사용: \(animeId)")
+                    }
+                } catch {
+                    // 게시판 조회가 실패해도 게시글 API를 직접 시도해 화면이 비지 않도록 합니다.
+                    resolvedSeriesId = animeId
+                    DLog("커뮤니티 게시판 조회 실패, animeId로 게시글 조회 재시도 - animeId: \(animeId), error: \(error)")
+                }
+
+                let response = try await CommunityAPIService.shared.posts(
+                    seriesId: resolvedSeriesId,
+                    sort: selectedFilter.apiValue,
+                    lastValue: lastValue,
+                    lastId: lastId
+                )
+                let newPosts = (response.result?.posts ?? []).map(Self.mapPost)
+                let cursor = response.result?.cursor
+
+                DLog("커뮤니티 게시글 조회 성공 - seriesId: \(resolvedSeriesId), count: \(newPosts.count), cursor: \(String(describing: cursor))")
+                await MainActor.run {
+                    self.seriesId = resolvedSeriesId
+                    self.posts = reset ? newPosts : self.posts + newPosts
+                    self.lastId = cursor?.lastId
+                    self.lastValue = cursor?.lastValue
+                    self.hasNextPage = newPosts.isEmpty == false && cursor?.lastId != nil
+                    self.isLoading = false
+                }
+            } catch {
+                DLog("커뮤니티 게시글 조회 실패 - animeId: \(animeId), error: \(error.localizedDescription)")
+                await MainActor.run { self.isLoading = false }
+            }
+        }
     }
 
-    private static let dummyPosts: [CommunityPost] = [
+    private static func mapPost(_ post: CommunityPostDTO) -> CommunityPost {
         CommunityPost(
-            id: 1,
-            authorName: "작성자 닉네임",
-            authorImageUrl: nil,
-            date: "2024.01.23",
-            content: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아셔 나온쥿셍 즈나아...",
-            imageUrls: [],
-            likeCount: 0,
+            id: post.postId,
+            authorName: post.nickname ?? "익명",
+            authorImageUrl: post.profileImageUrl,
+            date: post.createdAt ?? "",
+            title: post.title ?? "",
+            content: post.content ?? "",
+            imageUrls: (post.thumbnailImageId.map { ["\(NetworkManager.baseUrl)api/image/\($0)"] } ?? []),
+            likeCount: post.likeCount ?? 0,
             dislikeCount: 0,
-            commentCount: 0,
-            isSpoiler: true
-        ),
-        CommunityPost(
-            id: 2,
-            authorName: "작성자 닉네임",
-            authorImageUrl: nil,
-            date: "2024.01.23",
-            content: "한줄",
-            imageUrls: [],
-            likeCount: 0,
-            dislikeCount: 0,
-            commentCount: 0,
-            isSpoiler: false
-        ),
-        CommunityPost(
-            id: 3,
-            authorName: "작성자 닉네임",
-            authorImageUrl: nil,
-            date: "2024.01.23",
-            content: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아셔 나온쥿셍 즈나아...",
-            imageUrls: ["", "", "", "", "", "", "", ""],
-            likeCount: 0,
-            dislikeCount: 0,
-            commentCount: 0,
-            isSpoiler: false
+            commentCount: post.commentCount ?? 0,
+            isSpoiler: post.isSpoiler ?? false
         )
-    ]
+    }
+}
+
+private extension CommunityFilter {
+    var apiValue: String {
+        switch self {
+        case .all: return "latest"
+        case .monthly: return "popularMonthly"
+        case .weekly: return "popularWeekly"
+        case .daily: return "popularDaily"
+        }
+    }
 }

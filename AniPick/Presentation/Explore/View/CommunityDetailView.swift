@@ -5,17 +5,19 @@
 
 import SwiftUI
 
-// MARK: - Dummy Models (TODO: API 연결 시 ViewModel로 분리)
+// MARK: - 화면 모델
 struct CommunityDetailPost {
     let authorName: String
+    let authorImageUrl: String?
     let date: String
     let isSpoiler: Bool
     let imageUrls: [String]
     let title: String
     let body: String
     let viewCount: Int
-    let likeCount: Int
+    var likeCount: Int
     let commentCount: Int
+    var isLiked: Bool
 }
 
 struct CommunityComment: Identifiable {
@@ -23,6 +25,7 @@ struct CommunityComment: Identifiable {
     let authorName: String
     let date: String
     let content: String
+    let authorImageUrl: String?
     let likeCount: Int
     let replies: [CommunityReply]
 }
@@ -32,60 +35,180 @@ struct CommunityReply: Identifiable {
     let authorName: String
     let date: String
     let content: String
+    let authorImageUrl: String?
     let likeCount: Int
+}
+
+@MainActor
+final class CommunityDetailViewModel: ObservableObject {
+    @Published private(set) var post: CommunityDetailPost?
+    @Published private(set) var comments: [CommunityComment] = []
+    @Published private(set) var isLoading = false
+    @Published private(set) var isLoadingMore = false
+    @Published private(set) var errorMessage: String?
+
+    private let postId: Int
+    private var commentsCursor: CommunityCursor?
+
+    init(postId: Int) {
+        self.postId = postId
+        fetch()
+    }
+
+    func fetch() {
+        isLoading = true
+        errorMessage = nil
+
+        Task { [weak self] in
+            guard let self else { return }
+
+            do {
+                async let detailResponse = CommunityAPIService.shared.postDetail(postId: postId)
+                async let commentsResponse = CommunityAPIService.shared.comments(postId: postId)
+                let (detail, comments) = try await (detailResponse, commentsResponse)
+
+                guard let detailDTO = detail.result else {
+                    throw NSError(domain: "CommunityDetail", code: -1,
+                                  userInfo: [NSLocalizedDescriptionKey: "게시글 상세 데이터가 없습니다."])
+                }
+
+                self.post = Self.map(detailDTO)
+                self.comments = (comments.result?.comments ?? []).map { Self.map($0) }
+                self.commentsCursor = comments.result?.cursor
+                self.isLoading = false
+                DLog("커뮤니티 상세 조회 완료 - postId: \(postId), comments: \(self.comments.count)")
+            } catch {
+                self.isLoading = false
+                self.errorMessage = error.localizedDescription
+                DLog("커뮤니티 상세 조회 실패 - postId: \(postId), error: \(error)")
+            }
+        }
+    }
+
+    func loadMoreCommentsIfNeeded(current comment: CommunityComment) {
+        guard comment.id == comments.last?.id,
+              !isLoading,
+              !isLoadingMore,
+              let lastId = commentsCursor?.lastId else { return }
+
+        isLoadingMore = true
+
+        Task { [weak self] in
+            guard let self else { return }
+
+            do {
+                let response = try await CommunityAPIService.shared.comments(
+                    postId: postId,
+                    lastId: lastId
+                )
+                let nextComments = (response.result?.comments ?? []).map(Self.map)
+                self.comments.append(contentsOf: nextComments)
+                self.commentsCursor = response.result?.cursor
+                DLog("커뮤니티 댓글 추가 조회 완료 - postId: \(postId), added: \(nextComments.count)")
+            } catch {
+                DLog("커뮤니티 댓글 추가 조회 실패 - postId: \(postId), error: \(error)")
+            }
+
+                self.isLoadingMore = false
+        }
+    }
+
+    func togglePostLike() {
+        guard let post else { return }
+
+        let targetLiked = !post.isLiked
+        let previousLikeCount = post.likeCount
+        self.post?.isLiked = targetLiked
+        self.post?.likeCount = max(0, previousLikeCount + (targetLiked ? 1 : -1))
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                if targetLiked {
+                    _ = try await CommunityAPIService.shared.likePost(postId: postId)
+                } else {
+                    _ = try await CommunityAPIService.shared.unlikePost(postId: postId)
+                }
+                DLog("커뮤니티 게시글 좋아요 \(targetLiked ? "등록" : "취소") 완료 - postId: \(postId)")
+            } catch {
+                self.post?.isLiked = !targetLiked
+                self.post?.likeCount = previousLikeCount
+                DLog("커뮤니티 게시글 좋아요 실패 - postId: \(postId), error: \(error)")
+            }
+        }
+    }
+
+    private static func imageURL(for id: Int) -> String {
+        "\(NetworkManager.baseUrl)api/image/\(id)"
+    }
+
+    private static func map(_ dto: CommunityPostDetailDTO) -> CommunityDetailPost {
+        CommunityDetailPost(
+            authorName: dto.nickname ?? "익명",
+            authorImageUrl: dto.profileImageUrl,
+            date: dto.createdAt ?? "",
+            isSpoiler: dto.isSpoiler ?? false,
+            imageUrls: (dto.imageIds ?? []).map { imageURL(for: $0) },
+            title: dto.title ?? "",
+            body: dto.content ?? "",
+            viewCount: dto.viewCount ?? 0,
+            likeCount: dto.likeCount ?? 0,
+            commentCount: dto.commentCount ?? 0,
+            isLiked: dto.likedByCurrentUser ?? false
+        )
+    }
+
+    private static func map(_ dto: CommunityCommentDTO) -> CommunityComment {
+        CommunityComment(
+            id: dto.commentId,
+            authorName: dto.nickname ?? "익명",
+            date: dto.createdAt ?? "",
+            content: dto.isDeleted == true ? "삭제된 댓글입니다." : (dto.content ?? ""),
+            authorImageUrl: dto.profileImageUrl,
+            likeCount: dto.likeCount ?? 0,
+            replies: (dto.replies ?? []).map(mapReply)
+        )
+    }
+
+    private static func mapReply(_ dto: CommunityCommentDTO) -> CommunityReply {
+        CommunityReply(
+            id: dto.commentId,
+            authorName: dto.nickname ?? "익명",
+            date: dto.createdAt ?? "",
+            content: dto.isDeleted == true ? "삭제된 댓글입니다." : (dto.content ?? ""),
+            authorImageUrl: dto.profileImageUrl,
+            likeCount: dto.likeCount ?? 0
+        )
+    }
 }
 
 struct CommunityDetailView: View {
     @EnvironmentObject private var navigationManager: NavigationManager
+    @StateObject private var viewModel: CommunityDetailViewModel
 
     @State private var currentImageIndex: Int = 0
 
-    // TODO: API 연결 시 ViewModel로 분리
-    private let post = CommunityDetailPost(
-        authorName: "작성자 닉네임",
-        date: "2024.01.23",
-        isSpoiler: true,
-        imageUrls: ["", "", "", "", ""],
-        title: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아서 나온긂셍 즈나아만아아만 기재부 도이는, 난산딜저다.",
-        body: "글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용",
-        viewCount: 0,
-        likeCount: 0,
-        commentCount: 0
-    )
+    init(postId: Int) {
+        _viewModel = StateObject(wrappedValue: CommunityDetailViewModel(postId: postId))
+    }
 
-    private let comments: [CommunityComment] = [
-        CommunityComment(
-            id: 0,
-            authorName: "작성자 닉네임",
-            date: "2024.01.23",
-            content: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아서 나온긂셍 즈나아안아아만 기재부 도이는, 난산딜저다.",
+    private var post: CommunityDetailPost {
+        viewModel.post ?? CommunityDetailPost(
+            authorName: "",
+            authorImageUrl: nil,
+            date: "",
+            isSpoiler: false,
+            imageUrls: [],
+            title: "",
+            body: viewModel.isLoading ? "불러오는 중..." : "게시글을 불러오지 못했습니다.",
+            viewCount: 0,
             likeCount: 0,
-            replies: [
-                CommunityReply(
-                    id: 0,
-                    authorName: "작성자 닉네임",
-                    date: "2024.01.23",
-                    content: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아서 나온긂셍 즈나아안아아만 기재부 도이는, 난산딜저다.",
-                    likeCount: 0
-                ),
-                CommunityReply(
-                    id: 1,
-                    authorName: "작성자 닉네임",
-                    date: "2024.01.23",
-                    content: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아서 나온긂셍 즈나아안아아만 기재부 도이는, 난산딜저다.",
-                    likeCount: 0
-                )
-            ]
-        ),
-        CommunityComment(
-            id: 1,
-            authorName: "작성자 닉네임",
-            date: "2024.01.23",
-            content: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아서 나온긂셍 즈나아안아아만 기재부 도이는, 난산딜저다.",
-            likeCount: 0,
-            replies: []
+            commentCount: 0,
+            isLiked: false
         )
-    ]
+    }
+
+    private var comments: [CommunityComment] { viewModel.comments }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -99,6 +222,9 @@ struct CommunityDetailView: View {
                     // 댓글 + 대댓글 목록
                     ForEach(comments) { comment in
                         commentCell(comment)
+                            .onAppear {
+                                viewModel.loadMoreCommentsIfNeeded(current: comment)
+                            }
 
                         ForEach(comment.replies) { reply in
                             replyCell(reply)
@@ -150,7 +276,7 @@ struct CommunityDetailView: View {
 
             // 작성자 행
             HStack(alignment: .center, spacing: 10) {
-                authorAvatar()
+                authorAvatar(imageURL: post.authorImageUrl)
 
                 Text(post.authorName)
                     .font(.system(size: 14, weight: .semibold))
@@ -185,8 +311,25 @@ struct CommunityDetailView: View {
             if !post.imageUrls.isEmpty {
                 TabView(selection: $currentImageIndex) {
                     ForEach(0..<post.imageUrls.count, id: \.self) { idx in
-                        Rectangle()
-                            .foregroundColor(.gray5)
+                        AsyncImage(url: URL(string: post.imageUrls[idx])) { phase in
+                            switch phase {
+                            case .success(let image):
+                                image
+                                    .resizable()
+                                    .scaledToFit()
+                            case .failure:
+                                Color.gray5
+                                    .overlay {
+                                        Image(systemName: "photo")
+                                            .foregroundColor(.gray6)
+                                    }
+                            case .empty:
+                                Color.gray5
+                                    .overlay { ProgressView() }
+                            @unknown default:
+                                Color.gray5
+                            }
+                        }
                             .tag(idx)
                     }
                 }
@@ -216,7 +359,7 @@ struct CommunityDetailView: View {
             // 본문 내용 (회색)
             Text(post.body)
                 .font(.system(size: 13))
-                .foregroundColor(.gray6)
+                .foregroundColor(.anipickBlack.opacity(0.72))
                 .lineLimit(nil)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -242,15 +385,15 @@ struct CommunityDetailView: View {
             // 액션 바 (좋아요 | 댓글 | 공유)
             HStack(spacing: 0) {
                 Button {
-                    // TODO: 좋아요
+                    viewModel.togglePostLike()
                 } label: {
                     HStack(spacing: 5) {
-                        Image(systemName: "heart")
+                        Image(systemName: post.isLiked ? "heart.fill" : "heart")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray6)
+                            .foregroundColor(post.isLiked ? .red : .gray6)
                         Text("좋아요")
                             .font(.system(size: 14))
-                            .foregroundColor(.gray6)
+                            .foregroundColor(post.isLiked ? .red : .gray6)
                     }
                 }
 
@@ -293,7 +436,7 @@ struct CommunityDetailView: View {
 
             // 작성자 행
             HStack(alignment: .center, spacing: 10) {
-                authorAvatar()
+                authorAvatar(imageURL: comment.authorImageUrl)
 
                 Text(comment.authorName)
                     .font(.system(size: 14, weight: .semibold))
@@ -382,7 +525,7 @@ struct CommunityDetailView: View {
 
                 // 작성자 행
                 HStack(alignment: .center, spacing: 10) {
-                    authorAvatar()
+                    authorAvatar(imageURL: reply.authorImageUrl)
 
                     Text(reply.authorName)
                         .font(.system(size: 14, weight: .semibold))
@@ -470,15 +613,28 @@ struct CommunityDetailView: View {
 
     // MARK: - 공통 아바타
     @ViewBuilder
-    private func authorAvatar() -> some View {
+    private func authorAvatar(imageURL: String? = nil) -> some View {
         Circle()
             .foregroundColor(.gray5)
             .frame(width: 36, height: 36)
             .overlay(
-                Image(.animeThumbnail)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 26, height: 26)
+                Group {
+                    if let imageURL, let url = URL(string: imageURL) {
+                        AsyncImage(url: url) { phase in
+                            if case .success(let image) = phase {
+                                image.resizable().scaledToFill()
+                            } else {
+                                Image(.animeThumbnail).resizable().scaledToFit()
+                            }
+                        }
+                    } else {
+                        Image(.animeThumbnail)
+                            .resizable()
+                            .scaledToFit()
+                    }
+                }
+                .frame(width: 26, height: 26)
+                .clipShape(Circle())
             )
     }
 

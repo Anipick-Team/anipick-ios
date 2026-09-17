@@ -5,7 +5,7 @@
 
 import SwiftUI
 
-// MARK: - Dummy Models (TODO: API 연결 시 ViewModel로 분리)
+// MARK: - 화면 모델
 struct MyPost: Identifiable {
     let id: Int
     let animeTitle: String
@@ -37,70 +37,101 @@ enum MyContentTab: String, CaseIterable {
     case comments = "내 댓글"
 }
 
-struct MyContentView: View {
-    @EnvironmentObject private var navigationManager: NavigationManager
-    @State private var selectedTab: MyContentTab = .posts
+@MainActor
+final class MyContentViewModel: ObservableObject {
+    @Published private(set) var posts: [MyPost] = []
+    @Published private(set) var comments: [MyCommentItem] = []
+    @Published private(set) var totalCount = 0
+    @Published private(set) var isLoading = false
 
-    // TODO: API 연결 시 ViewModel로 분리
-    private let totalCount = 999
+    private var postCursor: MyCommunityCursor?
+    private var commentCursor: MyCommunityCursor?
 
-    private let posts: [MyPost] = [
-        MyPost(
-            id: 0,
-            animeTitle: "애니메이션 제목",
-            animeTag: "text",
-            animeImageUrl: nil,
-            date: "2024.01.23",
-            title: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다는. 다기프다 헤즈언아서 나온긂셍 즈나야...",
-            body: "글내용 글내용 글내용 글내용 글내용",
-            viewCount: 0,
-            likeCount: 0,
-            commentCount: 0,
-            isSpoiler: true,
-            attachedImageUrl: nil
-        ),
-        MyPost(
-            id: 1,
-            animeTitle: "애니메이션 제목",
-            animeTag: "text",
-            animeImageUrl: nil,
-            date: "2024.01.23",
-            title: "한줄",
-            body: "글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용 글내용...",
-            viewCount: 0,
-            likeCount: 0,
-            commentCount: 0,
-            isSpoiler: false,
-            attachedImageUrl: nil
-        ),
-        MyPost(
-            id: 2,
-            animeTitle: "애니메이션 제목",
-            animeTag: "text",
-            animeImageUrl: nil,
-            date: "2024.01.23",
-            title: "사단타는 밤퍼노아 몽즌디를 염드의 브히가 등가 안티로 소다...",
-            body: "글내용 글내용 글내용 글내용 글내용",
-            viewCount: 0,
-            likeCount: 0,
-            commentCount: 0,
-            isSpoiler: false,
-            attachedImageUrl: ""
-        )
-    ]
+    func fetch(tab: MyContentTab, reset: Bool = false) {
+        if reset {
+            if tab == .posts { posts.removeAll(); postCursor = nil }
+            else { comments.removeAll(); commentCursor = nil }
+        }
 
-    private let myComments: [MyCommentItem] = (0..<3).map {
-        MyCommentItem(
-            id: $0,
-            animeTitle: "애니메이션 제목",
+        guard !isLoading else { return }
+        isLoading = true
+
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                if tab == .posts {
+                    let response = try await CommunityAPIService.shared.myPosts(lastId: postCursor?.lastId)
+                    let items = (response.result?.posts ?? []).map { Self.map($0) }
+                    self.posts.append(contentsOf: items)
+                    self.postCursor = response.result?.cursor
+                    self.totalCount = response.result?.count ?? self.posts.count
+                    DLog("내 게시글 조회 완료 - count: \(items.count)")
+                } else {
+                    let response = try await CommunityAPIService.shared.myComments(lastId: commentCursor?.lastId)
+                    let items = (response.result?.comments ?? []).map { Self.map($0) }
+                    self.comments.append(contentsOf: items)
+                    self.commentCursor = response.result?.cursor
+                    self.totalCount = response.result?.count ?? self.comments.count
+                    DLog("내 댓글 조회 완료 - count: \(items.count)")
+                }
+            } catch {
+                DLog("내 콘텐츠 조회 실패 - tab: \(tab.rawValue), error: \(error)")
+            }
+            self.isLoading = false
+        }
+    }
+
+    func loadMoreIfNeeded(tab: MyContentTab, currentId: Int) {
+        let lastId = tab == .posts ? posts.last?.id : comments.last?.id
+        guard currentId == lastId else { return }
+
+        if tab == .posts {
+            guard postCursor?.lastId != nil else { return }
+        } else {
+            guard commentCursor?.lastId != nil else { return }
+        }
+        fetch(tab: tab)
+    }
+
+    private static func imageURL(for id: Int) -> String {
+        "\(NetworkManager.baseUrl)api/image/\(id)"
+    }
+
+    private static func map(_ dto: MyCommunityPost) -> MyPost {
+        MyPost(
+            id: dto.postId,
+            animeTitle: dto.animeTitle ?? "애니메이션 제목",
             animeTag: "text",
-            animeImageUrl: nil,
-            date: "2024.01.23",
-            postTitle: "게시글제목",
-            content: "댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓글내용댓...",
-            likeCount: 0
+            animeImageUrl: dto.animeCoverImageUrl,
+            date: dto.createdAt ?? "",
+            title: dto.title ?? "",
+            body: dto.content ?? "",
+            viewCount: dto.viewCount ?? 0,
+            likeCount: dto.likeCount ?? 0,
+            commentCount: dto.commentCount ?? 0,
+            isSpoiler: dto.isSpoiler ?? false,
+            attachedImageUrl: dto.thumbnailImageId.map { imageURL(for: $0) }
         )
     }
+
+    private static func map(_ dto: MyCommunityComment) -> MyCommentItem {
+        MyCommentItem(
+            id: dto.commentId,
+            animeTitle: dto.animeTitle ?? "애니메이션 제목",
+            animeTag: "text",
+            animeImageUrl: dto.animeCoverImageUrl,
+            date: dto.createdAt ?? "",
+            postTitle: dto.postTitle ?? "게시글제목",
+            content: dto.content ?? "",
+            likeCount: dto.likeCount ?? 0
+        )
+    }
+}
+
+struct MyContentView: View {
+    @EnvironmentObject private var navigationManager: NavigationManager
+    @StateObject private var viewModel = MyContentViewModel()
+    @State private var selectedTab: MyContentTab = .posts
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -121,35 +152,42 @@ struct MyContentView: View {
                 .padding(.horizontal, -20)
 
             // 총 개수
-            Text("총 \(totalCount)개")
+            Text("총 \(viewModel.totalCount)개")
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.top, 14)
                 .padding(.bottom, 10)
 
             // 컨텐츠
             ScrollView(showsIndicators: false) {
-                LazyVStack(spacing: 0) {
+                LazyVStack(spacing: 16) {
                     if selectedTab == .posts {
-                        ForEach(posts) { post in
+                        ForEach(viewModel.posts) { post in
                             postCell(post)
-                            Rectangle()
-                                .frame(height: 1)
-                                .foregroundColor(.gray7)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    DLog("내 콘텐츠 게시글 선택 - postId: \(post.id)")
+                                    navigationManager.push(route: .communityDetail(postId: post.id))
+                                }
+                                .onAppear { viewModel.loadMoreIfNeeded(tab: .posts, currentId: post.id) }
                         }
                     } else {
-                        ForEach(myComments) { comment in
+                        ForEach(viewModel.comments) { comment in
                             commentCell(comment)
-                            Rectangle()
-                                .frame(height: 1)
-                                .foregroundColor(.gray7)
+                                .onAppear { viewModel.loadMoreIfNeeded(tab: .comments, currentId: comment.id) }
                         }
                     }
                 }
             }
+
+            appTabBar()
         }
         .padding(.horizontal, 20)
-        .background(Color.white)
+        .background(Color.gray7.ignoresSafeArea())
         .navigationBarHidden(true)
+        .task { viewModel.fetch(tab: selectedTab, reset: true) }
+        .onChange(of: selectedTab) { tab in
+            viewModel.fetch(tab: tab, reset: true)
+        }
     }
 
     // MARK: - 섹션 구분선
@@ -159,6 +197,41 @@ struct MyContentView: View {
             .foregroundColor(.gray7)
             .frame(maxWidth: .infinity)
             .frame(height: 1)
+    }
+
+    @ViewBuilder
+    private func appTabBar() -> some View {
+        HStack(spacing: 0) {
+            appTabItem(image: .homeUnfilled, title: "홈", tab: .home)
+            appTabItem(image: .rankingUnfilled, title: "랭킹", tab: .ranking)
+            appTabItem(image: .researchUnfilled, title: "탐색", tab: .research)
+            appTabItem(image: .myInfoFilled, title: "마이", tab: .myInfo)
+        }
+        .padding(.top, 8)
+        .padding(.bottom, 4)
+        .background(Color.white)
+        .overlay(alignment: .top) {
+            Rectangle().fill(Color.gray5).frame(height: 1)
+        }
+        .padding(.horizontal, -20)
+    }
+
+    private func appTabItem(image: ImageResource, title: String, tab: Tab) -> some View {
+        Button {
+            DLog("내 콘텐츠 하단 탭 선택 - \(title)")
+            navigationManager.popToRoot()
+            navigationManager.push(route: .content(activeTab: tab))
+        } label: {
+            VStack(spacing: 4) {
+                Image(image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 22, height: 22)
+                Text(title)
+                    .customFontStyle(size: 11, color: tab == .myInfo ? .anipickPrimary : .gray6)
+            }
+            .frame(maxWidth: .infinity)
+        }
     }
 
     // MARK: - 탭 바
@@ -228,7 +301,7 @@ struct MyContentView: View {
                 .lineLimit(2)
 
             // 본문 + 첨부 이미지
-            if let _ = post.attachedImageUrl {
+                    if let attachedImageUrl = post.attachedImageUrl {
                 HStack(alignment: .top, spacing: 10) {
                     Text(post.body)
                         .font(.system(size: 13))
@@ -237,7 +310,7 @@ struct MyContentView: View {
 
                     Spacer()
 
-                    attachedThumbnail()
+                    attachedThumbnail(url: attachedImageUrl)
                 }
             } else {
                 Text(post.body)
@@ -265,6 +338,8 @@ struct MyContentView: View {
         }
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .cornerRadius(12)
     }
 
     // MARK: - 댓글 셀
@@ -315,6 +390,8 @@ struct MyContentView: View {
         }
         .padding(.vertical, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.white)
+        .cornerRadius(12)
     }
 
     // MARK: - 공통 컴포넌트
@@ -325,23 +402,39 @@ struct MyContentView: View {
             .foregroundColor(.gray5)
             .frame(width: 110, height: 88)
             .overlay(
-                Image(.animeThumbnail)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 70, height: 70)
+                Group {
+                    if let url, let imageURL = URL(string: url) {
+                        AsyncImage(url: imageURL) { phase in
+                            if case .success(let image) = phase {
+                                image.resizable().scaledToFill()
+                            } else {
+                                Image(.animeThumbnail).resizable().scaledToFit()
+                            }
+                        }
+                    } else {
+                        Image(.animeThumbnail).resizable().scaledToFit()
+                    }
+                }
+                .frame(width: 110, height: 88)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             )
     }
 
     @ViewBuilder
-    private func attachedThumbnail() -> some View {
+    private func attachedThumbnail(url: String) -> some View {
         RoundedRectangle(cornerRadius: 8)
             .foregroundColor(.gray5)
             .frame(width: 80, height: 70)
             .overlay(
-                Image(.animeThumbnail)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 50, height: 50)
+                AsyncImage(url: URL(string: url)) { phase in
+                    if case .success(let image) = phase {
+                        image.resizable().scaledToFill()
+                    } else {
+                        Image(.animeThumbnail).resizable().scaledToFit()
+                    }
+                }
+                .frame(width: 80, height: 70)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
             )
     }
 

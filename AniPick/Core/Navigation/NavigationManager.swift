@@ -16,9 +16,9 @@ final class NavigationManager: ObservableObject {
     
     func push(route: AppRoute) {
         Task { @MainActor in
-            print("🔥 pushing route: \(route)")
+            DLog("🔥 pushing route: \(route)")
             path.append(route)
-            print("📦 current path: \(path)")
+            DLog("📦 current path: \(path)")
         }
     }
     
@@ -89,7 +89,8 @@ enum AppRoute: Hashable {
     case seriesDetail(animeId: Int, animeTitle: String)
     case recommend(animeId: Int, animeTitle: String)
     case community(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
-    case communityDetail
+    case communityWrite(seriesId: Int, animeTitle: String)
+    case communityDetail(postId: Int)
     case myContent
 
 }

@@ -7,17 +7,13 @@ import SwiftUI
 
 struct ExploreCommunityView: View {
     @EnvironmentObject private var navigationManager: NavigationManager
+    @StateObject private var viewModel = CommunityExploreViewModel()
     @State private var searchText: String = ""
     @State private var isShowSortOption: Bool = false
     @State private var selectedSort: String = "인기순"
     @State private var sortButtonFrame: CGRect = .zero
 
     private let sortOptions = ["인기순", "최신순"]
-
-    // TODO: API 연결 시 ViewModel로 분리
-    private let dummyItems: [CommunityAnimeItem] = (0..<8).map {
-        CommunityAnimeItem(id: $0, title: "애니메이션 제목", tag: "text", coverImageUrl: nil)
-    }
 
     private let dropdownWidth: CGFloat = 90
 
@@ -43,8 +39,13 @@ struct ExploreCommunityView: View {
 
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 0) {
-                        ForEach(dummyItems) { item in
+                        ForEach(viewModel.items) { item in
                             communityAnimeCell(item: item)
+                                .onAppear {
+                                    if item.id == viewModel.items.last?.id {
+                                        viewModel.fetch()
+                                    }
+                                }
                         }
                     }
                 }
@@ -56,6 +57,7 @@ struct ExploreCommunityView: View {
                         Button {
                             selectedSort = option
                             isShowSortOption = false
+                            viewModel.setSort(option == "인기순" ? "popular" : "latest")
                         } label: {
                             Text(option)
                                 .font(.system(size: 14, weight: .regular))
@@ -88,6 +90,8 @@ struct ExploreCommunityView: View {
         .onTapGesture {
             if isShowSortOption { isShowSortOption = false }
         }
+        .task { viewModel.fetch(reset: true) }
+        .onChange(of: searchText) { _ in viewModel.search(keyword: searchText) }
     }
 
     @ViewBuilder
@@ -197,7 +201,14 @@ struct ExploreCommunityView: View {
         .background(Color.white)
         .contentShape(Rectangle())
         .onTapGesture {
-            navigationManager.push(route: .communityDetail)
+            navigationManager.push(
+                route: .community(
+                    animeId: item.id,
+                    animeTitle: item.title,
+                    coverImageUrl: item.coverImageUrl,
+                    genreNames: []
+                )
+            )
         }
     }
 
@@ -214,4 +225,69 @@ struct CommunityAnimeItem: Identifiable {
     let title: String
     let tag: String
     let coverImageUrl: String?
+}
+
+final class CommunityExploreViewModel: ObservableObject {
+    @Published var items: [CommunityAnimeItem] = []
+    private var lastId: Int?
+    private var lastValue: String?
+    private var hasNextPage = true
+    private var isLoading = false
+    private var keyword = ""
+    private var sort = "popular"
+
+    func setSort(_ sort: String) {
+        self.sort = sort
+        fetch(reset: true)
+    }
+
+    func search(keyword: String) {
+        self.keyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines)
+        Task {
+            try? await Task.sleep(nanoseconds: 350_000_000)
+            await MainActor.run { self.fetch(reset: true) }
+        }
+    }
+
+    func fetch(reset: Bool = false) {
+        guard !isLoading, reset || hasNextPage else { return }
+        if reset {
+            lastId = nil
+            lastValue = nil
+            hasNextPage = true
+        }
+        isLoading = true
+
+        Task {
+            do {
+                let response = try await CommunityAPIService.shared.exploreBoards(
+                    sort: sort,
+                    keyword: keyword.isEmpty ? nil : keyword,
+                    lastValue: lastValue,
+                    lastId: lastId
+                )
+                let boards = response.result?.boards ?? []
+                let newItems = boards.map {
+                    CommunityAnimeItem(
+                        id: $0.seriesId,
+                        title: $0.title ?? "제목 없음",
+                        tag: $0.genres?.first?.name ?? "커뮤니티",
+                        coverImageUrl: $0.coverImageUrl
+                    )
+                }
+                let cursor = response.result?.cursor
+                DLog("커뮤니티 탐색 조회 성공 - sort: \(sort), keyword: \(keyword), count: \(newItems.count), cursor: \(String(describing: cursor))")
+                await MainActor.run {
+                    self.items = reset ? newItems : self.items + newItems
+                    self.lastId = cursor?.lastId
+                    self.lastValue = cursor?.lastValue
+                    self.hasNextPage = newItems.isEmpty == false && cursor?.lastId != nil
+                    self.isLoading = false
+                }
+            } catch {
+                DLog("커뮤니티 탐색 조회 실패 - error: \(error.localizedDescription)")
+                await MainActor.run { self.isLoading = false }
+            }
+        }
+    }
 }
