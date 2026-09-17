@@ -11,8 +11,6 @@ struct HomeView: View {
     @State private var nickname: String = ""
     @StateObject var viewModel: HomeViewModel
     @EnvironmentObject var appState: AppState
-    @State private var showRollbackDetail: Bool = false
-
     var body: some View {
         VStack(spacing: 0) {
             // MARK: - 상단 로고 및 searchBar
@@ -45,14 +43,6 @@ struct HomeView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
-                    Spacer().frame(height: 16)
-
-                    DataRollbackBannerView {
-                        showRollbackDetail = true
-                    }
-
-                    Spacer().frame(height: 36)
-
                     HStack(spacing: 0) {
                         Text("실시간 인기 애니메이션")
                             .font(.system(size: 20, weight: .semibold))
@@ -199,13 +189,6 @@ struct HomeView: View {
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
                 await viewModel.getWeekdayNewAnimes()
-            }
-        }
-        .overlay {
-            if showRollbackDetail {
-                ServerRecoveryNoticePopupView {
-                    showRollbackDetail = false
-                }
             }
         }
     }
