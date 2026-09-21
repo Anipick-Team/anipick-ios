@@ -1,5 +1,5 @@
 //
-//  CommingSoonView.swift
+//  ComingSoonView.swift
 //  AniPick
 //
 //  Created by cho on 7/22/25.
@@ -7,9 +7,9 @@
 
 import SwiftUI
 
-struct CommingSoonView: View {
+struct ComingSoonView: View {
     @Environment(\.dismiss) private var dismiss
-    @StateObject var viewModel: CommingSoonViewModel
+    @StateObject var viewModel: ComingSoonViewModel
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
     
     var body: some View {
@@ -81,13 +81,13 @@ struct CommingSoonView: View {
                 
                 ScrollView(showsIndicators: false) {
                     LazyVGrid(columns: columns, spacing: 24) {
-                        ForEach(viewModel.commingSoonAnimeList, id: \.self) { item in
+                        ForEach(viewModel.comingSoonAnimeList, id: \.self) { item in
                             self.animationCell(item: item) {
                                 self.viewModel.tappedAnime(animeId: item.animeId ?? 0)
                             }
                             .onAppear {
-                                if item == viewModel.commingSoonAnimeList.last {
-                                    Task { await viewModel.loadMoreCommingSoonInfo() }
+                                if item == viewModel.comingSoonAnimeList.last {
+                                    Task { await viewModel.loadMoreComingSoonInfo() }
                                 }
                             }
                         }
@@ -107,7 +107,7 @@ struct CommingSoonView: View {
         .background(Color.white)
             .navigationBarBackButtonHidden(true)
             .onAppear {
-                viewModel.fetchCommingSoonInfo()
+                viewModel.fetchComingSoonInfo()
                 
             }
       
@@ -133,9 +133,9 @@ struct CommingSoonView: View {
         }
     }
     
-    private func getSortOptionView(sort: CommingSoonSortCategory) -> some View {
+    private func getSortOptionView(sort: ComingSoonSortCategory) -> some View {
         return VStack(spacing: 0) {
-            ForEach(CommingSoonSortCategory.allCases, id: \.self) { option in
+            ForEach(ComingSoonSortCategory.allCases, id: \.self) { option in
                 Button {
                     self.viewModel.selectedCategory = option
                     self.viewModel.tappedSortButton()
@@ -163,7 +163,7 @@ struct CommingSoonView: View {
 }
 
 
-enum CommingSoonSortCategory: String, CaseIterable {
+enum ComingSoonSortCategory: String, CaseIterable {
     case latest
     case popularity
     case startDate

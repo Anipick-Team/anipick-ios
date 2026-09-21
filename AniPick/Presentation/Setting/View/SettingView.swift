@@ -49,17 +49,10 @@ struct SettingView: View {
                         ),
                         SettingInfoData(
                             title: SettingCategory.linkedSNS,
-                            titleColor: nil,
+                            titleColor: .anipickPrimary,
                             subtitle: viewModel.isShowSNStitle,
                             subtitleColor: .anipickPrimary,
                             isShowChevron: false
-                        ),
-                        SettingInfoData(
-                            title: SettingCategory.adultCheck,
-                            titleColor: nil,
-                            subtitle: viewModel.isAdult ? "on" : "off",
-                            subtitleColor: .anipickPrimary,
-                            isShowChevron: true
                         )
                     ]
                     
@@ -220,7 +213,6 @@ enum SettingCategory: String, CaseIterable {
     case editEmail = "이메일 변경"
     case editPassword = "비밀번호 변경"
     case linkedSNS = "연동 SNS"
-    case adultCheck = "19세 작품"
     
     // 앱 설정
     case appVersion = "앱 버전"
@@ -241,7 +233,6 @@ extension SettingCategory {
         case .editEmail: return .editEmail
         case .editPassword: return .editPassword
         case .linkedSNS: return .linkedSNS
-        case .adultCheck: return .adultCheck
         case .appVersion: return .appVersion
         case .inquiry: return .inquiry
         case .termsOfService: return .termsOfService

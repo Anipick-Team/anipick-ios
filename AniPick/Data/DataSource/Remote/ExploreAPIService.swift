@@ -21,7 +21,7 @@ final class ExploreAPIService {
 }
 
 extension ExploreAPIService {
-    func getExploreList(category: ExploreSortCategory, item: ExploreReqeustItem?) async throws -> ExploreResponse {
+    func getExploreList(category: ExploreSortCategory, item: ExploreRequestItem?) async throws -> ExploreResponse {
         try await requestAPI(.exploreAnime(sort: category, item: item))
     }
     

@@ -51,7 +51,7 @@ struct ResearchView: View {
                 Spacer()
                 
                 Button {
-                    print("searchButton Tapped")
+                    DLog("searchButton Tapped")
                 } label: {
                     Image(.searchIconsGray)
                         .resizable()
@@ -77,17 +77,17 @@ struct ResearchView: View {
             VStack(alignment: .leading, spacing: 0) {
                 HStack(spacing: 0) {
                     FilterButton(title: "년도/분기", selectedState: .notSelected) {
-                        print("년도/분기 탭탭")
+                        DLog("년도/분기 탭탭")
                     }
                         .padding(.trailing, 8)
                     
                     FilterButton(title: "장르", selectedState: .notSelected) {
-                        print("장르 탭태")
+                        DLog("장르 탭태")
                     }
                         .padding(.trailing, 8)
                     
                     FilterButton(title: "타입", selectedState: .notSelected) {
-                        print("타입 탭탭")
+                        DLog("타입 탭탭")
                     }
                         .padding(.trailing, 8)
                     
@@ -127,7 +127,7 @@ struct ResearchView: View {
                 
                 // TODO: 인기순, 평점 순으로 필터링거는 팝업뜨도록 만들어야함
                 Button {
-                    print("인기순, 평점순 필터링 걸어야함!")
+                    DLog("인기순, 평점순 필터링 걸어야함!")
                 } label: {
                     Text("인기순")
                         .font(.system(size: 14))
@@ -197,7 +197,7 @@ struct ResearchView: View {
                     Spacer()
                     
                     Button {
-                        print("닫기 탭탭")
+                        DLog("닫기 탭탭")
                         self.isPresentYearFilter.toggle()
                     } label: {
                         Image(.xButton)
@@ -246,7 +246,7 @@ struct ResearchView: View {
                         FlowLayout() {
                             ForEach(genreList, id: \.self) { item in
                                 Button {
-                                    print("장르 탭 : \(item)")
+                                    DLog("장르 탭 : \(item)")
                                     self.selectedGenre = item
                                 } label: {
                                     Text(item)
@@ -269,7 +269,7 @@ struct ResearchView: View {
                         FlowLayout() {
                             ForEach(releaseTypeList, id: \.self) { item in
                                 Button {
-                                    print("장르 탭 : \(item)")
+                                    DLog("장르 탭 : \(item)")
                                     self.selectedReleaseType = item
                                 } label: {
                                     Text(item)
@@ -297,7 +297,7 @@ struct ResearchView: View {
                     Spacer()
                     
                     Button {
-                        print("초기화버튼 탭")
+                        DLog("초기화버튼 탭")
                         self.selectedYear = ""
                         self.selectedGenre = ""
                         self.selectedQuarter = ""
@@ -310,7 +310,7 @@ struct ResearchView: View {
                     Spacer().frame(width: 16)
                     
                     Button {
-                        print("완료버튼")
+                        DLog("완료버튼")
                         // TODO: 완료버튼을 눌렀을 때, sheet 닫히고 filter에 적용되도록 수정
                         
                     } label: {
@@ -341,7 +341,7 @@ struct ResearchView: View {
                     .padding(.trailing, 4)
                 
                 Button {
-                    print("keyword 삭제 - \(keyword)")
+                    DLog("keyword 삭제 - \(keyword)")
                 } label: {
                     Image(systemName: "xmark")
                         .resizable()

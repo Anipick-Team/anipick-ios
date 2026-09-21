@@ -8,10 +8,11 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class LikePersonViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
@@ -24,14 +25,15 @@ final class LikePersonViewModel: ObservableObject {
     @Published var likedPersonList: [LikedRatedPerson] = []
     @Published var likedPersonCount: Int = 0
     
-    var lastId: Int? = nil
+    private var lastId: Int? = nil
 }
 
 extension LikePersonViewModel {
     func fetchLikePerson() {
         session.request(MyInfoAPI.likedPersonList(lastId: self.lastId))
             .cURLDescription { DLog($0) }
-            .responseDecodable(of: LikedPersonListResponse.self) { response in
+            .responseDecodable(of: LikedPersonListResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("liked person list success - \(value)")

@@ -75,12 +75,12 @@ struct FilterButton: View {
 
 #Preview {
     FilterButton(title: "장르", selectedState: .notSelected) {
-        print("장르 탭탭")
+        DLog("장르 탭탭")
     }
     FilterButton(title: "장르", selectedState: .selecting) {
-        print("장르 탭탭")
+        DLog("장르 탭탭")
     }
     FilterButton(title: "장르", selectedState: .selected) {
-        print("장르 탭탭")
+        DLog("장르 탭탭")
     }
 }

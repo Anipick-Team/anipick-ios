@@ -141,17 +141,17 @@ struct MainLoginView: View {
                 let email = appleIDCredential.email
                 
                 if let data = String(data: appleIDCredential.authorizationCode!, encoding: .utf8) {
-                    print("authCode: \(data))")
+                    DLog("authCode: \(data))")
                 }
-                print("User ID: \(userIdentifier)")
-                print("Full Name: \(String(describing: fullName))")
-                print("Email: \(String(describing: email))")
+                DLog("User ID: \(userIdentifier)")
+                DLog("Full Name: \(String(describing: fullName))")
+                DLog("Email: \(String(describing: email))")
                 appleIDCredential.authorizationCode
-                print("user: \(appleIDCredential.identityToken)")
-                print("state: \(appleIDCredential.state)")
+                DLog("user: \(appleIDCredential.identityToken)")
+                DLog("state: \(appleIDCredential.state)")
             }
         case .failure(let error):
-            print("Authorization failed: \(error.localizedDescription)")
+            DLog("Authorization failed: \(error.localizedDescription)")
         }
     }
 }

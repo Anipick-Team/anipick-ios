@@ -47,7 +47,7 @@ enum AnimeAPI: URLRequestConvertible {
     
     
     // 홈화면의 공개예정
-    case commingSoonInfo(sort: String, lastId: Int?, includeAdult: Bool, lastValue: String?)
+    case comingSoonInfo(sort: String, lastId: Int?, includeAdult: Bool, lastValue: String?)
     
     case myReview(animeId: Int)
     
@@ -109,7 +109,7 @@ enum AnimeAPI: URLRequestConvertible {
             return "api/explore-search"
         case .storedPreference:
             return "api/reviews/bulk"
-        case .commingSoonInfo:
+        case .comingSoonInfo:
             return "api/animes/coming-soon"
             
         case .myReview(let animeId):
@@ -172,7 +172,7 @@ enum AnimeAPI: URLRequestConvertible {
             return .get
         case .storedPreference:
             return .post
-        case .commingSoonInfo:
+        case .comingSoonInfo:
             return .get
             
         case .myReview:
@@ -296,7 +296,7 @@ enum AnimeAPI: URLRequestConvertible {
 
             return nil
             
-        case let .commingSoonInfo(sort, lastId, includeAdult, lastValue):
+        case let .comingSoonInfo(sort, lastId, includeAdult, lastValue):
             let adult = includeAdult ? "true" : "false"
             let rawParams: [String: Any?] = [
                     "sort": sort,
@@ -380,7 +380,7 @@ enum AnimeAPI: URLRequestConvertible {
             urlRequest.httpBody = try JSONEncoder().encode(request)
          //   urlRequest = try JSONEncoding.default.encode(urlRequest, with: self.parameters)
             
-        case .commingSoonInfo:
+        case .comingSoonInfo:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
             
         case .myReview:

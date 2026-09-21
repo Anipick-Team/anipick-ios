@@ -8,10 +8,11 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class EditPasswordViewModel: ObservableObject {
     
     private let navigationManager: NavigationManager
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
     }
@@ -76,7 +77,8 @@ extension EditPasswordViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("edit password - \(value)")

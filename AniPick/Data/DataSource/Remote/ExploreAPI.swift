@@ -22,7 +22,7 @@ enum ExploreSortCategory: String, CaseIterable {
     }
 }
 
-struct ExploreReqeustItem: Codable {
+struct ExploreRequestItem: Codable {
     let year: Int?
     let season: Int?
     let genres: [Int]? // id 값으로 구분
@@ -34,7 +34,7 @@ struct ExploreReqeustItem: Codable {
 }
 
 enum ExploreAPI: URLRequestConvertible {
-    case exploreAnime(sort: ExploreSortCategory, item: ExploreReqeustItem?)
+    case exploreAnime(sort: ExploreSortCategory, item: ExploreRequestItem?)
     
     var path: String {
         switch self {

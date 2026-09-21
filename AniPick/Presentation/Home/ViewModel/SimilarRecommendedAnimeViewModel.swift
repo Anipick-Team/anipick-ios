@@ -8,18 +8,19 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class SimilarRecommendedAnimeViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let animeId: Int?
     
-    @Published var recommedationAnimes: [Anime] = []
-    @Published var recommedationTitle: String = ""
+    @Published var recommendationAnimes: [Anime] = []
+    @Published var recommendationTitle: String = ""
     
     
-    var lastId: Int? = nil
-    var lastValue: String? = nil
+    private var lastId: Int? = nil
+    private var lastValue: String? = nil
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     init(navigationManager: NavigationManager, animeId: Int? = nil) {
         self.navigationManager = navigationManager
         self.animeId = animeId
@@ -28,10 +29,10 @@ final class SimilarRecommendedAnimeViewModel: ObservableObject {
 
 
 extension SimilarRecommendedAnimeViewModel {
-    func fetchRecommedationAnime() {
+    func fetchRecommendationAnime() {
         if let animeId = self.animeId {
             session.request(
-                RecommendationAPI.recommedationWithAnimeId(
+                RecommendationAPI.recommendationWithAnimeId(
                     animeId: animeId,
                     lastId: self.lastId,
                     lastValue: self.lastValue
@@ -40,24 +41,25 @@ extension SimilarRecommendedAnimeViewModel {
                 .cURLDescription { description in
                     DLog("\(description)")
                 }
-                .responseDecodable(of: RecommendationResponse.self) { response in
+                .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+                    guard let self else { return }
                     switch response.result {
                     case .success(let value):
-                        DLog("fetch recommedation detail with anime success \(value)")
+                        DLog("fetch recommendation detail with anime success \(value)")
                         if let animeList = value.result,
                            let recommend = animeList.animes {
-                            self.recommedationAnimes.append(contentsOf: recommend)
-                            self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
+                            self.recommendationAnimes.append(contentsOf: recommend)
+                            self.recommendationTitle = animeList.referenceAnimeTitle ?? "--"
                             self.lastId = value.result?.cursor?.lastId
                             self.lastValue = value.result?.cursor?.lastValue
                         }
                     case .failure(let error):
-                        DLog("fetch recommedation detail with anim error \(error)")
+                        DLog("fetch recommendation detail with anim error \(error)")
                     }
                 }
         } else {
             session.request(
-                RecommendationAPI.recommedation(
+                RecommendationAPI.recommendation(
                     lastId: self.lastId,
                     lastValue: self.lastValue
                 )
@@ -65,26 +67,27 @@ extension SimilarRecommendedAnimeViewModel {
                 .cURLDescription { description in
                     DLog("\(description)")
                 }
-                .responseDecodable(of: RecommendationResponse.self) { response in
+                .responseDecodable(of: RecommendationResponse.self) { [weak self] response in
+                    guard let self else { return }
                     switch response.result {
                     case .success(let value):
-                        DLog("fetch recommedation detail success \(value)")
+                        DLog("fetch recommendation detail success \(value)")
                         if let animeList = value.result,
                            let recommend = animeList.animes {
-                            self.recommedationAnimes.append(contentsOf: recommend)
-                            self.recommedationTitle = animeList.referenceAnimeTitle ?? "--"
+                            self.recommendationAnimes.append(contentsOf: recommend)
+                            self.recommendationTitle = animeList.referenceAnimeTitle ?? "--"
                             self.lastId = value.result?.cursor?.lastId
                         }
                     case .failure(let error):
-                        DLog("fetch recommedation detail error \(error)")
+                        DLog("fetch recommendation detail error \(error)")
                     }
                 }
         }
     }
     
     func getNextPage(lastAnimeId: Int) {
-        if lastAnimeId == self.recommedationAnimes.last?.animeId {
-            self.fetchRecommedationAnime()
+        if lastAnimeId == self.recommendationAnimes.last?.animeId {
+            self.fetchRecommendationAnime()
         }
     }
     

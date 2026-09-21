@@ -8,7 +8,7 @@
 import SwiftUI
 
 @MainActor
-class EmailSignupViewModel: ObservableObject {
+final class EmailSignupViewModel: ObservableObject {
     @Published var isAgreeAll: Bool = false
     @Published var isAgreeOverFourteen: Bool = false
     @Published var isAgreeTermsOfUse: Bool = false
@@ -99,7 +99,7 @@ extension EmailSignupViewModel {
     
     
     func validateInputs()  {
-        print("validateInputs 호출호출!")
+        DLog("validateInputs 호출호출!")
 
         self.isEnableLoginButton = !emailString.isEmpty && !passwordString.isEmpty && self.isAgreeAll
     }

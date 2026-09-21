@@ -12,6 +12,7 @@ enum HomeAPI: URLRequestConvertible {
     case recentReviews
     case upcomingSeason
     case comingSoonAnimes
+    case weekdayNewAnimes(day: Int, lastId: Int?, size: Int)
     case fitAnimeRecommendation
     case animeRecommendation(animeId: Int)
     
@@ -26,6 +27,8 @@ enum HomeAPI: URLRequestConvertible {
             return "api/animes/upcoming-season"
         case .comingSoonAnimes:
             return "api/home/animes/coming-soon"
+        case .weekdayNewAnimes:
+            return "api/home/animes/weekday"
         case .fitAnimeRecommendation:
             return "api/home/recommendation/animes"
         case .animeRecommendation(let animeId):
@@ -43,6 +46,8 @@ enum HomeAPI: URLRequestConvertible {
             return .get
         case .comingSoonAnimes:
             return .get
+        case .weekdayNewAnimes:
+            return .get
         case .fitAnimeRecommendation:
             return .get
         case .animeRecommendation:
@@ -54,6 +59,9 @@ enum HomeAPI: URLRequestConvertible {
         switch self {
         case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes, .fitAnimeRecommendation, .animeRecommendation:
             return nil
+        case let .weekdayNewAnimes(day, lastId, size):
+            let rawParams: [String: Any?] = ["day": day, "lastId": lastId, "size": size]
+            return rawParams.compactMapValues { $0 }
         }
     }
     
@@ -74,6 +82,8 @@ enum HomeAPI: URLRequestConvertible {
         case .fitAnimeRecommendation:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         case .animeRecommendation:
+            urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
+        case .weekdayNewAnimes:
             urlRequest = try URLEncoding.default.encode(urlRequest, with: self.parameters)
         }
         

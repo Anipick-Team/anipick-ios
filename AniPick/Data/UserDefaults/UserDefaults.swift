@@ -22,9 +22,9 @@ enum UserDefaultKey: String {
     case animeType
     
     case lastVisitedAnime
-    
+
     case imageId
-    
+
 }
 
 final class UserDefaultsManager {

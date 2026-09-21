@@ -8,13 +8,14 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class PersonDetailViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     private let animeId: Int
     
     @Published var castList: [CharacterAndVoiceActorInfo] = []
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     init(navigationManager: NavigationManager, animeId: Int) {
         self.navigationManager = navigationManager
@@ -34,7 +35,8 @@ final class PersonDetailViewModel: ObservableObject {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: CharacterAndVoiceActorResponse.self) { response in
+        .responseDecodable(of: CharacterAndVoiceActorResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let value):
                 DLog("fetch character And Detail Info success - \(value)")

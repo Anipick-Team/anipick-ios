@@ -36,4 +36,8 @@ extension HomeAPIService {
     func getComingSoonAnimes() async throws -> ComingSoonResponse {
         try await requestAPI(.comingSoonAnimes)
     }
+
+    func getWeekdayNewAnimes(day: Int, lastId: Int?, size: Int = 18) async throws -> WeekdayAnimeListResponse {
+        try await requestAPI(.weekdayNewAnimes(day: day, lastId: lastId, size: size))
+    }
 }

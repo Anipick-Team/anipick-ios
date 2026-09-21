@@ -6,7 +6,7 @@
 //
 
 protocol ExploreUsecaseProtocol {
-    func getExploreAnimes(category: ExploreSortCategory, item: ExploreReqeustItem?) async throws -> ExploreResponse
+    func getExploreAnimes(category: ExploreSortCategory, item: ExploreRequestItem?) async throws -> ExploreResponse
 }
 
 struct ExploreUsecase: ExploreUsecaseProtocol {
@@ -18,7 +18,7 @@ struct ExploreUsecase: ExploreUsecaseProtocol {
 }
 
 extension ExploreUsecase {
-    func getExploreAnimes(category: ExploreSortCategory, item: ExploreReqeustItem?) async throws -> ExploreResponse {
+    func getExploreAnimes(category: ExploreSortCategory, item: ExploreRequestItem?) async throws -> ExploreResponse {
         try await exploreRepository.getExploreAnimes(category: category, item: item)
     }
 }

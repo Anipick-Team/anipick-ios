@@ -7,6 +7,7 @@
 
 import SwiftUI
 
+@MainActor
 final class AppState: ObservableObject {
     private let navigationManager: NavigationManager
     

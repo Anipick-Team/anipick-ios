@@ -9,7 +9,6 @@ import SwiftUI
 
 final class AuthAPIService {
     static let shared = AuthAPIService()
-    let session = Session(interceptor: TokenInterceptor.shared)
     private func requestAPI<T: Decodable>(_ api: AuthAPI) async throws -> T {
         return try await NetworkManager.request(
             path: api.path,
@@ -50,26 +49,15 @@ extension AuthAPIService {
           .cURLDescription { description in
               DLog("\(description)")
           }
-          .responseDecodable(of: RefreshResponse.self) { response in
+          .responseDecodable(of: RefreshResponse.self) { [weak self] response in
+              guard let self else { return }
               switch response.result {
               case .success(let value):
                   completion(.success(value))
                   DLog("refreshToken에서 성공적으로 받아옴 - \(value)")
-//                  if value.code != 200 {
-//                      DispatchQueue.main.async {
-//                          DLog("refreshToken 실패Login 화면으로 이동이동 - \(value)")
-//                          NavigationManager.shared.popToRoot()
-//                          NavigationManager.shared.push(route: .mainLoginView)
-//                      }
-//                  }
               case .failure(let error):
                   completion(.failure(error))
                   DLog("refreshToken 만료 실패 - \(error)")
-//                  DispatchQueue.main.async {
-//                      DLog("refreshToken 실패Login 화면으로 이동이동 - \(error)")
-//                      NavigationManager.shared.popToRoot()
-//                      NavigationManager.shared.push(route: .mainLoginView)
-//                  }
               }
           }
       }

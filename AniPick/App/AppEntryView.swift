@@ -10,18 +10,19 @@ import SwiftUI
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
-    @State private var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
-
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
-                if isLoggedIn {
+                if navigationManager.isLoggedIn {
                     AppDIContainer.makeContentView(activeTab: .home)
                 } else {
                     AppDIContainer.makeLoginView()
                 }
             }
             .background(Color.white)
+            .onChange(of: navigationManager.isLoggedIn) { newValue in
+                DLog("🔐 [Login] AppEntryView 루트 전환 - isLoggedIn=\(newValue) → \(newValue ? "홈" : "로그인") 화면")
+            }
             .onAppear {
                 TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
@@ -88,8 +89,10 @@ struct AppEntryView: View {
                     InquiryView()
                 case .preferenceSelection:
                     AppDIContainer.makePreferenceSelectionView()
-                case .commingSoonDetail:
-                    AppDIContainer.makeCommingSoonView()
+                case .comingSoonDetail:
+                    AppDIContainer.makeComingSoonView()
+                case .weekdayNewAnime(let day):
+                    AppDIContainer.makeWeekdayNewAnimeView(day: day)
                 case .mainLoginView:
                     AppDIContainer.makeLoginView()
                 case .recentReview:
@@ -107,17 +110,8 @@ struct AppEntryView: View {
                     
                 case let .recommend(animeId, animeTitle):
                     AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
-                case let .community(animeId, animeTitle, coverImageUrl, genreNames):
-                    AppDIContainer.makeCommunityView(animeId: animeId, animeTitle: animeTitle, coverImageUrl: coverImageUrl, genreNames: genreNames)
-                case let .communityWrite(seriesId, animeTitle):
-                    CommunityWriteView(seriesId: seriesId, animeTitle: animeTitle)
-                        .environmentObject(navigationManager)
                 case let .recommend2(animeId, animeTitle):
                     AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
-                case let .communityDetail(postId):
-                    CommunityDetailView(postId: postId)
-                case .myContent:
-                    MyContentView()
                 default:
                     Text("asdfasdf")
                 }

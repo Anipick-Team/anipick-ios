@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class EditNicknameViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     
@@ -18,7 +19,7 @@ final class EditNicknameViewModel: ObservableObject {
     @Published var isShowErrorMessage: Bool = false
     @Published var errorMessage: String = ""
     
-    let session = Session(interceptor: TokenInterceptor.shared)
+    private let session = NetworkSession.authenticated
     
     func checkDuplicateNickname() {
         // TODO: 닉네임 중복 확인 Api 통신
@@ -31,7 +32,8 @@ final class EditNicknameViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("edit nickname success - \(value)")

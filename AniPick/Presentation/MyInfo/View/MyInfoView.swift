@@ -79,78 +79,6 @@ struct MyInfoView: View {
 
                     Spacer().frame(height: 24)
 
-                    // 피드백 배너 카드
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.298, green: 0.749, blue: 0.690),
-                                        Color(red: 0.165, green: 0.494, blue: 0.522)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-
-                        VStack(alignment: .leading, spacing: 0) {
-                            // 상단: 제목 + 부제목
-                            Text("애니픽을 사용해 보셨나요?")
-                                .font(.system(size: 18, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.bottom, 8)
-
-                            Text("더 좋은 서비스를 만들 수 있도록\n여러분의 의견을 들려주세요.")
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundColor(.white.opacity(0.9))
-                                .lineSpacing(4)
-                                .fixedSize(horizontal: false, vertical: true)
-                                .lineLimit(2)
-                                .padding(.bottom, 16)
-
-                            // 하단: 버튼 + 구름 이미지
-                            HStack(alignment: .bottom, spacing: 12) {
-                                Button {
-                                    UIApplication.shared.open(URL(string: "https://docs.google.com/forms/d/e/1FAIpQLSdV4UANNQuVanRQ99JLJ1PU9ElXMN2iKx9gPaBXAb0QkVreDg/viewform")!)
-                                } label: {
-                                    Text("바로가기")
-                                        .font(.system(size: 15, weight: .medium))
-                                        .foregroundColor(Color(red: 0.165, green: 0.494, blue: 0.522))
-                                        .frame(maxWidth: .infinity)
-                                        .frame(height: 48)
-                                        .background(Color.white)
-                                        .cornerRadius(12)
-                                }
-
-                                ZStack {
-                                    Text("★")
-                                        .font(.system(size: 18))
-                                        .foregroundColor(.white)
-                                        .offset(x: 10, y: -55)
-
-                                    Text("★")
-                                        .font(.system(size: 12))
-                                        .foregroundColor(.white.opacity(0.6))
-                                        .offset(x: -15, y: -65)
-
-                                    Text("★")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(.white)
-                                        .offset(x: 25, y: -10)
-
-                                    Image("cloud-image")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 100, height: 82)
-                                }
-                                .frame(width: 110)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 24)
-                    }
-                    .frame(maxWidth: .infinity)
-
                     Spacer().frame(height: 24)
 
                     HStack(alignment: .center, spacing: 0) {
@@ -169,14 +97,7 @@ struct MyInfoView: View {
                     
                     self.sectionCategoryButton(title: "평가한 작품", isShownChevron: true) {
                         DLog("평가한 작품 탭으로 이동")
-                    self.viewModel.moveToRatedAnimeListView()
-                    }
-
-                    Spacer().frame(height: 32)
-
-                    self.sectionCategoryButton(title: "내 콘텐츠", isShownChevron: true) {
-                        DLog("내 콘텐츠 탭으로 이동")
-                        viewModel.tappedMyContent()
+                        self.viewModel.moveToRatedAnimeListView()
                     }
                     
                     Spacer().frame(height: 32)

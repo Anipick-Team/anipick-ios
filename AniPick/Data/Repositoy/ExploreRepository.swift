@@ -6,7 +6,7 @@
 //
 
 protocol ExploreRepositoryProtocol {
-    func getExploreAnimes(category: ExploreSortCategory, item: ExploreReqeustItem?) async throws -> ExploreResponse
+    func getExploreAnimes(category: ExploreSortCategory, item: ExploreRequestItem?) async throws -> ExploreResponse
 }
 
 struct ExploreRepository: ExploreRepositoryProtocol {
@@ -18,7 +18,7 @@ struct ExploreRepository: ExploreRepositoryProtocol {
 }
 
 extension ExploreRepository {
-    func getExploreAnimes(category: ExploreSortCategory, item: ExploreReqeustItem?) async throws -> ExploreResponse {
+    func getExploreAnimes(category: ExploreSortCategory, item: ExploreRequestItem?) async throws -> ExploreResponse {
         try await apiService.getExploreList(category: category, item: item)
     }
 }

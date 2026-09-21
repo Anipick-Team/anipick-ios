@@ -229,9 +229,15 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeCommingSoonView() -> some View {
-        let viewModel = CommingSoonViewModel(navigationManager: navigationManager)
-        return CommingSoonView(viewModel: viewModel)
+    static func makeComingSoonView() -> some View {
+        let viewModel = ComingSoonViewModel(navigationManager: navigationManager)
+        return ComingSoonView(viewModel: viewModel)
+            .environmentObject(navigationManager)
+    }
+
+    static func makeWeekdayNewAnimeView(day: Int) -> some View {
+        let viewModel = WeekdayNewAnimeViewModel(day: day, navigationManager: navigationManager)
+        return WeekdayNewAnimeView(viewModel: viewModel)
             .environmentObject(navigationManager)
     }
     
@@ -271,16 +277,6 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
     
-    static func makeCommunityView(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String]) -> some View {
-        return CommunityView(
-            animeId: animeId,
-            animeTitle: animeTitle,
-            coverImageUrl: coverImageUrl,
-            genreNames: genreNames
-        )
-        .environmentObject(navigationManager)
-    }
-
     static func makeRecommendView(animeId: Int, animeTitle: String) -> some View {
         let viewModel = RecommendedViewModel(navigationManager: navigationManager, animeId: animeId, animeTitle: animeTitle)
         
@@ -288,5 +284,4 @@ extension AppDIContainer {
             .environmentObject(navigationManager)
     }
 }
-
 

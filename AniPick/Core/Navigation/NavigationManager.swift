@@ -7,13 +7,32 @@
 
 import SwiftUI
 
+@MainActor
 final class NavigationManager: ObservableObject {
-    
-    static let shared = NavigationManager() // ✅ 싱글톤
-    
 
     @Published var path = NavigationPath()
-    
+    // 로그인 여부 (루트 화면 게이팅). push 유실과 무관하게 로그인 완료를 보장하기 위한 공유 상태.
+    @Published var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
+
+    /// 로그인 성공 시 호출. nav push에 의존하지 않고 즉시 루트를 홈(로그인 상태)으로 전환한다.
+    func completeLogin() {
+        let tokenLength = UserDefaultsManager.shared.getAccessToken().count
+        DLog("🔐 [Login] completeLogin 호출 - accessToken 길이=\(tokenLength)")
+        if tokenLength == 0 {
+            DLog("⚠️ [Login] completeLogin 시점에 accessToken이 비어있음 - 서버 응답 확인 필요")
+        }
+        path = NavigationPath()   // 스택 초기화 → 홈이 루트로
+        isLoggedIn = true
+        DLog("🔐 [Login] isLoggedIn=true 전환 완료, path 초기화")
+    }
+
+    /// 로그아웃/탈퇴 시 호출. 루트를 로그인 화면으로 되돌린다.
+    func completeLogout() {
+        DLog("🔐 [Login] completeLogout 호출 - isLoggedIn=false 전환, path 초기화")
+        path = NavigationPath()
+        isLoggedIn = false
+    }
+
     func push(route: AppRoute) {
         Task { @MainActor in
             DLog("🔥 pushing route: \(route)")
@@ -52,7 +71,8 @@ enum AppRoute: Hashable {
     case resetPassword
     case preferenceSelection
     case content(activeTab: Tab)
-    case commingSoonDetail
+    case comingSoonDetail
+    case weekdayNewAnime(day: Int)
     case mainLoginView
     case recentReview
     case recommendView(animeId: Int?)
@@ -88,9 +108,5 @@ enum AppRoute: Hashable {
     case characterAndVoiceActorDetail(animeId: Int)
     case seriesDetail(animeId: Int, animeTitle: String)
     case recommend(animeId: Int, animeTitle: String)
-    case community(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
-    case communityWrite(seriesId: Int, animeTitle: String)
-    case communityDetail(postId: Int)
-    case myContent
-
+    
 }

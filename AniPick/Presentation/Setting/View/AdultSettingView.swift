@@ -16,7 +16,6 @@ struct AdultSettingView: View {
             NavigationBackButtonView(title: "19세 작품") {
                 dismiss()
             }
-            .padding(.horizontal, 20)
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {

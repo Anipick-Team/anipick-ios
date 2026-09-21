@@ -333,7 +333,7 @@ struct PreferenceSelectionView: View {
                 
                 
                 Button {
-                    print("닫기 탭탭")
+                    DLog("닫기 탭탭")
                     self.viewModel.tappedModelView()
                 } label: {
                     Image(.xButton)

@@ -326,7 +326,7 @@ struct RecentReviewCell: View {
         let rawRating = Double(clampedX / (starSize + spacing))
         let roundedRating = (rawRating * 2).rounded(.toNearestOrEven) / 2.0
         starRating = roundedRating
-        print("🐳 \(starRating)")
+        DLog("🐳 \(starRating)")
     }
     
 }

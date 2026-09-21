@@ -89,7 +89,7 @@ struct RecommendedAnimeView: View {
                 .padding(.bottom, 20)
                 
                 LazyVGrid(columns: columns, spacing: 24) {
-                    ForEach(viewModel.recommedationAnimes, id: \.self) { item in
+                    ForEach(viewModel.recommendationAnimes, id: \.self) { item in
                         animationCell(item: item)
                             .onAppear {
                                 self.viewModel.getNextPage(lastAnimeId: item.animeId ?? 0)

@@ -8,6 +8,7 @@
 import SwiftUI
 import Alamofire
 
+@MainActor
 final class SettingViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     @Published var newNickname: String = ""
@@ -18,7 +19,6 @@ final class SettingViewModel: ObservableObject {
     @Published var email: String = ""
     @Published var isShowSNStitle: String = ""
     @Published var isSNSAccount: Bool = false
-    @Published var isAdult: Bool = false
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
@@ -54,16 +54,15 @@ final class SettingViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
-                    DLog("logout success - \(value)")
-                    self.navigationManager.popToRoot()
-                    self.navigationManager.push(route: .mainLoginView)
+                    DLog("🔐 [Login] 로그아웃 성공 - completeLogout (로그인 화면으로) \(value)")
+                    self.navigationManager.completeLogout()
                 case .failure(let error):
                     DLog("logout error - \(error)")
                 }
-                
             }
     }
  
@@ -76,13 +75,13 @@ final class SettingViewModel: ObservableObject {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: BaseResponse.self) { response in
+            .responseDecodable(of: BaseResponse.self) { [weak self] response in
+                guard let self else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("withdrawal success - \(value)")
                     if value.code == 200 {
-                        self.navigationManager.popToRoot()
-                        self.navigationManager.push(route: .mainLoginView)
+                        self.navigationManager.completeLogout()
                         // TODO: User정보 전부 clear하는 값 필요
                         UserDefaultsManager.shared.setAccessToken(accessToken: "")
                         UserDefaultsManager.shared.setRefreshToken(refreshToken: "")
@@ -91,7 +90,6 @@ final class SettingViewModel: ObservableObject {
                 case .failure(let error):
                     DLog("withdrawal error - \(error)")
                 }
-                
             }
     }
     
@@ -121,8 +119,6 @@ final class SettingViewModel: ObservableObject {
             }
         case .linkedSNS:
             DLog("sns임!!")
-        case .adultCheck:
-            self.moveToDetailSettingView(route: .adultSetting)
         case .appVersion:
             DLog("AppVersion")
         case .inquiry:

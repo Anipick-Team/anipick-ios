@@ -285,7 +285,7 @@ struct ReviewDetailInfoView: View {
                                 GeometryReader { geo in
                                     Color.clear
                                         .onChange(of: geo.frame(in: .global).minY) { newValue in
-                                            print("🌀🌀 스크롤 offset 변경됨:", newValue)
+                                            DLog("🌀🌀 스크롤 offset 변경됨: \(newValue)")
                                             self.scrollllll = newValue
 //                                            if self.isShowBlockPopupView {
 //                                                self.isShowBlockPopupView = false

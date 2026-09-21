@@ -78,4 +78,23 @@ enum AnalyticsManager {
             "message": error.localizedDescription
         ])
     }
+
+    // MARK: - 로그인 이슈 (에러 객체 없는 논리적 실패도 Crashlytics로 리포팅)
+    static func logLoginIssue(provider: String, reason: String) {
+        Crashlytics.crashlytics().log("[Login][\(provider)] \(reason)")
+        // 비치명적 이벤트로 기록하여 Crashlytics 대시보드에서 조회 가능하게 함
+        let error = NSError(
+            domain: "LoginIssue",
+            code: 0,
+            userInfo: [
+                NSLocalizedDescriptionKey: reason,
+                "provider": provider
+            ]
+        )
+        Crashlytics.crashlytics().record(error: error)
+        Analytics.logEvent("login_issue", parameters: [
+            "provider": provider,
+            "reason": reason
+        ])
+    }
 }

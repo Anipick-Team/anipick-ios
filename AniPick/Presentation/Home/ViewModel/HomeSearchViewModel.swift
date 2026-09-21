@@ -52,22 +52,6 @@ final class HomeSearchViewModel: ObservableObject {
         }
     }
     
-    func fetchAnimeSearchListWithQuery() {
-        AF.request(SearchAPI.searchAnimeQuery(query: self.searchText, lastId: animeLastId))
-            .cURLDescription { description in
-                DLog("\(description)")
-            }
-            .responseDecodable(of: HomeSearchResponse.self) { response in
-                switch response.result {
-                case .success(let value):
-                    DLog("home search with query success - \(value)")
-                case .failure(let error):
-                    DLog("home search with query error - \(error)")
-                }
-                
-            }
-    }
-    
     func fetchAnimeSearchList() async {
         do {
             let response = try await usecase.getAnimeQueryResult(query: self.searchText, lastId: animeLastId)

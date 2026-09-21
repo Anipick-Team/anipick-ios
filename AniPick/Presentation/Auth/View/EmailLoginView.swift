@@ -99,7 +99,7 @@ struct EmailLoginView: View {
                         
                         Button {
                             self.navigationManager.push(route: AppRoute.emailSignup)
-                            print("tapped 회원가입")
+                            DLog("tapped 회원가입")
                         } label: {
                             Text("회원가입")
                         }
@@ -110,7 +110,7 @@ struct EmailLoginView: View {
                         
                         Button {
                             self.navigationManager.push(route: AppRoute.findPassword)
-                            print("tapped 비밀번호 찾기")
+                            DLog("tapped 비밀번호 찾기")
                         } label: {
                             Text("비밀번호 찾기")
                         }
@@ -144,7 +144,7 @@ struct EmailLoginView: View {
                     isEnable: $viewModel.isEnableLoginButton,
                     buttonText: "로그인"
                 ) {
-                    print("로그인 버튼 탭")
+                    DLog("로그인 버튼 탭")
                     Task {
                         await viewModel.loginWithEmail()
                     }

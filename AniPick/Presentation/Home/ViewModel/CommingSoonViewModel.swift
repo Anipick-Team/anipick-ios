@@ -1,5 +1,5 @@
 //
-//  CommingSoonViewModel.swift
+//  ComingSoonViewModel.swift
 //  AniPick
 //
 //  Created by cho on 7/22/25.
@@ -8,28 +8,29 @@
 import SwiftUI
 import Alamofire
 
-final class CommingSoonViewModel: ObservableObject {
+@MainActor
+final class ComingSoonViewModel: ObservableObject {
     private let navigationManager: NavigationManager
     
-    @Published var commingSoonAnimeList: [UpcomingAnime] = []
-    @Published var selectedCategory: CommingSoonSortCategory = .latest
+    @Published var comingSoonAnimeList: [UpcomingAnime] = []
+    @Published var selectedCategory: ComingSoonSortCategory = .latest
     
     // 최신순, 인긴순, 방영 예정 순 확인 필요
     @Published var isShowSortCategoryOptionView: Bool = false
     @Published var isIncludeAdult: Bool = false
-    let session = Session(interceptor: TokenInterceptor.shared)
-    var lastId: Int?
+    private let session = NetworkSession.authenticated
+    private var lastId: Int?
     
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
     }
 }
 
-extension CommingSoonViewModel {
-    func fetchCommingSoonInfo() {
+extension ComingSoonViewModel {
+    func fetchComingSoonInfo() {
         // 정렬 (latest/popularity /startDate )
         session.request(
-            AnimeAPI.commingSoonInfo(
+            AnimeAPI.comingSoonInfo(
                 sort: self.selectedCategory.rawValue,
                 lastId: nil,
                 includeAdult: self.isIncludeAdult,
@@ -39,29 +40,30 @@ extension CommingSoonViewModel {
             .cURLDescription { description in
                 DLog("\(description)")
             }
-            .responseDecodable(of: UpcomingAnimeListResponse.self) { response in
+            .responseDecodable(of: UpcomingAnimeListResponse.self) { [weak self] response in
+                guard let self else { return }
             switch response.result {
             case .success(let value):
-                DLog("fetch home - detail - commingSoon success \(value)")
+                DLog("fetch home - detail - comingSoon success \(value)")
                 if let animeList = value.result,
                    let recommend = animeList.animes {
-                    self.commingSoonAnimeList = recommend
+                    self.comingSoonAnimeList = recommend
                     self.lastId = value.result?.cursor?.lastId
                 }
                 
                 
             case .failure(let error):
-                DLog("fetch home - detail - commingSoo error \(error)")
+                DLog("fetch home - detail - comingSoo error \(error)")
             }
         }
         
     }
     
-    func loadMoreCommingSoonInfo() {
+    func loadMoreComingSoonInfo() {
         guard let lastId = lastId else { return }
 
         session.request(
-            AnimeAPI.commingSoonInfo(
+            AnimeAPI.comingSoonInfo(
                 sort: self.selectedCategory.rawValue,
                 lastId: lastId,
                 includeAdult: self.isIncludeAdult,
@@ -71,7 +73,8 @@ extension CommingSoonViewModel {
         .cURLDescription { description in
             DLog("\(description)")
         }
-        .responseDecodable(of: UpcomingAnimeListResponse.self) { response in
+        .responseDecodable(of: UpcomingAnimeListResponse.self) { [weak self] response in
+            guard let self else { return }
             switch response.result {
             case .success(let value):
                 DLog("✅ 추가 로드 성공")
@@ -79,10 +82,10 @@ extension CommingSoonViewModel {
                    let recommend = animeList.animes {
                     
                     // ✅ 중복 animeId 제거
-                    let existingIds = Set(self.commingSoonAnimeList.map { $0.animeId })
+                    let existingIds = Set(self.comingSoonAnimeList.map { $0.animeId })
                     let newItems = recommend.filter { !existingIds.contains($0.animeId) }
                     
-                    self.commingSoonAnimeList += newItems
+                    self.comingSoonAnimeList += newItems
                     self.lastId = value.result?.cursor?.lastId
     
                 }
@@ -94,14 +97,14 @@ extension CommingSoonViewModel {
     
     func toggleIncludeAdult() {
         self.isIncludeAdult.toggle()
-        self.commingSoonAnimeList.removeAll()
-        self.fetchCommingSoonInfo()
+        self.comingSoonAnimeList.removeAll()
+        self.fetchComingSoonInfo()
     }
     
     func tappedSortButton() {
         self.isShowSortCategoryOptionView.toggle()
-        self.commingSoonAnimeList.removeAll()
-        self.fetchCommingSoonInfo()
+        self.comingSoonAnimeList.removeAll()
+        self.fetchComingSoonInfo()
     }
     
     func tappedAnime(animeId: Int) {

@@ -22,6 +22,23 @@
 				<string>anipick</string>
 			</array>
 		</dict>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>kakao</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao0342f72c46d8653e8a501fe5704a540c</string>
+			</array>
+		</dict>
+	</array>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaotalk</string>
+		<string>kakaolink</string>
+		<string>kakaoplus</string>
 	</array>
 	<key>GIDClientID</key>
 	<string>376808777267-6bs66ad6kttc3s7vdnsnibrg16gdlsvh.apps.googleusercontent.com</string>

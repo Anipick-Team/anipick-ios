@@ -29,7 +29,7 @@ struct FullWidthButton: View {
 
 #Preview {
     FullWidthButton(isEnable: .constant(false), buttonText: "버어튼") {
-        print("Tapped FullWidthButton")
+        DLog("Tapped FullWidthButton")
     }
 }
 

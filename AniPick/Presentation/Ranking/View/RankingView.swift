@@ -152,7 +152,7 @@ struct RankingView: View {
                 Spacer()
                 
                 Button {
-                    print("닫기 탭탭")
+                    DLog("닫기 탭탭")
                     self.isPresentGenreModalView.toggle()
                 } label: {
                     Image(.xButton)
@@ -236,7 +236,7 @@ struct RankingView: View {
                 Spacer()
                 
                 Button {
-                    print("닫기 탭탭")
+                    DLog("닫기 탭탭")
                     self.isPresentYearSeasonModalView.toggle()
                 } label: {
                     Image(.xButton)

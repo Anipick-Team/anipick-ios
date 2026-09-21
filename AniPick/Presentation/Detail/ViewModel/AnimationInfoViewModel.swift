@@ -38,8 +38,8 @@ final class AnimationInfoViewModel: ObservableObject {
     @Published var myReviewId: Int = 0
     @Published var myLikeCount: Int = 0
     
-    var reviewLastValue: String? = nil
-    var reviewLastId: Int? = nil
+    private var reviewLastValue: String? = nil
+    private var reviewLastId: Int? = nil
     @Published var selectedReviewSortOption: SortOption = .latest
     
     
@@ -101,7 +101,7 @@ extension AnimationInfoViewModel {
                 guard let self else { return }
                 if let data = response.data {
                     let raw = String(data: data, encoding: .utf8) ?? "⚠️ 디코딩 불가"
-                    print("📦 원본 응답: \(raw)")
+                    DLog("📦 원본 응답: \(raw)")
                 }
                 switch response.result {
                 case let .success(value):
@@ -128,7 +128,7 @@ extension AnimationInfoViewModel {
                 guard let self else { return }
                 if let data = response.data {
                     let raw = String(data: data, encoding: .utf8) ?? "⚠️ 디코딩 불가"
-                    print("📦 원본 응답: \(raw)")
+                    DLog("📦 원본 응답: \(raw)")
                 }
                 switch response.result {
                 case let .success(value):
@@ -498,13 +498,12 @@ extension AnimationInfoViewModel {
     func moveToRewriteReview() {
         self.navigationManager.push(route: .review(starRating: self.storedMyReviewRate, animeId: self.animeId, reviewContent: self.reviewContent))
     }
-//    
+
     func moveToProducerDetailView(studioId: Int) {
         self.navigationManager.push(route: .producerDetail(studioId: studioId))
     }
-    
+
     func moveToVoiceActorDetailView(animeId: Int) {
-      //  self.navigationManager.push(route: .voiceActorDetail(animeId: animeId))
         self.navigationManager.push(route: .characterAndVoiceActorDetail(animeId: animeId))
     }
     
@@ -524,15 +523,6 @@ extension AnimationInfoViewModel {
         self.navigationManager.push(route: .recommend(animeId: animeId, animeTitle: animeTitle))
     }
 
-    func moveToCommunityView() {
-        guard let detail = animeDetailInfo else { return }
-        self.navigationManager.push(route: .community(
-            animeId: detail.animeId,
-            animeTitle: detail.title ?? "",
-            coverImageUrl: detail.coverImageUrl,
-            genreNames: detail.genres?.map { $0.name } ?? []
-        ))
-    }
 
     /// 공유할 아이템 목록 반환
     /// - 앱 설치 O: anipick://anime/{id} 딥링크로 바로 이동
