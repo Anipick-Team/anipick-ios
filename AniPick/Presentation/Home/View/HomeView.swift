@@ -43,6 +43,10 @@ struct HomeView: View {
             
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 0) {
+                    InstagramBannerView()
+                        .padding(.top, 20)
+                        .padding(.bottom, 28)
+
                     HStack(spacing: 0) {
                         Text("실시간 인기 애니메이션")
                             .font(.system(size: 20, weight: .semibold))
@@ -106,10 +110,6 @@ struct HomeView: View {
 
                 }
 
-                sectionDivider()
-
-                weekdayNewAnimeSection()
-                
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
                         Text("최근 리뷰")
@@ -188,7 +188,6 @@ struct HomeView: View {
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
-                await viewModel.getWeekdayNewAnimes()
             }
         }
     }

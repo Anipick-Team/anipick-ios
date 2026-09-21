@@ -14,7 +14,7 @@ struct InstagramBannerView: View {
 
             // 양쪽 인스타그램 아이콘
             HStack(spacing: 0) {
-                Image(.instagramIconSmall)
+                Image("instagramIconSmall")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 64, height: 64)
@@ -22,7 +22,7 @@ struct InstagramBannerView: View {
 
                 Spacer()
 
-                Image(.instagramIcon)
+                Image("instagramIcon")
                     .resizable()
                     .scaledToFit()
                     .frame(width: 80, height: 80)
