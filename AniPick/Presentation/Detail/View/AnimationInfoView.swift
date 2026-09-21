@@ -19,6 +19,7 @@ struct ScrollOffsetKey: PreferenceKey {
 
 struct AnimationInfoView: View {
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var navigationManager: NavigationManager
     @StateObject var viewModel: AnimationInfoViewModel
     @State private var starRating: Double = 0.0
     @State private var selectedAnimationStatusTab: AnimationWatchStatus = .empty
@@ -248,6 +249,9 @@ struct AnimationInfoView: View {
                             HStack(alignment: .center, spacing: 0) {
                                 selectedTab(title: .animationInfo)
                                 selectedTab(title: .reviewInfo, animationCount: viewModel.reviewCount)
+                                selectedTab(title: .community) {
+                                    openCommunity(detailInfo)
+                                }
                             }
                             .padding(.bottom, 13)
 
@@ -275,6 +279,8 @@ struct AnimationInfoView: View {
                                     self.selectedPopupItemReviewId = reviewId
                                     self.selectedBlockUserId = blockUserId
                                 }
+                            case .community:
+                                EmptyView()
 }
 
                             Spacer().frame(height: 30)
@@ -419,6 +425,11 @@ struct AnimationInfoView: View {
                     HStack(alignment: .center, spacing: 0) {
                         selectedTab(title: .animationInfo)
                         selectedTab(title: .reviewInfo, animationCount: viewModel.reviewCount)
+                        if let detailInfo = viewModel.animeDetailInfo {
+                            selectedTab(title: .community) {
+                                openCommunity(detailInfo)
+                            }
+                        }
                     }
                     .padding(.bottom, 13)
                 }
@@ -543,6 +554,18 @@ struct AnimationInfoView: View {
             }
         }
     }
+
+    private func openCommunity(_ detailInfo: AnimeDetail) {
+        DLog("애니 상세 커뮤니티 탭 선택 - animeId: \(detailInfo.animeId)")
+        navigationManager.push(
+            route: .community(
+                animeId: detailInfo.animeId,
+                animeTitle: detailInfo.title ?? "애니메이션",
+                coverImageUrl: detailInfo.coverImageUrl,
+                genreNames: detailInfo.genres?.map(\.name) ?? []
+            )
+        )
+    }
 }
 
 
@@ -646,6 +669,7 @@ enum AnimationWatchStatus: String, CaseIterable {
 enum AnimationInfoTab: String, CaseIterable {
     case animationInfo = "작품 정보"
     case reviewInfo = "리뷰"
+    case community = "커뮤니티"
 
     var title: String { self.rawValue }
 }

@@ -16,10 +16,16 @@ enum ExploreFilterTab: String, CaseIterable, Identifiable {
     var id: String { self.rawValue }
 }
 
+enum ExploreMainTab: String, CaseIterable {
+    case anime = "작품 탐색"
+    case community = "커뮤니티"
+}
+
 struct ExploreView: View {
     @StateObject var viewModel: ExploreViewModel
     @EnvironmentObject var appState: AppState
     let columns = Array(repeating: GridItem(.flexible(), spacing: 8), count: 3)
+    @State private var selectedMainTab: ExploreMainTab = .anime
     
     @State private var selectedTab: ExploreFilterTab = .yearQuarter
     @State private var isPresentYearFilter: Bool = false
@@ -70,6 +76,10 @@ struct ExploreView: View {
             VStack(alignment: .leading, spacing: 0) {
                 
                 self.headerView()
+
+                mainTabBarView()
+
+                if selectedMainTab == .anime {
                 
                 if showFilterBar {
                     Spacer().frame(height: 16)
@@ -159,6 +169,9 @@ struct ExploreView: View {
                 }
                 .coordinateSpace(name: "explore")
                 .padding(.horizontal, 20)
+                } else {
+                    ExploreCommunityView()
+                }
             }
             .onChange(of: selectedTab) { newValue in
                 DLog("선택된 Tab - \(newValue)")
@@ -184,7 +197,7 @@ struct ExploreView: View {
                 DLog("appState onChange 감지")
                 applyIncomingFilterIfNeeded()
             }
-            if viewModel.isShowSortOptionView {
+            if viewModel.isShowSortOptionView && selectedMainTab == .anime {
                 getSortOptionView(sort: viewModel.selectedCategory)
                     .padding(.trailing, 20)
                     .offset(y: 160)
@@ -207,6 +220,40 @@ struct ExploreView: View {
             showFilterBar = false
         } else {
             showFilterBar = true
+        }
+    }
+
+    // MARK: - 메인 탭 바 (작품 탐색 | 커뮤니티)
+    @ViewBuilder
+    private func mainTabBarView() -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ForEach(ExploreMainTab.allCases, id: \.self) { tab in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedMainTab = tab
+                        }
+                        DLog("탐색 메인 탭 선택 - \(tab.rawValue)")
+                    } label: {
+                        VStack(spacing: 0) {
+                            Text(tab.rawValue)
+                                .font(.system(size: 16, weight: selectedMainTab == tab ? .semibold : .regular))
+                                .foregroundColor(selectedMainTab == tab ? .anipickBlack : .gray6)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 12)
+
+                            Rectangle()
+                                .frame(height: 2)
+                                .foregroundColor(selectedMainTab == tab ? .anipickBlack : .clear)
+                        }
+                    }
+                }
+            }
+
+            Rectangle()
+                .frame(maxWidth: .infinity)
+                .frame(height: 1)
+                .foregroundColor(.gray5)
         }
     }
     

@@ -79,9 +79,6 @@ struct CommunityView: View {
         }
         .navigationBarHidden(true)
         .onAppear { viewModel.fetchPosts(reset: true) }
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            communityTabBar()
-        }
         .onChange(of: viewModel.selectedFilter) { _ in
             viewModel.fetchPosts(reset: true)
         }
@@ -101,7 +98,7 @@ struct CommunityView: View {
     // MARK: - 애니 정보 헤더
     @ViewBuilder
     private func animeInfoHeader() -> some View {
-        HStack(alignment: .center, spacing: 16) {
+        HStack(alignment: .top, spacing: 16) {
             // 커버 이미지
             if let urlString = coverImageUrl, let url = URL(string: urlString) {
                 AsyncImage(url: url) { phase in
@@ -130,9 +127,10 @@ struct CommunityView: View {
                         GerneTagComponents(title: name)
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .fixedSize(horizontal: false, vertical: true)
             }
-
-            Spacer()
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -270,16 +268,10 @@ struct CommunityView: View {
         HStack(spacing: 4) {
             ForEach(0..<displayCount, id: \.self) { idx in
                 ZStack {
-                    if let url = URL(string: urls[idx]), !urls[idx].isEmpty {
-                        AsyncImage(url: url) { phase in
-                            if case .success(let image) = phase {
-                                image.resizable().scaledToFill()
-                            } else {
-                                Color.gray5
-                            }
-                        }
-                        .frame(width: 56, height: 56)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                    if !urls[idx].isEmpty {
+                        CommunityRemoteImage(urlString: urls[idx])
+                            .frame(width: 56, height: 56)
+                            .clipShape(RoundedRectangle(cornerRadius: 4))
                     } else {
                         RoundedRectangle(cornerRadius: 4)
                             .foregroundColor(.gray5)
@@ -299,38 +291,6 @@ struct CommunityView: View {
         }
     }
 
-    @ViewBuilder
-    private func communityTabBar() -> some View {
-        HStack(spacing: 0) {
-            tabBarItem(image: .homeUnfilled, title: "홈", selected: false)
-            tabBarItem(image: .rankingUnfilled, title: "랭킹", selected: false)
-            tabBarItem(image: .reseachFilled, title: "탐색", selected: true)
-            tabBarItem(image: .myInfoUnfilled, title: "마이", selected: false)
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 4)
-        .background(Color.white)
-        .overlay(alignment: .top) {
-            Rectangle().fill(Color.gray5).frame(height: 1)
-        }
-    }
-
-    @ViewBuilder
-    private func tabBarItem(image: ImageResource, title: String, selected: Bool) -> some View {
-        Button {
-            DLog("커뮤니티 하단 탭 선택 - \(title)")
-        } label: {
-            VStack(spacing: 4) {
-                Image(image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
-                Text(title)
-                    .customFontStyle(size: 11, color: selected ? .anipickPrimary : .gray6)
-            }
-            .frame(maxWidth: .infinity)
-        }
-    }
 }
 
 #Preview {

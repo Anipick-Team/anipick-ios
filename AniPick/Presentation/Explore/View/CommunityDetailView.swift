@@ -18,6 +18,7 @@ struct CommunityDetailPost {
     var likeCount: Int
     let commentCount: Int
     var isLiked: Bool
+    let isMine: Bool
 }
 
 struct CommunityComment: Identifiable {
@@ -26,8 +27,10 @@ struct CommunityComment: Identifiable {
     let date: String
     let content: String
     let authorImageUrl: String?
-    let likeCount: Int
-    let replies: [CommunityReply]
+    var likeCount: Int
+    var isLiked: Bool
+    let isMine: Bool
+    var replies: [CommunityReply]
 }
 
 struct CommunityReply: Identifiable {
@@ -36,7 +39,9 @@ struct CommunityReply: Identifiable {
     let date: String
     let content: String
     let authorImageUrl: String?
-    let likeCount: Int
+    var likeCount: Int
+    var isLiked: Bool
+    let isMine: Bool
 }
 
 @MainActor
@@ -46,8 +51,10 @@ final class CommunityDetailViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
     @Published private(set) var errorMessage: String?
+    @Published private(set) var isSubmittingComment = false
 
     private let postId: Int
+    var postID: Int { postId }
     private var commentsCursor: CommunityCursor?
 
     init(postId: Int) {
@@ -138,6 +145,83 @@ final class CommunityDetailViewModel: ObservableObject {
         }
     }
 
+    func createComment(content: String, parentCommentId: Int? = nil) {
+        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedContent.isEmpty, !isSubmittingComment else { return }
+
+        isSubmittingComment = true
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                let request = CommunityCommentRequest(content: trimmedContent, parentCommentId: parentCommentId)
+                _ = try await CommunityAPIService.shared.createComment(postId: postId, body: request)
+                DLog("커뮤니티 댓글 등록 성공 - postId: \(postId)")
+                self.isSubmittingComment = false
+                self.fetch()
+            } catch {
+                self.isSubmittingComment = false
+                DLog("커뮤니티 댓글 등록 실패 - postId: \(postId), error: \(error)")
+            }
+        }
+    }
+
+    func toggleCommentLike(commentId: Int, isLiked: Bool) {
+        updateCommentLike(commentId: commentId, isLiked: !isLiked)
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                if isLiked {
+                    _ = try await CommunityAPIService.shared.unlikeComment(commentId: commentId)
+                } else {
+                    _ = try await CommunityAPIService.shared.likeComment(commentId: commentId)
+                }
+                DLog("커뮤니티 댓글 좋아요 \(isLiked ? "취소" : "등록") 완료 - commentId: \(commentId)")
+            } catch {
+                self.updateCommentLike(commentId: commentId, isLiked: isLiked)
+                DLog("커뮤니티 댓글 좋아요 실패 - commentId: \(commentId), error: \(error)")
+            }
+        }
+    }
+
+    func deletePost() async throws {
+        _ = try await CommunityAPIService.shared.deletePost(postId: postId)
+        DLog("커뮤니티 게시글 삭제 성공 - postId: \(postId)")
+    }
+
+    func deleteComment(commentId: Int) async throws {
+        _ = try await CommunityAPIService.shared.deleteComment(commentId: commentId)
+        DLog("커뮤니티 댓글 삭제 성공 - commentId: \(commentId)")
+        fetch()
+    }
+
+    func report(targetType: CommunityReportTarget, targetId: Int) async {
+        do {
+            _ = try await CommunityAPIService.shared.report(
+                CommunityReportRequest(targetType: targetType, targetId: targetId, reportCategory: .etc)
+            )
+            DLog("커뮤니티 신고 성공 - targetType: \(targetType.rawValue), targetId: \(targetId)")
+        } catch {
+            DLog("커뮤니티 신고 실패 - targetType: \(targetType.rawValue), targetId: \(targetId), error: \(error)")
+        }
+    }
+
+    private func updateCommentLike(commentId: Int, isLiked: Bool) {
+        if let index = comments.firstIndex(where: { $0.id == commentId }) {
+            let wasLiked = comments[index].isLiked
+            comments[index].isLiked = isLiked
+            comments[index].likeCount = max(0, comments[index].likeCount + (isLiked == wasLiked ? 0 : (isLiked ? 1 : -1)))
+            return
+        }
+
+        for index in comments.indices {
+            guard let replyIndex = comments[index].replies.firstIndex(where: { $0.id == commentId }) else { continue }
+            let wasLiked = comments[index].replies[replyIndex].isLiked
+            comments[index].replies[replyIndex].isLiked = isLiked
+            comments[index].replies[replyIndex].likeCount = max(0, comments[index].replies[replyIndex].likeCount + (isLiked == wasLiked ? 0 : (isLiked ? 1 : -1)))
+            return
+        }
+    }
+
     private static func imageURL(for id: Int) -> String {
         "\(NetworkManager.baseUrl)api/image/\(id)"
     }
@@ -154,7 +238,8 @@ final class CommunityDetailViewModel: ObservableObject {
             viewCount: dto.viewCount ?? 0,
             likeCount: dto.likeCount ?? 0,
             commentCount: dto.commentCount ?? 0,
-            isLiked: dto.likedByCurrentUser ?? false
+            isLiked: dto.likedByCurrentUser ?? false,
+            isMine: dto.isMine ?? false
         )
     }
 
@@ -166,6 +251,8 @@ final class CommunityDetailViewModel: ObservableObject {
             content: dto.isDeleted == true ? "삭제된 댓글입니다." : (dto.content ?? ""),
             authorImageUrl: dto.profileImageUrl,
             likeCount: dto.likeCount ?? 0,
+            isLiked: dto.likedByCurrentUser ?? false,
+            isMine: dto.isMine ?? false,
             replies: (dto.replies ?? []).map(mapReply)
         )
     }
@@ -177,7 +264,9 @@ final class CommunityDetailViewModel: ObservableObject {
             date: dto.createdAt ?? "",
             content: dto.isDeleted == true ? "삭제된 댓글입니다." : (dto.content ?? ""),
             authorImageUrl: dto.profileImageUrl,
-            likeCount: dto.likeCount ?? 0
+            likeCount: dto.likeCount ?? 0,
+            isLiked: dto.likedByCurrentUser ?? false,
+            isMine: dto.isMine ?? false
         )
     }
 }
@@ -187,6 +276,12 @@ struct CommunityDetailView: View {
     @StateObject private var viewModel: CommunityDetailViewModel
 
     @State private var currentImageIndex: Int = 0
+    @State private var commentText = ""
+    @State private var replyTargetId: Int?
+    @State private var isShowingPostActions = false
+    @State private var actionComment: CommunityComment?
+    @State private var isShowingCommentActions = false
+    @FocusState private var isCommentFocused: Bool
 
     init(postId: Int) {
         _viewModel = StateObject(wrappedValue: CommunityDetailViewModel(postId: postId))
@@ -204,7 +299,8 @@ struct CommunityDetailView: View {
             viewCount: 0,
             likeCount: 0,
             commentCount: 0,
-            isLiked: false
+            isLiked: false,
+            isMine: false
         )
     }
 
@@ -240,6 +336,42 @@ struct CommunityDetailView: View {
         }
         .background(Color.gray7)
         .navigationBarHidden(true)
+        .confirmationDialog("게시글 메뉴", isPresented: $isShowingPostActions, titleVisibility: .visible) {
+            if post.isMine {
+                Button("게시글 삭제", role: .destructive) {
+                    Task {
+                        do {
+                            try await viewModel.deletePost()
+                            navigationManager.pop()
+                        } catch {
+                            DLog("커뮤니티 게시글 삭제 실패 - error: \(error)")
+                        }
+                    }
+                }
+            } else {
+                Button("게시글 신고", role: .destructive) {
+                    Task { await viewModel.report(targetType: .post, targetId: viewModel.postID) }
+                }
+            }
+            Button("취소", role: .cancel) { }
+        }
+        .confirmationDialog("댓글 메뉴", isPresented: $isShowingCommentActions, titleVisibility: .visible) {
+            if let actionComment {
+                if actionComment.isMine {
+                    Button("댓글 삭제", role: .destructive) {
+                        Task {
+                            do { try await viewModel.deleteComment(commentId: actionComment.id) }
+                            catch { DLog("커뮤니티 댓글 삭제 실패 - error: \(error)") }
+                        }
+                    }
+                } else {
+                    Button("댓글 신고", role: .destructive) {
+                        Task { await viewModel.report(targetType: .comment, targetId: actionComment.id) }
+                    }
+                }
+            }
+            Button("취소", role: .cancel) { }
+        }
     }
 
     // MARK: - 네비게이션 헤더
@@ -257,7 +389,7 @@ struct CommunityDetailView: View {
             Spacer()
 
             Button {
-                // TODO: 더보기
+                isShowingPostActions = true
             } label: {
                 Image(systemName: "ellipsis")
                     .font(.system(size: 18))
@@ -311,25 +443,7 @@ struct CommunityDetailView: View {
             if !post.imageUrls.isEmpty {
                 TabView(selection: $currentImageIndex) {
                     ForEach(0..<post.imageUrls.count, id: \.self) { idx in
-                        AsyncImage(url: URL(string: post.imageUrls[idx])) { phase in
-                            switch phase {
-                            case .success(let image):
-                                image
-                                    .resizable()
-                                    .scaledToFit()
-                            case .failure:
-                                Color.gray5
-                                    .overlay {
-                                        Image(systemName: "photo")
-                                            .foregroundColor(.gray6)
-                                    }
-                            case .empty:
-                                Color.gray5
-                                    .overlay { ProgressView() }
-                            @unknown default:
-                                Color.gray5
-                            }
-                        }
+                        CommunityRemoteImage(urlString: post.imageUrls[idx], contentMode: .fit)
                             .tag(idx)
                     }
                 }
@@ -400,7 +514,7 @@ struct CommunityDetailView: View {
                 Text("  |  ").font(.system(size: 14)).foregroundColor(.gray6)
 
                 Button {
-                    // TODO: 댓글
+                    isCommentFocused = true
                 } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "bubble.left")
@@ -415,7 +529,8 @@ struct CommunityDetailView: View {
                 Spacer()
 
                 Button {
-                    // TODO: 공유
+                    ShareSheet.present(items: ["\(post.title)\n\(post.body)"])
+                    DLog("커뮤니티 게시글 공유 실행 - postId: \(viewModel.postID)")
                 } label: {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 16))
@@ -445,7 +560,8 @@ struct CommunityDetailView: View {
                 Spacer()
 
                 Button {
-                    // TODO: 더보기
+                    actionComment = comment
+                    isShowingCommentActions = true
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 14))
@@ -474,12 +590,12 @@ struct CommunityDetailView: View {
             // 액션
             HStack(spacing: 0) {
                 Button {
-                    // TODO: 좋아요
+                    viewModel.toggleCommentLike(commentId: comment.id, isLiked: comment.isLiked)
                 } label: {
                     HStack(spacing: 5) {
-                        Image(systemName: "heart")
+                        Image(systemName: comment.isLiked ? "heart.fill" : "heart")
                             .font(.system(size: 13))
-                            .foregroundColor(.gray6)
+                            .foregroundColor(comment.isLiked ? .red : .gray6)
                         Text("좋아요")
                             .font(.system(size: 13))
                             .foregroundColor(.gray6)
@@ -489,7 +605,8 @@ struct CommunityDetailView: View {
                 Text("  |  ").font(.system(size: 13)).foregroundColor(.gray6)
 
                 Button {
-                    // TODO: 댓글
+                    replyTargetId = comment.id
+                    isCommentFocused = true
                 } label: {
                     HStack(spacing: 5) {
                         Image(systemName: "bubble.left")
@@ -533,8 +650,19 @@ struct CommunityDetailView: View {
 
                     Spacer()
 
-                    Button {
-                        // TODO: 더보기
+                Button {
+                    actionComment = CommunityComment(
+                        id: reply.id,
+                        authorName: reply.authorName,
+                        date: reply.date,
+                        content: reply.content,
+                        authorImageUrl: reply.authorImageUrl,
+                        likeCount: reply.likeCount,
+                        isLiked: reply.isLiked,
+                        isMine: reply.isMine,
+                        replies: []
+                    )
+                    isShowingCommentActions = true
                     } label: {
                         Image(systemName: "ellipsis")
                             .font(.system(size: 14))
@@ -562,12 +690,13 @@ struct CommunityDetailView: View {
 
                 // 좋아요만 (댓글 없음)
                 Button {
-                    // TODO: 좋아요
+                    // 대댓글 좋아요 API는 댓글 API와 동일한 엔드포인트를 사용합니다.
+                    viewModel.toggleCommentLike(commentId: reply.id, isLiked: reply.isLiked)
                 } label: {
                     HStack(spacing: 5) {
-                        Image(systemName: "heart")
+                        Image(systemName: reply.isLiked ? "heart.fill" : "heart")
                             .font(.system(size: 13))
-                            .foregroundColor(.gray6)
+                            .foregroundColor(reply.isLiked ? .red : .gray6)
                         Text("좋아요")
                             .font(.system(size: 13))
                             .foregroundColor(.gray6)
@@ -585,20 +714,30 @@ struct CommunityDetailView: View {
     // MARK: - 댓글 입력 바
     @ViewBuilder
     private func commentInputBar() -> some View {
-        HStack(spacing: 0) {
-            Text("댓글을 작성해 주세요.")
+        HStack(spacing: 8) {
+            TextField(replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요.", text: $commentText)
                 .font(.system(size: 14))
-                .foregroundColor(.gray6)
+                .focused($isCommentFocused)
+                .submitLabel(.send)
+                .onSubmit { submitComment() }
 
-            Spacer()
+            if replyTargetId != nil {
+                Button("취소") {
+                    replyTargetId = nil
+                    isCommentFocused = false
+                }
+                .font(.system(size: 12))
+                .foregroundColor(.gray6)
+            }
 
             Button {
-                // TODO: 입력창 확장
+                submitComment()
             } label: {
-                Image(systemName: "chevron.up")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.gray6)
+                Image(systemName: viewModel.isSubmittingComment ? "hourglass" : "arrow.up.circle.fill")
+                    .font(.system(size: 22))
+                    .foregroundColor(commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .gray5 : .anipickPrimary)
             }
+            .disabled(viewModel.isSubmittingComment || commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -609,6 +748,15 @@ struct CommunityDetailView: View {
                 .foregroundColor(.gray7),
             alignment: .top
         )
+    }
+
+    private func submitComment() {
+        let trimmed = commentText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        viewModel.createComment(content: trimmed, parentCommentId: replyTargetId)
+        commentText = ""
+        replyTargetId = nil
+        isCommentFocused = false
     }
 
     // MARK: - 공통 아바타
