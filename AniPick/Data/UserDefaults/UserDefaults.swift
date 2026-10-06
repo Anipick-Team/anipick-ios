@@ -25,6 +25,9 @@ enum UserDefaultKey: String {
 
     case imageId
 
+    case hasSeenServerRecoveryNotice
+    case seenVersionNoticeTitle
+
 }
 
 final class UserDefaultsManager {
@@ -193,3 +196,25 @@ extension UserDefaultsManager {
     }
 }
 
+// MARK: - 공지
+extension UserDefaultsManager {
+    // 서버 복구 안내 팝업을 이미 확인했는지 여부 (로그아웃해도 유지)
+    func setHasSeenServerRecoveryNotice(_ value: Bool) {
+        defaults.set(value, forKey: UserDefaultKey.hasSeenServerRecoveryNotice.rawValue)
+    }
+
+    func getHasSeenServerRecoveryNotice() -> Bool {
+        return defaults.bool(forKey: UserDefaultKey.hasSeenServerRecoveryNotice.rawValue)
+    }
+}
+
+// MARK: - 버전 공지
+extension UserDefaultsManager {
+    func setSeenVersionNoticeTitle(_ title: String) {
+        defaults.set(title, forKey: UserDefaultKey.seenVersionNoticeTitle.rawValue)
+    }
+
+    func getSeenVersionNoticeTitle() -> String {
+        return defaults.string(forKey: UserDefaultKey.seenVersionNoticeTitle.rawValue) ?? ""
+    }
+}
