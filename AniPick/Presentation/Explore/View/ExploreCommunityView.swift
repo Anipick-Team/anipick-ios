@@ -39,13 +39,37 @@ struct ExploreCommunityView: View {
 
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: 0) {
-                        ForEach(viewModel.items) { item in
-                            communityAnimeCell(item: item)
-                                .onAppear {
-                                    if item.id == viewModel.items.last?.id {
-                                        viewModel.fetch()
-                                    }
+                        if viewModel.isLoading && viewModel.items.isEmpty {
+                            ProgressView()
+                                .padding(.top, 40)
+                        } else if let errorMessage = viewModel.errorMessage, viewModel.items.isEmpty {
+                            VStack(spacing: 12) {
+                                Text(errorMessage)
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray6)
+                                Button("다시 시도") {
+                                    viewModel.fetch(reset: true)
                                 }
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.anipickPrimary)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.top, 40)
+                        } else if viewModel.items.isEmpty {
+                            Text("검색조건에 맞는 결과가 없어요.\n다른 조건으로 검색해보세요.")
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray6)
+                                .multilineTextAlignment(.center)
+                                .padding(.top, 40)
+                        } else {
+                            ForEach(viewModel.items) { item in
+                                communityAnimeCell(item: item)
+                                    .onAppear {
+                                        if item.id == viewModel.items.last?.id {
+                                            viewModel.fetch()
+                                        }
+                                    }
+                            }
                         }
                     }
                 }
@@ -206,7 +230,7 @@ struct ExploreCommunityView: View {
                     animeId: item.id,
                     animeTitle: item.title,
                     coverImageUrl: item.coverImageUrl,
-                    genreNames: []
+                    genreNames: item.genres
                 )
             )
         }
@@ -224,15 +248,17 @@ struct CommunityAnimeItem: Identifiable {
     let id: Int
     let title: String
     let tag: String
+    let genres: [String]
     let coverImageUrl: String?
 }
 
 final class CommunityExploreViewModel: ObservableObject {
     @Published var items: [CommunityAnimeItem] = []
+    @Published var errorMessage: String?
     private var lastId: Int?
     private var lastValue: String?
     private var hasNextPage = true
-    private var isLoading = false
+    @Published var isLoading = false
     private var keyword = ""
     private var sort = "popular"
 
@@ -257,6 +283,7 @@ final class CommunityExploreViewModel: ObservableObject {
             hasNextPage = true
         }
         isLoading = true
+        errorMessage = nil
 
         Task {
             do {
@@ -272,6 +299,7 @@ final class CommunityExploreViewModel: ObservableObject {
                         id: $0.seriesId,
                         title: $0.title ?? "제목 없음",
                         tag: $0.genres?.first?.name ?? "커뮤니티",
+                        genres: ($0.genres ?? []).compactMap(\.name),
                         coverImageUrl: $0.coverImageUrl
                     )
                 }
@@ -286,7 +314,10 @@ final class CommunityExploreViewModel: ObservableObject {
                 }
             } catch {
                 DLog("커뮤니티 탐색 조회 실패 - error: \(error.localizedDescription)")
-                await MainActor.run { self.isLoading = false }
+                await MainActor.run {
+                    self.isLoading = false
+                    self.errorMessage = "커뮤니티 게시판을 불러오지 못했습니다."
+                }
             }
         }
     }

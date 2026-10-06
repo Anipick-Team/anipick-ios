@@ -24,6 +24,16 @@ enum CommunityReportCategory: String, Encodable {
     case spam = "SPAM"
     case illegal = "ILLEGAL"
     case etc = "ETC"
+
+    var displayName: String {
+        switch self {
+        case .abuse: return "욕설/비하/혐오 표현"
+        case .privacy: return "개인정보 노출"
+        case .spam: return "도배/스팸/광고성 내용"
+        case .illegal: return "불법/유해/부적절한 내용"
+        case .etc: return "기타 운영정책 위반"
+        }
+    }
 }
 
 struct CommunityReportRequest: Encodable {

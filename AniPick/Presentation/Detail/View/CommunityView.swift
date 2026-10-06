@@ -37,16 +37,33 @@ struct CommunityView: View {
                     VStack(spacing: 0) {
                         animeInfoHeader()
                             .background(Color.white)
+                        filterBar()
+                            .background(Color.white)
                         spoilerBar()
                             .background(Color.white)
                         LazyVStack(spacing: 12) {
-                            ForEach(viewModel.posts.filter { viewModel.isShowSpoiler || !$0.isSpoiler }) { post in
-                                postCell(post)
-                                    .onAppear {
-                                        if post.id == viewModel.posts.last?.id {
-                                            viewModel.fetchPosts()
+                            if viewModel.isLoading && viewModel.posts.isEmpty {
+                                ProgressView()
+                                    .padding(.top, 40)
+                            } else if let errorMessage = viewModel.errorMessage, viewModel.posts.isEmpty {
+                                retryState(message: errorMessage) {
+                                    viewModel.fetchPosts(reset: true)
+                                }
+                            } else if viewModel.posts.isEmpty {
+                                Text("아직 작성된 게시글이 없어요.\n첫 글을 남겨보세요.")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(.gray6)
+                                    .multilineTextAlignment(.center)
+                                    .padding(.top, 40)
+                            } else {
+                                ForEach(viewModel.posts.filter { viewModel.isShowSpoiler || !$0.isSpoiler }) { post in
+                                    postCell(post)
+                                        .onAppear {
+                                            if post.id == viewModel.posts.last?.id {
+                                                viewModel.fetchPosts()
+                                            }
                                         }
-                                    }
+                                }
                             }
                         }
                         .padding(.horizontal, 16)
@@ -74,14 +91,54 @@ struct CommunityView: View {
                     .clipShape(Circle())
                     .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
             }
+            .disabled(viewModel.seriesId == nil)
+            .opacity(viewModel.seriesId == nil ? 0.5 : 1)
             .padding(.trailing, 16)
             .padding(.bottom, 20)
         }
         .navigationBarHidden(true)
+        // 탐색의 커뮤니티 목록에서는 탭을 유지하고, 게시판에 진입한 뒤에는 숨깁니다.
+        .toolbar(.hidden, for: .tabBar)
         .onAppear { viewModel.fetchPosts(reset: true) }
         .onChange(of: viewModel.selectedFilter) { _ in
             viewModel.fetchPosts(reset: true)
         }
+    }
+
+    @ViewBuilder
+    private func filterBar() -> some View {
+        HStack(spacing: 6) {
+            ForEach(CommunityFilter.allCases, id: \.self) { filter in
+                Button {
+                    viewModel.selectedFilter = filter
+                    DLog("커뮤니티 필터 선택 - \(filter.rawValue)")
+                } label: {
+                    Text(filter.rawValue)
+                        .font(.system(size: 14, weight: viewModel.selectedFilter == filter ? .semibold : .regular))
+                        .foregroundColor(viewModel.selectedFilter == filter ? .white : .anipickBlack)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 36)
+                        .background(viewModel.selectedFilter == filter ? Color.anipickPrimary : Color.gray7)
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+    }
+
+    @ViewBuilder
+    private func retryState(message: String, retry: @escaping () -> Void) -> some View {
+        VStack(spacing: 12) {
+            Text(message)
+                .font(.system(size: 14))
+                .foregroundColor(.gray6)
+            Button("다시 시도", action: retry)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(.anipickPrimary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.top, 40)
     }
     
     @ViewBuilder
@@ -177,15 +234,7 @@ struct CommunityView: View {
 
             // 작성자 정보
             HStack(alignment: .center, spacing: 8) {
-                Circle()
-                    .foregroundColor(.gray5)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Image(.animeThumbnail)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 28, height: 28)
-                    )
+                CommunityProfileAvatar(imageURL: post.authorImageUrl)
 
                 Text(post.authorName)
                     .customFontStyle(size: 14, color: .anipickBlack)

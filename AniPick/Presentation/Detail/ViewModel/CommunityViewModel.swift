@@ -32,6 +32,7 @@ final class CommunityViewModel: ObservableObject {
     @Published var isShowSpoiler: Bool = true
     @Published var isLoading: Bool = false
     @Published var hasNextPage: Bool = true
+    @Published var errorMessage: String?
 
     let animeId: Int
     @Published private(set) var seriesId: Int?
@@ -53,6 +54,7 @@ final class CommunityViewModel: ObservableObject {
         }
 
         isLoading = true
+        errorMessage = nil
         Task {
             do {
                 let resolvedSeriesId: Int
@@ -71,6 +73,10 @@ final class CommunityViewModel: ObservableObject {
                     DLog("커뮤니티 게시판 조회 실패, animeId로 게시글 조회 재시도 - animeId: \(animeId), error: \(error)")
                 }
 
+                await MainActor.run {
+                    self.seriesId = resolvedSeriesId
+                }
+
                 let response = try await CommunityAPIService.shared.posts(
                     seriesId: resolvedSeriesId,
                     sort: selectedFilter.apiValue,
@@ -82,7 +88,6 @@ final class CommunityViewModel: ObservableObject {
 
                 DLog("커뮤니티 게시글 조회 성공 - seriesId: \(resolvedSeriesId), count: \(newPosts.count), cursor: \(String(describing: cursor))")
                 await MainActor.run {
-                    self.seriesId = resolvedSeriesId
                     self.posts = reset ? newPosts : self.posts + newPosts
                     self.lastId = cursor?.lastId
                     self.lastValue = cursor?.lastValue
@@ -91,7 +96,10 @@ final class CommunityViewModel: ObservableObject {
                 }
             } catch {
                 DLog("커뮤니티 게시글 조회 실패 - animeId: \(animeId), error: \(error.localizedDescription)")
-                await MainActor.run { self.isLoading = false }
+                await MainActor.run {
+                    self.isLoading = false
+                    self.errorMessage = "게시글을 불러오지 못했습니다."
+                }
             }
         }
     }

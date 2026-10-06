@@ -7,11 +7,15 @@ import SwiftUI
 
 // MARK: - 화면 모델
 struct CommunityDetailPost {
+    let postId: Int
+    let seriesId: Int
+    let animeTitle: String
     let authorName: String
     let authorImageUrl: String?
     let date: String
     let isSpoiler: Bool
     let imageUrls: [String]
+    let imageIds: [Int]
     let title: String
     let body: String
     let viewCount: Int
@@ -52,6 +56,7 @@ final class CommunityDetailViewModel: ObservableObject {
     @Published private(set) var isLoadingMore = false
     @Published private(set) var errorMessage: String?
     @Published private(set) var isSubmittingComment = false
+    @Published private(set) var feedbackMessage: String?
 
     private let postId: Int
     var postID: Int { postId }
@@ -157,10 +162,34 @@ final class CommunityDetailViewModel: ObservableObject {
                 _ = try await CommunityAPIService.shared.createComment(postId: postId, body: request)
                 DLog("커뮤니티 댓글 등록 성공 - postId: \(postId)")
                 self.isSubmittingComment = false
+                self.feedbackMessage = parentCommentId == nil ? "댓글이 등록되었습니다." : "답글이 등록되었습니다."
                 self.fetch()
             } catch {
                 self.isSubmittingComment = false
                 DLog("커뮤니티 댓글 등록 실패 - postId: \(postId), error: \(error)")
+            }
+        }
+    }
+
+    func updateComment(commentId: Int, content: String) {
+        let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedContent.isEmpty, !isSubmittingComment else { return }
+
+        isSubmittingComment = true
+        Task { [weak self] in
+            guard let self else { return }
+            do {
+                _ = try await CommunityAPIService.shared.updateComment(
+                    commentId: commentId,
+                    body: CommunityCommentRequest(content: trimmedContent, parentCommentId: nil)
+                )
+                DLog("커뮤니티 댓글 수정 성공 - commentId: \(commentId)")
+                self.isSubmittingComment = false
+                self.feedbackMessage = "댓글이 수정되었습니다."
+                self.fetch()
+            } catch {
+                self.isSubmittingComment = false
+                DLog("커뮤니티 댓글 수정 실패 - commentId: \(commentId), error: \(error)")
             }
         }
     }
@@ -186,23 +215,30 @@ final class CommunityDetailViewModel: ObservableObject {
     func deletePost() async throws {
         _ = try await CommunityAPIService.shared.deletePost(postId: postId)
         DLog("커뮤니티 게시글 삭제 성공 - postId: \(postId)")
+        feedbackMessage = "게시글이 삭제되었습니다."
     }
 
     func deleteComment(commentId: Int) async throws {
         _ = try await CommunityAPIService.shared.deleteComment(commentId: commentId)
         DLog("커뮤니티 댓글 삭제 성공 - commentId: \(commentId)")
+        feedbackMessage = "댓글이 삭제되었습니다."
         fetch()
     }
 
-    func report(targetType: CommunityReportTarget, targetId: Int) async {
+    func report(targetType: CommunityReportTarget, targetId: Int, category: CommunityReportCategory) async {
         do {
             _ = try await CommunityAPIService.shared.report(
-                CommunityReportRequest(targetType: targetType, targetId: targetId, reportCategory: .etc)
+                CommunityReportRequest(targetType: targetType, targetId: targetId, reportCategory: category)
             )
-            DLog("커뮤니티 신고 성공 - targetType: \(targetType.rawValue), targetId: \(targetId)")
+            DLog("커뮤니티 신고 성공 - targetType: \(targetType.rawValue), targetId: \(targetId), category: \(category.rawValue)")
+            feedbackMessage = "신고가 접수되었습니다."
         } catch {
-            DLog("커뮤니티 신고 실패 - targetType: \(targetType.rawValue), targetId: \(targetId), error: \(error)")
+            DLog("커뮤니티 신고 실패 - targetType: \(targetType.rawValue), targetId: \(targetId), category: \(category.rawValue), error: \(error)")
         }
+    }
+
+    func clearFeedback() {
+        feedbackMessage = nil
     }
 
     private func updateCommentLike(commentId: Int, isLiked: Bool) {
@@ -228,11 +264,15 @@ final class CommunityDetailViewModel: ObservableObject {
 
     private static func map(_ dto: CommunityPostDetailDTO) -> CommunityDetailPost {
         CommunityDetailPost(
+            postId: dto.postId,
+            seriesId: dto.seriesId ?? 0,
+            animeTitle: dto.animeTitle ?? "애니메이션",
             authorName: dto.nickname ?? "익명",
             authorImageUrl: dto.profileImageUrl,
             date: dto.createdAt ?? "",
             isSpoiler: dto.isSpoiler ?? false,
             imageUrls: (dto.imageIds ?? []).map { imageURL(for: $0) },
+            imageIds: dto.imageIds ?? [],
             title: dto.title ?? "",
             body: dto.content ?? "",
             viewCount: dto.viewCount ?? 0,
@@ -278,9 +318,15 @@ struct CommunityDetailView: View {
     @State private var currentImageIndex: Int = 0
     @State private var commentText = ""
     @State private var replyTargetId: Int?
+    @State private var editingCommentId: Int?
     @State private var isShowingPostActions = false
     @State private var actionComment: CommunityComment?
     @State private var isShowingCommentActions = false
+    @State private var isShowingReportCategory = false
+    @State private var reportTargetType: CommunityReportTarget = .post
+    @State private var reportTargetId = 0
+    @State private var isReportDropdownExpanded = false
+    @State private var selectedReportCategory: CommunityReportCategory?
     @FocusState private var isCommentFocused: Bool
 
     init(postId: Int) {
@@ -289,11 +335,15 @@ struct CommunityDetailView: View {
 
     private var post: CommunityDetailPost {
         viewModel.post ?? CommunityDetailPost(
+            postId: viewModel.postID,
+            seriesId: 0,
+            animeTitle: "애니메이션",
             authorName: "",
             authorImageUrl: nil,
             date: "",
             isSpoiler: false,
             imageUrls: [],
+            imageIds: [],
             title: "",
             body: viewModel.isLoading ? "불러오는 중..." : "게시글을 불러오지 못했습니다.",
             viewCount: 0,
@@ -312,18 +362,33 @@ struct CommunityDetailView: View {
 
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 8) {
-                    // 메인 포스트 카드
-                    mainPostCard()
-
-                    // 댓글 + 대댓글 목록
-                    ForEach(comments) { comment in
-                        commentCell(comment)
-                            .onAppear {
-                                viewModel.loadMoreCommentsIfNeeded(current: comment)
+                    if let errorMessage = viewModel.errorMessage, viewModel.post == nil {
+                        VStack(spacing: 12) {
+                            Text(errorMessage)
+                                .font(.system(size: 14))
+                                .foregroundColor(.gray6)
+                            Button("다시 시도") {
+                                viewModel.fetch()
                             }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.anipickPrimary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.top, 50)
+                    } else {
+                        // 메인 포스트 카드
+                        mainPostCard()
 
-                        ForEach(comment.replies) { reply in
-                            replyCell(reply)
+                        // 댓글 + 대댓글 목록
+                        ForEach(comments) { comment in
+                            commentCell(comment)
+                                .onAppear {
+                                    viewModel.loadMoreCommentsIfNeeded(current: comment)
+                                }
+
+                            ForEach(comment.replies) { reply in
+                                replyCell(reply)
+                            }
                         }
                     }
                 }
@@ -334,10 +399,44 @@ struct CommunityDetailView: View {
 
             commentInputBar()
         }
+        .overlay {
+            if isShowingReportCategory {
+                reportPopup()
+            }
+        }
+        .overlay(alignment: .bottom) {
+            if let feedbackMessage = viewModel.feedbackMessage {
+                CommunityToast(message: feedbackMessage)
+                    .padding(.bottom, 76)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            viewModel.clearFeedback()
+                        }
+                    }
+            }
+        }
         .background(Color.gray7)
         .navigationBarHidden(true)
+        .toolbar(.hidden, for: .tabBar)
         .confirmationDialog("게시글 메뉴", isPresented: $isShowingPostActions, titleVisibility: .visible) {
             if post.isMine {
+                Button("게시글 수정") {
+                    guard post.seriesId != 0 else {
+                        DLog("커뮤니티 게시글 수정 이동 실패 - seriesId 없음, postId: \(post.postId)")
+                        return
+                    }
+                    navigationManager.push(
+                        route: .communityEdit(
+                            postId: post.postId,
+                            seriesId: post.seriesId,
+                            animeTitle: post.animeTitle,
+                            title: post.title,
+                            content: post.body,
+                            isSpoiler: post.isSpoiler,
+                            imageIds: post.imageIds
+                        )
+                    )
+                }
                 Button("게시글 삭제", role: .destructive) {
                     Task {
                         do {
@@ -350,7 +449,7 @@ struct CommunityDetailView: View {
                 }
             } else {
                 Button("게시글 신고", role: .destructive) {
-                    Task { await viewModel.report(targetType: .post, targetId: viewModel.postID) }
+                    beginReport(targetType: .post, targetId: viewModel.postID)
                 }
             }
             Button("취소", role: .cancel) { }
@@ -358,6 +457,12 @@ struct CommunityDetailView: View {
         .confirmationDialog("댓글 메뉴", isPresented: $isShowingCommentActions, titleVisibility: .visible) {
             if let actionComment {
                 if actionComment.isMine {
+                    Button("댓글 수정") {
+                        editingCommentId = actionComment.id
+                        replyTargetId = nil
+                        commentText = actionComment.content
+                        isCommentFocused = true
+                    }
                     Button("댓글 삭제", role: .destructive) {
                         Task {
                             do { try await viewModel.deleteComment(commentId: actionComment.id) }
@@ -366,7 +471,7 @@ struct CommunityDetailView: View {
                     }
                 } else {
                     Button("댓글 신고", role: .destructive) {
-                        Task { await viewModel.report(targetType: .comment, targetId: actionComment.id) }
+                        beginReport(targetType: .comment, targetId: actionComment.id)
                     }
                 }
             }
@@ -715,7 +820,10 @@ struct CommunityDetailView: View {
     @ViewBuilder
     private func commentInputBar() -> some View {
         HStack(spacing: 8) {
-            TextField(replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요.", text: $commentText)
+            TextField(
+                editingCommentId != nil ? "댓글을 수정해 주세요." : (replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요."),
+                text: $commentText
+            )
                 .font(.system(size: 14))
                 .focused($isCommentFocused)
                 .submitLabel(.send)
@@ -724,6 +832,16 @@ struct CommunityDetailView: View {
             if replyTargetId != nil {
                 Button("취소") {
                     replyTargetId = nil
+                    isCommentFocused = false
+                }
+                .font(.system(size: 12))
+                .foregroundColor(.gray6)
+            }
+
+            if editingCommentId != nil {
+                Button("취소") {
+                    editingCommentId = nil
+                    commentText = ""
                     isCommentFocused = false
                 }
                 .font(.system(size: 12))
@@ -753,37 +871,132 @@ struct CommunityDetailView: View {
     private func submitComment() {
         let trimmed = commentText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        viewModel.createComment(content: trimmed, parentCommentId: replyTargetId)
+        if let editingCommentId {
+            viewModel.updateComment(commentId: editingCommentId, content: trimmed)
+        } else {
+            viewModel.createComment(content: trimmed, parentCommentId: replyTargetId)
+        }
         commentText = ""
         replyTargetId = nil
+        editingCommentId = nil
         isCommentFocused = false
+    }
+
+    private func beginReport(targetType: CommunityReportTarget, targetId: Int) {
+        reportTargetType = targetType
+        reportTargetId = targetId
+        selectedReportCategory = nil
+        isReportDropdownExpanded = false
+        isShowingReportCategory = true
+    }
+
+    @ViewBuilder
+    private func reportCategoryButton(_ title: String, category: CommunityReportCategory) -> some View {
+        Button(title) {
+            Task {
+                await viewModel.report(
+                    targetType: reportTargetType,
+                    targetId: reportTargetId,
+                    category: category
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func reportPopup() -> some View {
+        ZStack {
+            Color.black.opacity(0.55).ignoresSafeArea()
+                .onTapGesture { isShowingReportCategory = false }
+
+            VStack(spacing: 0) {
+                Text("신고")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundColor(.anipickBlack)
+                    .padding(.top, 28)
+                    .padding(.bottom, 26)
+
+                Text("신고 유형 선택")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(.anipickBlack)
+                    .padding(.bottom, 12)
+
+                Button {
+                    isReportDropdownExpanded.toggle()
+                } label: {
+                    HStack {
+                        Text(selectedReportCategory?.displayName ?? "신고 유형 선택")
+                            .font(.system(size: 17))
+                            .foregroundColor(selectedReportCategory == nil ? .gray6 : .anipickBlack)
+                        Spacer()
+                        Image(systemName: isReportDropdownExpanded ? "chevron.up" : "chevron.down")
+                            .foregroundColor(.anipickBlack)
+                    }
+                    .padding(.horizontal, 18)
+                    .frame(height: 58)
+                    .background(Color.gray7)
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal, 20)
+
+                if isReportDropdownExpanded {
+                    VStack(spacing: 0) {
+                        reportMenuItem("욕설/비하/혐오 표현", category: .abuse)
+                        reportMenuItem("개인정보 노출", category: .privacy)
+                        reportMenuItem("도배/스팸/광고성 내용", category: .spam)
+                        reportMenuItem("불법/유해/부적절한 내용", category: .illegal)
+                        reportMenuItem("기타 운영정책 위반", category: .etc)
+                    }
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 6)
+                    .background(Color.gray7)
+                    .padding(.horizontal, 20)
+                }
+
+                HStack(spacing: 0) {
+                    Button("닫기") { isShowingReportCategory = false }
+                        .foregroundColor(.gray6)
+                    Rectangle().fill(Color.gray5).frame(width: 1, height: 28).padding(.horizontal, 28)
+                    Button("신고하기") {
+                        guard let selectedReportCategory else {
+                            DLog("신고 유형을 선택해 주세요.")
+                            return
+                        }
+                        isShowingReportCategory = false
+                        Task {
+                            await viewModel.report(targetType: reportTargetType, targetId: reportTargetId, category: selectedReportCategory)
+                        }
+                    }
+                    .foregroundColor(selectedReportCategory == nil ? .gray5 : .anipickPrimary)
+                }
+                .font(.system(size: 17, weight: .medium))
+                .padding(.top, 30)
+                .padding(.bottom, 25)
+            }
+            .frame(maxWidth: 340)
+            .background(Color.white)
+            .cornerRadius(14)
+            .padding(.horizontal, 20)
+        }
+    }
+
+    @ViewBuilder
+    private func reportMenuItem(_ title: String, category: CommunityReportCategory) -> some View {
+        Button(title) {
+            selectedReportCategory = category
+            isReportDropdownExpanded = false
+        }
+        .font(.system(size: 16))
+        .foregroundColor(.anipickBlack)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, 14)
+        .padding(.vertical, 12)
     }
 
     // MARK: - 공통 아바타
     @ViewBuilder
     private func authorAvatar(imageURL: String? = nil) -> some View {
-        Circle()
-            .foregroundColor(.gray5)
-            .frame(width: 36, height: 36)
-            .overlay(
-                Group {
-                    if let imageURL, let url = URL(string: imageURL) {
-                        AsyncImage(url: url) { phase in
-                            if case .success(let image) = phase {
-                                image.resizable().scaledToFill()
-                            } else {
-                                Image(.animeThumbnail).resizable().scaledToFit()
-                            }
-                        }
-                    } else {
-                        Image(.animeThumbnail)
-                            .resizable()
-                            .scaledToFit()
-                    }
-                }
-                .frame(width: 26, height: 26)
-                .clipShape(Circle())
-            )
+        CommunityProfileAvatar(imageURL: imageURL)
     }
 
     @ViewBuilder

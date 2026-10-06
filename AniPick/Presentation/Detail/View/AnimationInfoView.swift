@@ -543,6 +543,8 @@ struct AnimationInfoView: View {
                     }
                 }
                 .frame(maxWidth: .infinity)
+                .accessibilityIdentifier(title == .community ? "communityTab" : "animationInfoTab_\(title.rawValue)")
+                .accessibilityLabel(title.title)
             
             if title == self.selectedInfoTab {
                 Rectangle()
@@ -607,7 +609,7 @@ struct CharacterVoiceActorCell: View {
 
                 Text(actorName)
                     .customFontStyle(size: 14, color: .anipickBlack)
-                    .frame(maxWidth: .infinity)
+                .frame(maxWidth: .infinity)
             }
             .padding(.vertical, 8)
             .background(Color(red: 248/255, green: 249/255, blue: 253/255)) // 연한 회색

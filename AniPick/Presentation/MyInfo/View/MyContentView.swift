@@ -23,6 +23,7 @@ struct MyPost: Identifiable {
 
 struct MyCommentItem: Identifiable {
     let id: Int
+    let postId: Int?
     let animeTitle: String
     let animeTag: String
     let animeImageUrl: String?
@@ -117,6 +118,7 @@ final class MyContentViewModel: ObservableObject {
     private static func map(_ dto: MyCommunityComment) -> MyCommentItem {
         MyCommentItem(
             id: dto.commentId,
+            postId: dto.postId,
             animeTitle: dto.animeTitle ?? "애니메이션 제목",
             animeTag: "text",
             animeImageUrl: dto.animeCoverImageUrl,
@@ -173,6 +175,15 @@ struct MyContentView: View {
                     } else {
                         ForEach(viewModel.comments) { comment in
                             commentCell(comment)
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    guard let postId = comment.postId else {
+                                        DLog("내 댓글 게시글 이동 실패 - postId 없음, commentId: \(comment.id)")
+                                        return
+                                    }
+                                    DLog("내 댓글 게시글 선택 - postId: \(postId), commentId: \(comment.id)")
+                                    navigationManager.push(route: .communityDetail(postId: postId))
+                                }
                                 .onAppear { viewModel.loadMoreIfNeeded(tab: .comments, currentId: comment.id) }
                         }
                     }
@@ -426,13 +437,7 @@ struct MyContentView: View {
             .foregroundColor(.gray5)
             .frame(width: 80, height: 70)
             .overlay(
-                AsyncImage(url: URL(string: url)) { phase in
-                    if case .success(let image) = phase {
-                        image.resizable().scaledToFill()
-                    } else {
-                        Image(.animeThumbnail).resizable().scaledToFit()
-                    }
-                }
+                CommunityRemoteImage(urlString: url)
                 .frame(width: 80, height: 70)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
             )

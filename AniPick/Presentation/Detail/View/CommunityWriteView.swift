@@ -1,20 +1,39 @@
 import PhotosUI
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 struct CommunityWriteView: View {
     let seriesId: Int
     let animeTitle: String
+    let postId: Int?
+    let initialImageIds: [Int]
 
     @Environment(\.dismiss) private var dismiss
-    @State private var title = ""
-    @State private var content = ""
-    @State private var isSpoiler = false
-    @State private var selectedPhoto: PhotosPickerItem?
-    @State private var selectedImageData: Data?
+    @State private var title: String
+    @State private var content: String
+    @State private var isSpoiler: Bool
+    @State private var selectedPhotos: [PhotosPickerItem] = []
+    @State private var selectedImages: [CommunityWriteImage] = []
+    @State private var draggingImageID: UUID?
     @State private var isRegistering = false
     @State private var titleError = false
     @State private var contentError = false
+    @State private var imageError: String?
+    @State private var feedbackMessage: String?
+
+    private let maxImageCount = 5
+    private let maxImageBytes = 10 * 1024 * 1024
+
+    init(seriesId: Int, animeTitle: String, postId: Int? = nil, initialTitle: String = "", initialContent: String = "", initialIsSpoiler: Bool = false, initialImageIds: [Int] = []) {
+        self.seriesId = seriesId
+        self.animeTitle = animeTitle
+        self.postId = postId
+        self.initialImageIds = initialImageIds
+        _title = State(initialValue: initialTitle)
+        _content = State(initialValue: initialContent)
+        _isSpoiler = State(initialValue: initialIsSpoiler)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -85,14 +104,14 @@ struct CommunityWriteView: View {
         }
         .background(Color.white)
         .navigationBarHidden(true)
-        .task(id: selectedPhoto) {
-            guard let selectedPhoto else { return }
-            do {
-                selectedImageData = try await selectedPhoto.loadTransferable(type: Data.self)
-                DLog("커뮤니티 이미지 선택 완료 - bytes: \(selectedImageData?.count ?? 0)")
-            } catch {
-                DLog("커뮤니티 이미지 선택 실패 - error: \(error.localizedDescription)")
+        .overlay(alignment: .bottom) {
+            if let feedbackMessage {
+                CommunityToast(message: feedbackMessage)
+                    .padding(.bottom, 28)
             }
+        }
+        .onChange(of: selectedPhotos) { photos in
+            Task { await loadSelectedImages(photos) }
         }
     }
 
@@ -106,12 +125,12 @@ struct CommunityWriteView: View {
             }
 
             Spacer()
-            Text("글 작성")
+            Text(postId == nil ? "글 작성" : "글 수정")
                 .customFontStyle(size: 18, color: .anipickBlack, weight: .black)
             Spacer()
 
             Button(action: register) {
-                Text(isRegistering ? "등록 중" : "등록")
+                Text(isRegistering ? "저장 중" : (postId == nil ? "등록" : "저장"))
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .gray6 : .white)
                     .frame(width: 50, height: 36)
@@ -135,23 +154,34 @@ struct CommunityWriteView: View {
 
     @ViewBuilder
     private func photoPicker() -> some View {
-        PhotosPicker(selection: $selectedPhoto, matching: .images) {
-            ZStack {
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.gray7)
-                    .frame(width: 115, height: 105)
-
-                if let data = selectedImageData, let image = UIImage(data: data) {
-                    Image(uiImage: image)
-                        .resizable()
-                        .scaledToFill()
-                        .frame(width: 115, height: 105)
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
-                } else {
-                    Image(systemName: "photo")
-                        .font(.system(size: 23, weight: .medium))
-                        .foregroundColor(.gray6)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                PhotosPicker(selection: $selectedPhotos, maxSelectionCount: maxImageCount, matching: .images) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.gray7)
+                            .frame(width: 115, height: 105)
+                        Image(systemName: selectedImages.isEmpty ? "photo" : "plus")
+                            .font(.system(size: 23, weight: .medium))
+                            .foregroundColor(.gray6)
+                    }
                 }
+
+                if !selectedImages.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(selectedImages) { item in
+                                imageThumbnail(item)
+                            }
+                        }
+                    }
+                }
+            }
+
+            if let imageError {
+                Text(imageError)
+                    .font(.system(size: 13))
+                    .foregroundColor(.pink)
             }
         }
     }
@@ -206,23 +236,26 @@ struct CommunityWriteView: View {
         titleError = trimmedTitle.isEmpty
         contentError = trimmedContent.isEmpty
 
-        guard !titleError, !contentError else {
-            DLog("커뮤니티 글 등록 검증 실패 - titleEmpty: \(titleError), contentEmpty: \(contentError)")
+        guard !titleError, !contentError, imageError == nil else {
+            DLog("커뮤니티 글 등록 검증 실패 - titleEmpty: \(titleError), contentEmpty: \(contentError), imageError: \(imageError ?? "없음")")
             return
         }
 
         isRegistering = true
         Task {
             do {
-                var imageIds: [Int] = []
-                if let selectedImageData {
-                    let response = try await CommunityAPIService.shared.uploadPostImage(
-                        data: selectedImageData,
-                        fileName: "community-post.jpg",
-                        mimeType: "image/jpeg"
-                    )
-                    if let imageId = response.result?.imageId {
-                        imageIds.append(imageId)
+                var imageIds = initialImageIds
+                if !selectedImages.isEmpty {
+                    imageIds.removeAll()
+                    for (index, image) in selectedImages.enumerated() {
+                        let response = try await CommunityAPIService.shared.uploadPostImage(
+                            data: image.data,
+                            fileName: "community-post-\(index + 1).jpg",
+                            mimeType: "image/jpeg"
+                        )
+                        if let imageId = response.result?.imageId {
+                            imageIds.append(imageId)
+                        }
                     }
                     DLog("커뮤니티 이미지 업로드 성공 - imageIds: \(imageIds)")
                 }
@@ -234,16 +267,121 @@ struct CommunityWriteView: View {
                     isSpoiler: isSpoiler,
                     imageIds: imageIds.isEmpty ? nil : imageIds
                 )
-                let response = try await CommunityAPIService.shared.createPost(request)
+                let response: BaseResponse
+                if let postId {
+                    response = try await CommunityAPIService.shared.updatePost(postId: postId, body: request)
+                } else {
+                    response = try await CommunityAPIService.shared.createPost(request)
+                }
                 DLog("커뮤니티 글 등록 성공 - code: \(response.code), value: \(response.value)")
                 await MainActor.run {
                     isRegistering = false
-                    dismiss()
+                    feedbackMessage = postId == nil ? "게시글이 등록되었습니다." : "게시글이 수정되었습니다."
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+                        dismiss()
+                    }
                 }
             } catch {
                 DLog("커뮤니티 글 등록 실패 - error: \(error.localizedDescription)")
                 await MainActor.run { isRegistering = false }
             }
         }
+    }
+
+    @ViewBuilder
+    private func imageThumbnail(_ item: CommunityWriteImage) -> some View {
+        ZStack(alignment: .topTrailing) {
+            Image(uiImage: item.image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 92, height: 82)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .onDrag {
+                    draggingImageID = item.id
+                    return NSItemProvider(object: item.id.uuidString as NSString)
+                }
+                .onDrop(
+                    of: [UTType.text],
+                    delegate: CommunityImageDropDelegate(
+                        item: item,
+                        images: $selectedImages,
+                        draggingImageID: $draggingImageID
+                    )
+                )
+
+            Button {
+                selectedImages.removeAll { $0.id == item.id }
+                selectedPhotos.removeAll()
+                DLog("커뮤니티 이미지 삭제 - imageId: \(item.id.uuidString)")
+            } label: {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.white)
+                    .background(Color.black.opacity(0.45), in: Circle())
+            }
+            .padding(4)
+        }
+    }
+
+    private func loadSelectedImages(_ photos: [PhotosPickerItem]) async {
+        guard photos.count <= maxImageCount else {
+            await MainActor.run {
+                imageError = "사진은 최대 \(maxImageCount)장까지 첨부할 수 있어요."
+                selectedPhotos = Array(photos.prefix(maxImageCount))
+            }
+            return
+        }
+
+        var loadedImages: [CommunityWriteImage] = []
+        for photo in photos {
+            do {
+                guard let data = try await photo.loadTransferable(type: Data.self),
+                      let image = UIImage(data: data),
+                      let compressedData = image.jpegData(compressionQuality: 0.85) else { continue }
+                guard compressedData.count <= maxImageBytes else {
+                    await MainActor.run { imageError = "사진 1장당 최대 10MB까지 첨부할 수 있어요." }
+                    continue
+                }
+                loadedImages.append(CommunityWriteImage(data: compressedData, image: image))
+            } catch {
+                DLog("커뮤니티 이미지 선택 실패 - error: \(error.localizedDescription)")
+            }
+        }
+
+        await MainActor.run {
+            selectedImages = loadedImages
+            if loadedImages.count == photos.count { imageError = nil }
+            DLog("커뮤니티 이미지 선택 완료 - count: \(loadedImages.count)")
+        }
+    }
+}
+
+private struct CommunityWriteImage: Identifiable {
+    let id = UUID()
+    let data: Data
+    let image: UIImage
+}
+
+private struct CommunityImageDropDelegate: DropDelegate {
+    let item: CommunityWriteImage
+    @Binding var images: [CommunityWriteImage]
+    @Binding var draggingImageID: UUID?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggingImageID,
+              draggingImageID != item.id,
+              let fromIndex = images.firstIndex(where: { $0.id == draggingImageID }),
+              let toIndex = images.firstIndex(where: { $0.id == item.id }) else { return }
+
+        withAnimation {
+            images.move(
+                fromOffsets: IndexSet(integer: fromIndex),
+                toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
+            )
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggingImageID = nil
+        return true
     }
 }

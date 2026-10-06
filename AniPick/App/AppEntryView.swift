@@ -110,6 +110,16 @@ struct AppEntryView: View {
                     CommunityDetailView(postId: postId)
                 case let .communityWrite(seriesId, animeTitle):
                     CommunityWriteView(seriesId: seriesId, animeTitle: animeTitle)
+                case let .communityEdit(postId, seriesId, animeTitle, title, content, isSpoiler, imageIds):
+                    CommunityWriteView(
+                        seriesId: seriesId,
+                        animeTitle: animeTitle,
+                        postId: postId,
+                        initialTitle: title,
+                        initialContent: content,
+                        initialIsSpoiler: isSpoiler,
+                        initialImageIds: imageIds
+                    )
                 case .producerDetail(let studioId):
                     AppDIContainer.makeProducerDetailView(studioId: studioId)
                 case .voiceActorDetail(let animeId):
