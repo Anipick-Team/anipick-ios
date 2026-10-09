@@ -38,6 +38,23 @@ fastlane/report.xml
 fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
+fastlane/.env*
+
+### Secrets / Credentials ###
+# 서명 인증서, 프로비저닝 프로필, API 키 파일
+*.p8
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.pem
+# 환경 변수, 비밀 설정 파일
+.env
+.env.*
+*Secrets*.xcconfig
+*Secret*.plist
+secrets/
 
 ### IDE / Tools ###
 .idea/
