@@ -18,7 +18,6 @@ final class EmailLoginViewModel: ObservableObject {
 
     @Published var passwordString: String = "" {
         didSet {
-            DLog(passwordString)
             validPasswordInputs()
             validateInputs()
         }
