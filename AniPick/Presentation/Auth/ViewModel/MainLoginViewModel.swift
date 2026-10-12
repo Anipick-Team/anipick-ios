@@ -224,34 +224,18 @@ extension MainLoginViewModel {
                 return
             }
 
-            // 이메일 확보 우선순위:
-            // 1) credential.email (최초 로그인 시에만 제공됨)
-            // 2) identityToken(JWT)의 email 클레임 (재로그인에서도 매번 존재)
-            let resolvedEmail = appleIDCredential.email
-                ?? Self.email(fromIdentityToken: appleIDCredential.identityToken)
-
-            let appleCode: String
-            if let resolvedEmail, !resolvedEmail.isEmpty {
-                // 서버 규약: 이메일 앞부분 + "@apple.com" 을 code로 전송
-                let usernamePart = resolvedEmail.components(separatedBy: "@").first ?? ""
-                appleCode = "\(usernamePart)@apple.com"
-                UserDefaultsManager.shared.setAppleUserId(appleCode)   // 이후 재사용 위해 저장
-                DLog("🔐 [Login][Apple] 이메일 확보 → code=\(appleCode)")
-            } else {
-                // 어디서도 이메일을 못 얻으면 이전에 저장한 값으로 최종 폴백
-                appleCode = UserDefaultsManager.shared.getAppleUserId()
-                DLog("⚠️ [Login][Apple] credential/identityToken에서 이메일 추출 실패 → 저장값 사용: \(appleCode)")
-            }
-
-            guard !appleCode.isEmpty else {
-                DLog("❌ [Login][Apple] 보낼 code(이메일)가 비어있음 - 로그인 중단. 최초 동의가 필요하면 설정 → Apple ID → Apple로 로그인 → AniPick 사용중단 후 재시도")
-                AnalyticsManager.logLoginIssue(provider: "apple", reason: "empty email code (email not resolved from credential/identityToken)")
+            // 서버에는 Apple identityToken(JWT)을 code로 전송 (서버에서 서명/클레임 검증)
+            guard let tokenData = appleIDCredential.identityToken,
+                  let identityToken = String(data: tokenData, encoding: .utf8),
+                  !identityToken.isEmpty else {
+                DLog("❌ [Login][Apple] identityToken이 비어있음 - 로그인 중단")
+                AnalyticsManager.logLoginIssue(provider: "apple", reason: "empty identityToken")
                 return
             }
 
-            DLog("🔐 [Login][Apple] code 전송 - \(appleCode)")
+            DLog("🔐 [Login][Apple] identityToken 전송 (길이=\(identityToken.count))")
             Task {
-                await self.postSocialLogin(provider: .apple, code: appleCode)
+                await self.postSocialLogin(provider: .apple, code: identityToken)
             }
         case .failure(let error):
             DLog("❌ [Login][Apple] Authorization 실패: \(error.localizedDescription)")
@@ -259,27 +243,6 @@ extension MainLoginViewModel {
         }
     }
 
-    /// Apple identityToken(JWT) 페이로드에서 email 클레임을 추출한다.
-    /// credential.email이 nil인 재로그인에서도 이메일을 얻기 위함.
-    private static func email(fromIdentityToken tokenData: Data?) -> String? {
-        guard let tokenData,
-              let jwt = String(data: tokenData, encoding: .utf8) else { return nil }
-
-        let segments = jwt.components(separatedBy: ".")
-        guard segments.count >= 2 else { return nil }
-
-        // JWT payload는 base64url 인코딩 → base64로 변환 후 패딩 보정
-        var base64 = segments[1]
-            .replacingOccurrences(of: "-", with: "+")
-            .replacingOccurrences(of: "_", with: "/")
-        while base64.count % 4 != 0 { base64 += "=" }
-
-        guard let payload = Data(base64Encoded: base64),
-              let json = try? JSONSerialization.jsonObject(with: payload) as? [String: Any],
-              let email = json["email"] as? String else { return nil }
-        return email
-    }
-    
     func tappedProblemLoginButton() {
         DLog("로그인에 문제있음!!!")
         let url = URL(string: "https://forms.gle/SJ7mbQfyfoe2HDLd7")!
