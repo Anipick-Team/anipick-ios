@@ -11,18 +11,33 @@ enum ExistingAccountType: Equatable {
     case apple
 
     init?(errorCode: Int) {
-        return nil
+        switch errorCode {
+        case 133: self = .email
+        case 134: self = .kakao
+        case 135: self = .google
+        case 136: self = .apple
+        default: return nil
+        }
+    }
+
+    private var name: String {
+        switch self {
+        case .email: return "이메일"
+        case .kakao: return "카카오"
+        case .google: return "구글"
+        case .apple: return "애플"
+        }
     }
 
     var title: String {
-        return ""
+        return "\(name)로 가입된 계정입니다."
     }
 
     var message: String {
-        return ""
+        return "\(name)로 로그인해주세요."
     }
 
     var confirmTitle: String {
-        return ""
+        return "\(name)로 로그인"
     }
 }

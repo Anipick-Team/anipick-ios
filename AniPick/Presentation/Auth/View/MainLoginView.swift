@@ -114,13 +114,16 @@ struct MainLoginView: View {
                 }
             }
             
-            if viewModel.isShowSNSSignupPopup {
-                SNSSignupPopupView {
-                    self.viewModel.isShowSNSSignupPopup.toggle()
+            if let existingAccountType = viewModel.existingAccountType {
+                SNSSignupPopupView(
+                    title: existingAccountType.title,
+                    message: existingAccountType.message,
+                    confirmTitle: existingAccountType.confirmTitle
+                ) {
+                    self.viewModel.tappedExistingAccountClose()
                 } okAction: {
-                    self.viewModel.isShowSNSSignupPopup.toggle()
+                    self.viewModel.tappedExistingAccountConfirm()
                 }
-
             }
         }
             .navigationBarBackButtonHidden(true)
