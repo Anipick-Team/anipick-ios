@@ -24,7 +24,8 @@ final class MainLoginViewModel: ObservableObject {
     
     @Published var isShowWithdrawlUserPopup: Bool = false
     @Published var isShowSNSSignupPopup: Bool = false
-    
+    @Published var existingAccountType: ExistingAccountType?
+
     var kakaoToken: String = ""
     
     @Published var loginResponse: LoginResponse?
@@ -241,6 +242,12 @@ extension MainLoginViewModel {
             DLog("❌ [Login][Apple] Authorization 실패: \(error.localizedDescription)")
             AnalyticsManager.logError(error, context: "login_apple_authorization")
         }
+    }
+
+    func tappedExistingAccountConfirm() {
+    }
+
+    func tappedExistingAccountClose() {
     }
 
     func tappedProblemLoginButton() {

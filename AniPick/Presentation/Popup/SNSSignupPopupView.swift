@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct SNSSignupPopupView: View {
+    var title: String = "SNS로 간편 가입된 계정입니다."
+    var message: String = "SNS로 로그인해주세요."
+    var confirmTitle: String = "SNS로 로그인"
     var cancelAction: () -> Void
     var okAction: () -> Void
     
