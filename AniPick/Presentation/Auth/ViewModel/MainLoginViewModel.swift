@@ -23,8 +23,8 @@ final class MainLoginViewModel: ObservableObject {
     @Published var userEmail: String = ""
     
     @Published var isShowWithdrawlUserPopup: Bool = false
-    @Published var isShowSNSSignupPopup: Bool = false
-    
+    @Published var existingAccountType: ExistingAccountType?
+
     var kakaoToken: String = ""
     
     @Published var loginResponse: LoginResponse?
@@ -171,9 +171,9 @@ extension MainLoginViewModel {
             } else if response.code == 132 {
                 DLog("🔐 [Login][Social:\(provider.rawValue)] 탈퇴된 계정 (132)")
                 self.isShowWithdrawlUserPopup.toggle()
-            } else if response.code == 133 {
-                DLog("🔐 [Login][Social:\(provider.rawValue)] SNS 재가입 안내 (133)")
-                self.isShowSNSSignupPopup.toggle()
+            } else if let existingAccountType = ExistingAccountType(errorCode: response.code) {
+                DLog("🔐 [Login][Social:\(provider.rawValue)] 다른 수단으로 가입된 계정 (\(response.code))")
+                self.existingAccountType = existingAccountType
             } else {
                 DLog("⚠️ [Login][Social:\(provider.rawValue)] 처리되지 않은 응답코드: \(response.code) - 화면 전환 없음")
                 AnalyticsManager.logLoginIssue(provider: provider.rawValue, reason: "unhandled response code: \(response.code)")
@@ -241,6 +241,17 @@ extension MainLoginViewModel {
             DLog("❌ [Login][Apple] Authorization 실패: \(error.localizedDescription)")
             AnalyticsManager.logError(error, context: "login_apple_authorization")
         }
+    }
+
+    func tappedExistingAccountConfirm() {
+        if existingAccountType == .email {
+            navigationManager.push(route: .emailLogin)
+        }
+        existingAccountType = nil
+    }
+
+    func tappedExistingAccountClose() {
+        existingAccountType = nil
     }
 
     func tappedProblemLoginButton() {
