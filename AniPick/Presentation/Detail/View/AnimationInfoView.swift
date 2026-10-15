@@ -89,6 +89,12 @@ struct AnimationInfoView: View {
                                                 .scaledToFill()
                                                 .frame(width: UIScreen.main.bounds.width, height: 280)
                                                 .clipped()
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    self.previewImageURL = bannerURL
+                                                }
+                                                .accessibilityAddTraits(.isButton)
+                                                .accessibilityLabel("배너 원본 보기")
                                         case .failure:
                                             Image(.animeThumbnail)
                                                 .resizable()
@@ -106,6 +112,7 @@ struct AnimationInfoView: View {
                                     
                                     Color.black.opacity(0.4)
                                         .frame(width: UIScreen.main.bounds.width, height: 280)
+                                        .allowsHitTesting(false)
                                 }
                                 
                             } else {
