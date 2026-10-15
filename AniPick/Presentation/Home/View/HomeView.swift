@@ -365,10 +365,10 @@ struct HomeView: View {
                         height: 174
                     )
                     
-                    // 초록색 배경의 숫자 뱃지
+                    // 메인 컬러 배경의 숫자 뱃지
                     ZStack {
                         Rectangle()
-                            .foregroundColor(Color.green)
+                            .foregroundColor(Color.anipickPrimary)
                             .frame(width: 36, height: 36)
                         
                         Text("\(anime.rank ?? 0)")
