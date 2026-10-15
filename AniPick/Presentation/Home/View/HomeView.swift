@@ -208,7 +208,8 @@ struct HomeView: View {
     
     private func sectionView(title: String, items: [Anime], action: @escaping () -> Void) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 0) {
+            // 두 줄 제목에서도 > 버튼이 첫 줄에 맞도록 상단 정렬
+            HStack(alignment: .top, spacing: 0) {
                 Text(title)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(.anipickBlack)
