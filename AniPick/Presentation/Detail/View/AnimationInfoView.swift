@@ -245,7 +245,7 @@ struct AnimationInfoView: View {
                             
                             Spacer().frame(height: 32)
                             
-                            HStack(alignment: .center, spacing: 0) {
+                            HStack(alignment: .center, spacing: 4) {
                                 animationWatchState(animeId: detailInfo.animeId, title: .wantToWatch)
                                 animationWatchState(animeId: detailInfo.animeId, title: .watching)
                                 animationWatchState(animeId: detailInfo.animeId, title: .finished)
@@ -542,7 +542,6 @@ struct AnimationInfoView: View {
                 .background(title == self.viewModel.selectedAnimationStatusTab ? .anipickPrimary : .gray5)
                 .cornerRadius(8)
         }
-        .padding(.horizontal, 2)
     }
     
     private func selectedTab(title: AnimationInfoTab, animationCount: Int = 0, action: (() -> Void)? = nil) -> some View {
