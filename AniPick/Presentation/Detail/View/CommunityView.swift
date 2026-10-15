@@ -264,7 +264,7 @@ struct CommunityView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
                 if let firstImageUrl = post.imageUrls.first {
-                    postThumbnail(firstImageUrl)
+                    postThumbnail(firstImageUrl, imageCount: post.imageCount)
                 }
             }
 
@@ -313,15 +313,29 @@ struct CommunityView: View {
 
     // MARK: - 썸네일
     @ViewBuilder
-    private func postThumbnail(_ urlString: String) -> some View {
-        if urlString.isEmpty {
-            RoundedRectangle(cornerRadius: 8)
-                .foregroundColor(.gray5)
-                .frame(width: 96, height: 96)
-        } else {
-            CommunityRemoteImage(urlString: urlString)
-                .frame(width: 96, height: 96)
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+    private func postThumbnail(_ urlString: String, imageCount: Int) -> some View {
+        ZStack(alignment: .bottomTrailing) {
+            if urlString.isEmpty {
+                RoundedRectangle(cornerRadius: 8)
+                    .foregroundColor(.gray5)
+                    .frame(width: 96, height: 96)
+            } else {
+                CommunityRemoteImage(urlString: urlString)
+                    .frame(width: 96, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
+
+            // 사진이 2장 이상이면 썸네일 외 나머지 장수를 표시
+            if imageCount >= 2 {
+                Text("+\(imageCount - 1)")
+                    .customFontStyle(size: 11, color: .white, weight: .semibold)
+                    .frame(minWidth: 24, minHeight: 24)
+                    .padding(.horizontal, 2)
+                    .background(Color.anipickBlack.opacity(0.9))
+                    .clipShape(Capsule())
+                    .padding(6)
+                    .accessibilityLabel("사진 \(imageCount)장")
+            }
         }
     }
 

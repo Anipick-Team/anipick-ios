@@ -68,6 +68,7 @@ struct CommunityPostDTO: Decodable, Identifiable, Hashable {
     let title: String?
     let content: String?
     let thumbnailImageId: Int?
+    let imageCount: Int?
     let isSpoiler: Bool?
     let viewCount: Int?
     let likeCount: Int?
