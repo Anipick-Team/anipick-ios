@@ -135,9 +135,18 @@ extension HomeViewModel {
     }
     
     
+    var hasRecentSimilarAnime: Bool {
+        return !recommendationFirstTitle.isEmpty && !recommendationSimilarAnimes.isEmpty
+    }
+
     // TODO: 최근 찾아보신 작품과 비슷한 작품 -> 가장 최근에 들어간 작품 userdefaults로 정리해두어야함
     func fetchSimilarAnime() {
         let animeId = UserDefaultsManager.shared.getLastVisitedAnimeId()
+        guard animeId != 0 else {
+            self.recommendationSimilarAnimes = []
+            self.recommendationFirstTitle = ""
+            return
+        }
         session.request(HomeAPI.animeRecommendation(animeId: animeId))
             .cURLDescription { description in
                 DLog("\(description)")
@@ -147,11 +156,8 @@ extension HomeViewModel {
                 switch response.result {
                 case .success(let value):
                     DLog("fetch home recommendation with animeid success \(value)")
-                    if let animeList = value.result,
-                       let recommend = animeList.animes {
-                        self.recommendationSimilarAnimes = recommend
-                    }
-                    self.recommendationFirstTitle = value.result?.referenceAnimeTitle ?? "-"
+                    self.recommendationSimilarAnimes = value.result?.animes ?? []
+                    self.recommendationFirstTitle = value.result?.referenceAnimeTitle ?? ""
                 case .failure(let error):
                     DLog("fetch home recommendation with animeid error \(error)")
                 }

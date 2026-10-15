@@ -159,8 +159,14 @@ struct HomeView: View {
                 sectionDivider()
                 
                 // TODO: 닉네임 글자수가 너무 길 때, 닉네임을 말줄임 하는 것으로 viewModel에서 작업
-                self.sectionView(title: "최근 찾아보신 \(viewModel.recommendationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
-                    viewModel.moveToSimilarRecommendationView()
+                if viewModel.hasRecentSimilarAnime {
+                    self.sectionView(title: "최근 찾아보신 \(viewModel.recommendationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
+                        viewModel.moveToSimilarRecommendationView()
+                    }
+                } else {
+                    Image("empty_recent_viewed")
+                        .accessibilityLabel("아직 찾아본 애니가 없어요. 다양한 애니를 탐색해 보세요!")
+                        .padding(.bottom, 24)
                 }
                 
                 sectionDivider()
