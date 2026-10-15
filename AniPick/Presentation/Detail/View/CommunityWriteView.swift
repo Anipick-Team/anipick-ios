@@ -7,7 +7,6 @@ struct CommunityWriteView: View {
     let seriesId: Int
     let animeTitle: String
     let postId: Int?
-    let initialImageIds: [Int]
 
     @Environment(\.dismiss) private var dismiss
     @State private var title: String
@@ -29,10 +28,20 @@ struct CommunityWriteView: View {
         self.seriesId = seriesId
         self.animeTitle = animeTitle
         self.postId = postId
-        self.initialImageIds = initialImageIds
         _title = State(initialValue: initialTitle)
         _content = State(initialValue: initialContent)
         _isSpoiler = State(initialValue: initialIsSpoiler)
+        // 수정 진입 시 기존 첨부 사진을 편집 목록에 채운다
+        _selectedImages = State(initialValue: initialImageIds.map { CommunityWriteImage(source: .remote(imageId: $0)) })
+    }
+
+    /// 이미 서버에 있는 사진 수. PhotosPicker로 고를 수 있는 장수는 전체 한도에서 이만큼 뺀다.
+    private var remoteImageCount: Int {
+        return selectedImages.filter { $0.pickerItem == nil }.count
+    }
+
+    private var remainingPickerCount: Int {
+        return max(0, maxImageCount - remoteImageCount)
     }
 
     var body: some View {
@@ -156,7 +165,7 @@ struct CommunityWriteView: View {
     private func photoPicker() -> some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                PhotosPicker(selection: $selectedPhotos, maxSelectionCount: maxImageCount, matching: .images) {
+                PhotosPicker(selection: $selectedPhotos, maxSelectionCount: max(1, remainingPickerCount), matching: .images) {
                     ZStack {
                         RoundedRectangle(cornerRadius: 8)
                             .fill(Color.gray7)
@@ -166,6 +175,7 @@ struct CommunityWriteView: View {
                             .foregroundColor(.gray6)
                     }
                 }
+                .disabled(remainingPickerCount == 0)
 
                 if !selectedImages.isEmpty {
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -244,12 +254,16 @@ struct CommunityWriteView: View {
         isRegistering = true
         Task {
             do {
-                var imageIds = initialImageIds
-                if !selectedImages.isEmpty {
-                    imageIds.removeAll()
-                    for (index, image) in selectedImages.enumerated() {
+                // 화면 순서대로: 기존 사진은 id를 그대로 쓰고 새로 고른 사진만 업로드한다
+                // (서버는 수정 시 첨부 사진을 전량 교체)
+                var imageIds: [Int] = []
+                for (index, image) in selectedImages.enumerated() {
+                    switch image.source {
+                    case .remote(let imageId):
+                        imageIds.append(imageId)
+                    case .local(let data, _, _):
                         let response = try await CommunityAPIService.shared.uploadPostImage(
-                            data: image.data,
+                            data: data,
                             fileName: "community-post-\(index + 1).jpg",
                             mimeType: "image/jpeg"
                         )
@@ -257,8 +271,8 @@ struct CommunityWriteView: View {
                             imageIds.append(imageId)
                         }
                     }
-                    DLog("커뮤니티 이미지 업로드 성공 - imageIds: \(imageIds)")
                 }
+                DLog("커뮤니티 이미지 준비 완료 - imageIds: \(imageIds)")
 
                 let request = CommunityPostRequest(
                     seriesId: seriesId,
@@ -291,9 +305,16 @@ struct CommunityWriteView: View {
     @ViewBuilder
     private func imageThumbnail(_ item: CommunityWriteImage) -> some View {
         ZStack(alignment: .topTrailing) {
-            Image(uiImage: item.image)
-                .resizable()
-                .scaledToFill()
+            Group {
+                switch item.source {
+                case .remote(let imageId):
+                    CommunityRemoteImage(urlString: "\(NetworkManager.baseUrl)api/image/\(imageId)")
+                case .local(_, let image, _):
+                    Image(uiImage: image)
+                        .resizable()
+                        .scaledToFill()
+                }
+            }
                 .frame(width: 92, height: 82)
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .onDrag {
@@ -311,7 +332,9 @@ struct CommunityWriteView: View {
 
             Button {
                 selectedImages.removeAll { $0.id == item.id }
-                selectedPhotos.removeAll()
+                if let pickerItem = item.pickerItem {
+                    selectedPhotos.removeAll { $0 == pickerItem }
+                }
                 DLog("커뮤니티 이미지 삭제 - imageId: \(item.id.uuidString)")
             } label: {
                 Image(systemName: "xmark.circle.fill")
@@ -322,43 +345,68 @@ struct CommunityWriteView: View {
         }
     }
 
+    /// PhotosPicker 선택 결과를 편집 목록에 반영한다.
+    /// 기존(서버) 사진과 이미 불러온 로컬 사진은 순서를 유지하고, 새로 고른 사진만 불러와 뒤에 붙인다.
     private func loadSelectedImages(_ photos: [PhotosPickerItem]) async {
-        guard photos.count <= maxImageCount else {
+        let limit = remainingPickerCount
+        guard photos.count <= limit else {
             await MainActor.run {
                 imageError = "사진은 최대 \(maxImageCount)장까지 첨부할 수 있어요."
-                selectedPhotos = Array(photos.prefix(maxImageCount))
+                selectedPhotos = Array(photos.prefix(limit))
             }
             return
         }
 
-        var loadedImages: [CommunityWriteImage] = []
-        for photo in photos {
+        let alreadyLoaded = selectedImages.compactMap(\.pickerItem)
+        var newImages: [CommunityWriteImage] = []
+        var failedCount = 0
+        for photo in photos where !alreadyLoaded.contains(photo) {
             do {
                 guard let data = try await photo.loadTransferable(type: Data.self),
                       let image = UIImage(data: data),
-                      let compressedData = image.jpegData(compressionQuality: 0.85) else { continue }
+                      let compressedData = image.jpegData(compressionQuality: 0.85) else {
+                    failedCount += 1
+                    continue
+                }
                 guard compressedData.count <= maxImageBytes else {
+                    failedCount += 1
                     await MainActor.run { imageError = "사진 1장당 최대 10MB까지 첨부할 수 있어요." }
                     continue
                 }
-                loadedImages.append(CommunityWriteImage(data: compressedData, image: image))
+                newImages.append(CommunityWriteImage(source: .local(data: compressedData, image: image, pickerItem: photo)))
             } catch {
+                failedCount += 1
                 DLog("커뮤니티 이미지 선택 실패 - error: \(error.localizedDescription)")
             }
         }
 
         await MainActor.run {
-            selectedImages = loadedImages
-            if loadedImages.count == photos.count { imageError = nil }
-            DLog("커뮤니티 이미지 선택 완료 - count: \(loadedImages.count)")
+            let kept = selectedImages.filter { item in
+                guard let pickerItem = item.pickerItem else { return true }
+                return photos.contains(pickerItem)
+            }
+            selectedImages = kept + newImages
+            if failedCount == 0 { imageError = nil }
+            DLog("커뮤니티 이미지 선택 완료 - count: \(selectedImages.count)")
         }
     }
 }
 
 private struct CommunityWriteImage: Identifiable {
+    enum Source {
+        /// 이미 서버에 올라간 사진 (수정 진입 시)
+        case remote(imageId: Int)
+        /// 이번에 PhotosPicker로 고른 사진
+        case local(data: Data, image: UIImage, pickerItem: PhotosPickerItem)
+    }
+
     let id = UUID()
-    let data: Data
-    let image: UIImage
+    let source: Source
+
+    var pickerItem: PhotosPickerItem? {
+        guard case let .local(_, _, pickerItem) = source else { return nil }
+        return pickerItem
+    }
 }
 
 private struct CommunityImageDropDelegate: DropDelegate {
