@@ -40,6 +40,7 @@ struct AnimationInfoView: View {
     @State private var isShowToastReportReview: Bool = false
     @State private var isShowToastBlockUser: Bool = false
     @State private var isPresentMyReviewPopupView: Bool = false
+    @State private var previewImageURL: URL?
     @State private var isShowBlockPopupView: Bool = false
     @State private var selectedPopupItemReviewId: Int = 0
     @State private var selectedBlockUserId: Int = 0
@@ -156,9 +157,15 @@ struct AnimationInfoView: View {
                                                     .frame(width: 133, height: 154)
                                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        self.previewImageURL = viewModel.coverImageURL
+                                                    }
+                                                    .accessibilityAddTraits(.isButton)
+                                                    .accessibilityLabel("표지 원본 보기")
                                                     .padding(.bottom, 23)
                                                     .padding(.trailing, 20)
-                                                
+
                                             case .failure:
                                                 Image(.animeThumbnail)
                                                     .resizable()
@@ -385,6 +392,13 @@ struct AnimationInfoView: View {
                     }
                     .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame2.maxY + 60)
                     .zIndex(1000)
+            }
+
+            if let previewImageURL = self.previewImageURL {
+                ImagePreviewPopupView(imageURL: previewImageURL) {
+                    self.previewImageURL = nil
+                }
+                .zIndex(1001)
             }
         }
         .overlay(alignment: .top) {
