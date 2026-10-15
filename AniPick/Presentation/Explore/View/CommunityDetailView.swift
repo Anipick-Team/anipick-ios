@@ -819,15 +819,47 @@ struct CommunityDetailView: View {
     // MARK: - 댓글 입력 바
     @ViewBuilder
     private func commentInputBar() -> some View {
+        let isCommentEmpty = commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         HStack(spacing: 8) {
-            TextField(
-                editingCommentId != nil ? "댓글을 수정해 주세요." : (replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요."),
-                text: $commentText
-            )
-                .font(.system(size: 14))
-                .focused($isCommentFocused)
-                .submitLabel(.send)
-                .onSubmit { submitComment() }
+            // 다크모드에서도 보이도록 placeholder·입력 글자 색을 직접 지정
+            HStack(spacing: 8) {
+                ZStack(alignment: .leading) {
+                    if commentText.isEmpty {
+                        Text(editingCommentId != nil ? "댓글을 수정해 주세요." : (replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요."))
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray4)
+                            .allowsHitTesting(false)
+                    }
+                    TextField("", text: $commentText)
+                        .font(.system(size: 14))
+                        .foregroundColor(.anipickBlack)
+                        .tint(.anipickPrimary)
+                        .focused($isCommentFocused)
+                        .submitLabel(.send)
+                        .onSubmit { submitComment() }
+                }
+
+                Button {
+                    submitComment()
+                } label: {
+                    if viewModel.isSubmittingComment {
+                        ProgressView()
+                            .frame(width: 24, height: 24)
+                    } else {
+                        Image(.chevronUp)
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(isCommentEmpty ? .gray4 : .anipickPrimary)
+                    }
+                }
+                .disabled(viewModel.isSubmittingComment || isCommentEmpty)
+                .accessibilityLabel("댓글 등록")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color.gray5)
+            .cornerRadius(8)
 
             if replyTargetId != nil {
                 Button("취소") {
@@ -835,7 +867,7 @@ struct CommunityDetailView: View {
                     isCommentFocused = false
                 }
                 .font(.system(size: 12))
-                .foregroundColor(.gray6)
+                .foregroundColor(.gray4)
             }
 
             if editingCommentId != nil {
@@ -845,20 +877,11 @@ struct CommunityDetailView: View {
                     isCommentFocused = false
                 }
                 .font(.system(size: 12))
-                .foregroundColor(.gray6)
+                .foregroundColor(.gray4)
             }
-
-            Button {
-                submitComment()
-            } label: {
-                Image(systemName: viewModel.isSubmittingComment ? "hourglass" : "arrow.up.circle.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .gray5 : .anipickPrimary)
-            }
-            .disabled(viewModel.isSubmittingComment || commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
         .background(Color.white)
         .overlay(
             Rectangle()
