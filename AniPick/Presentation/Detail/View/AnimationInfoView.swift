@@ -72,15 +72,16 @@ struct AnimationInfoView: View {
                         let minY = geo.frame(in: .global).minY
                         
                         ZStack(alignment: .top) {
-                            if let bannerUrl = viewModel.animeDetailInfo?.bannerImageUrl {
+                            if let bannerURL = viewModel.bannerImageURL {
                                 ZStack {
-                                    AsyncImage(url: URL(string: bannerUrl)) { phase in
+                                    AsyncImage(url: bannerURL) { phase in
                                         switch phase {
                                         case .empty:
                                             Image(.animeThumbnail)
                                                 .resizable()
-                                                .frame(maxWidth: .infinity)
-                                                .frame(height: 280)
+                                                .scaledToFill()
+                                                .frame(width: UIScreen.main.bounds.width, height: 280)
+                                                .clipped()
                                         case .success(let image):
                                             image
                                                 .resizable()
@@ -90,9 +91,10 @@ struct AnimationInfoView: View {
                                         case .failure:
                                             Image(.animeThumbnail)
                                                 .resizable()
-                                                .frame(maxWidth: .infinity)
-                                                .frame(height: 280)
-                                            
+                                                .scaledToFill()
+                                                .frame(width: UIScreen.main.bounds.width, height: 280)
+                                                .clipped()
+
                                         @unknown default:
                                             EmptyView()
                                         }

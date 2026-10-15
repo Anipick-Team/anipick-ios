@@ -56,6 +56,21 @@ final class AnimationInfoViewModel: ObservableObject {
         self.fetchSeriesInfo(animeId: animeId)
         self.fetchRecommendAnimeList(animeId: animeId)
     }
+
+    /// 상단 배너에 쓸 이미지. 배너가 없으면(nil·빈 문자열) 표지를 확대해 대신 쓴다.
+    var bannerImageURL: URL? {
+        return Self.validURL(animeDetailInfo?.bannerImageUrl) ?? coverImageURL
+    }
+
+    var coverImageURL: URL? {
+        return Self.validURL(animeDetailInfo?.coverImageUrl)
+    }
+
+    private static func validURL(_ string: String?) -> URL? {
+        guard let trimmed = string?.trimmingCharacters(in: .whitespacesAndNewlines),
+              !trimmed.isEmpty else { return nil }
+        return URL(string: trimmed)
+    }
 }
 
 
