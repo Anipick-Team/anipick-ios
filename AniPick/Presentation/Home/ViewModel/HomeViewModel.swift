@@ -15,6 +15,7 @@ final class HomeViewModel: ObservableObject {
     @Published var upcomingAnimes: [Anime] = []
     @Published var comingSoonAnimes: [Anime] = []
     @Published var weekdayNewAnimes: [Anime] = []
+    @Published private(set) var selectedWeekday: WeekdayNewAnimeDay = .today
     @Published var recommendationAnimes: [Anime] = []
     @Published var recommendationAnimesWithAnimeId: [Anime] = []
     @Published var recommendationSimilarAnimes: [Anime] = []
@@ -103,12 +104,26 @@ extension HomeViewModel {
     }
 
     func getWeekdayNewAnimes() async {
+        let day = selectedWeekday
         do {
-            let response = try await HomeAPIService.shared.getWeekdayNewAnimes(day: WeekdayNewAnimeDay.today.rawValue, lastId: nil, size: 6)
+            let response = try await HomeAPIService.shared.getWeekdayNewAnimes(
+                day: day.apiValue,
+                sort: WeekdayNewAnimeSort.popular.apiValue,
+                lastId: nil,
+                size: 6
+            )
+            guard day == selectedWeekday else { return }
             weekdayNewAnimes = response.result?.animes ?? []
         } catch {
             DLog("weekday new anime - \(error.localizedDescription)")
         }
+    }
+
+    func selectWeekday(_ day: WeekdayNewAnimeDay) async {
+        guard selectedWeekday != day else { return }
+        selectedWeekday = day
+        weekdayNewAnimes = []
+        await getWeekdayNewAnimes()
     }
     
     func fetchRecommendationAnimeWithAnimeId() {
@@ -198,7 +213,7 @@ extension HomeViewModel {
     }
 
     func moveToWeekdayNewAnimeView() {
-        navigationManager.push(route: .weekdayNewAnime(day: WeekdayNewAnimeDay.today.rawValue))
+        navigationManager.push(route: .weekdayNewAnime(day: selectedWeekday.rawValue))
     }
 }
 
@@ -218,6 +233,27 @@ enum WeekdayNewAnimeDay: Int, CaseIterable, Identifiable {
         }
     }
 
+    /// 서버 `GET api/animes`의 `day` 파라미터 (MON~SUN)
+    var apiValue: String {
+        switch self {
+        case .monday: return "MON"
+        case .tuesday: return "TUE"
+        case .wednesday: return "WED"
+        case .thursday: return "THU"
+        case .friday: return "FRI"
+        case .saturday: return "SAT"
+        case .sunday: return "SUN"
+        }
+    }
+
+    var previous: WeekdayNewAnimeDay? {
+        return WeekdayNewAnimeDay(rawValue: rawValue - 1)
+    }
+
+    var next: WeekdayNewAnimeDay? {
+        return WeekdayNewAnimeDay(rawValue: rawValue + 1)
+    }
+
     static var today: WeekdayNewAnimeDay {
         let weekday = Calendar.current.component(.weekday, from: Date())
         return WeekdayNewAnimeDay(rawValue: weekday == 1 ? 7 : weekday - 1) ?? .monday
@@ -230,13 +266,13 @@ final class WeekdayNewAnimeViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
     @Published private(set) var hasMore = true
-    @Published var selectedDay: WeekdayNewAnimeDay
-    @Published var selectedSort: WeekdayNewAnimeSort = .popular
+    @Published private(set) var selectedDay: WeekdayNewAnimeDay
+    @Published private(set) var selectedSort: WeekdayNewAnimeSort = .popular
 
     private let service = HomeAPIService.shared
     private let navigationManager: NavigationManager
     private var lastId: Int?
-    private var loadedDays = Set<Int>()
+    private var hasLoaded = false
 
     init(day: Int, navigationManager: NavigationManager) {
         selectedDay = WeekdayNewAnimeDay(rawValue: day) ?? .today
@@ -244,30 +280,31 @@ final class WeekdayNewAnimeViewModel: ObservableObject {
     }
 
     func loadIfNeeded() async {
-        guard !loadedDays.contains(selectedDay.rawValue) else { return }
+        guard !hasLoaded else { return }
+        hasLoaded = true
         await reload()
     }
 
+    /// 선택한 요일·정렬로 첫 페이지를 다시 불러온다. 응답이 오기 전에 요일·정렬이 바뀌면 그 응답은 버린다.
     func reload() async {
-        guard !isLoading else { return }
+        let day = selectedDay
+        let sort = selectedSort
         isLoading = true
         isLoadingMore = false
         lastId = nil
         hasMore = true
         animes = []
-        loadedDays.remove(selectedDay.rawValue)
-
-        defer {
-            isLoading = false
-            loadedDays.insert(selectedDay.rawValue)
-        }
 
         do {
-            let response = try await service.getWeekdayNewAnimes(day: selectedDay.rawValue, lastId: nil)
+            let response = try await service.getWeekdayNewAnimes(day: day.apiValue, sort: sort.apiValue, lastId: nil)
+            guard isCurrent(day: day, sort: sort) else { return }
             append(response.result?.animes ?? [])
             updateCursor(response.result?.cursor?.lastId)
         } catch {
             DLog("weekday new anime load error - \(error.localizedDescription)")
+        }
+        if isCurrent(day: day, sort: sort) {
+            isLoading = false
         }
     }
 
@@ -281,10 +318,13 @@ final class WeekdayNewAnimeViewModel: ObservableObject {
             return
         }
 
+        let day = selectedDay
+        let sort = selectedSort
         isLoadingMore = true
         defer { isLoadingMore = false }
         do {
-            let response = try await service.getWeekdayNewAnimes(day: selectedDay.rawValue, lastId: lastId)
+            let response = try await service.getWeekdayNewAnimes(day: day.apiValue, sort: sort.apiValue, lastId: lastId)
+            guard isCurrent(day: day, sort: sort) else { return }
             let newItems = response.result?.animes ?? []
             append(newItems)
             updateCursor(response.result?.cursor?.lastId)
@@ -297,7 +337,23 @@ final class WeekdayNewAnimeViewModel: ObservableObject {
     func select(day: WeekdayNewAnimeDay) async {
         guard selectedDay != day else { return }
         selectedDay = day
-        await loadIfNeeded()
+        await reload()
+    }
+
+    func select(sort: WeekdayNewAnimeSort) async {
+        guard selectedSort != sort else { return }
+        selectedSort = sort
+        await reload()
+    }
+
+    func selectPreviousDay() async {
+        guard let day = selectedDay.previous else { return }
+        await select(day: day)
+    }
+
+    func selectNextDay() async {
+        guard let day = selectedDay.next else { return }
+        await select(day: day)
     }
 
     func tappedAnime(_ anime: Anime) {
@@ -312,6 +368,10 @@ final class WeekdayNewAnimeViewModel: ObservableObject {
         })
     }
 
+    private func isCurrent(day: WeekdayNewAnimeDay, sort: WeekdayNewAnimeSort) -> Bool {
+        return day == selectedDay && sort == selectedSort
+    }
+
     private func updateCursor(_ newLastId: Int?) {
         if newLastId == nil || newLastId == lastId { hasMore = false }
         lastId = newLastId
@@ -324,4 +384,12 @@ enum WeekdayNewAnimeSort: String, CaseIterable, Identifiable {
 
     var id: String { rawValue }
     var title: String { self == .popular ? "인기순" : "최신순" }
+
+    /// 서버 `GET api/animes`의 `sort` 파라미터
+    var apiValue: String {
+        switch self {
+        case .popular: return "popularity"
+        case .latest: return "latest"
+        }
+    }
 }

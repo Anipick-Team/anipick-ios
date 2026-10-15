@@ -111,7 +111,12 @@ struct HomeView: View {
                 }
 
                 sectionDivider()
-                
+
+                weekdayNewAnimeSection()
+                    .padding(.bottom, 24)
+
+                sectionDivider()
+
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
                         Text("최근 리뷰")
@@ -193,6 +198,7 @@ struct HomeView: View {
             viewModel.fetchRecommendationAnime()
             Task {
                 await viewModel.getTrendingAnimes()
+                await viewModel.getWeekdayNewAnimes()
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
@@ -270,15 +276,21 @@ struct HomeView: View {
 
             HStack(spacing: 8) {
                 ForEach(WeekdayNewAnimeDay.allCases) { day in
-                    Text(day.title)
-                        .customFontStyle(
-                            size: 14,
-                            color: day == .today ? .white : .gray8,
-                            weight: .semibold
-                        )
-                        .frame(width: 38, height: 38)
-                        .background(day == .today ? Color.primaryColor : Color.gray7)
-                        .clipShape(Circle())
+                    let isSelected = viewModel.selectedWeekday == day
+                    Button {
+                        Task { await viewModel.selectWeekday(day) }
+                    } label: {
+                        Text(day.title)
+                            .customFontStyle(
+                                size: 14,
+                                color: isSelected ? .white : .gray8,
+                                weight: .semibold
+                            )
+                            .frame(width: 38, height: 38)
+                            .background(isSelected ? Color.primaryColor : Color.gray7)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 20)
@@ -413,7 +425,7 @@ struct WeekdayNewAnimeView: View {
                         Menu {
                             ForEach(WeekdayNewAnimeSort.allCases) { sort in
                                 Button(sort.title) {
-                                    viewModel.selectedSort = sort
+                                    Task { await viewModel.select(sort: sort) }
                                 }
                             }
                         } label: {
@@ -466,6 +478,8 @@ struct WeekdayNewAnimeView: View {
                     }
                 }
                 .padding(.horizontal, 20)
+                .contentShape(Rectangle())
+                .simultaneousGesture(daySwipeGesture)
             }
         }
         .background(Color.white)
@@ -473,6 +487,23 @@ struct WeekdayNewAnimeView: View {
         .task {
             await viewModel.loadIfNeeded()
         }
+    }
+
+    /// 가로 방향이 우세한 스와이프만 요일 이동으로 처리해 세로 스크롤과 겹치지 않게 한다.
+    private var daySwipeGesture: some Gesture {
+        DragGesture(minimumDistance: 30)
+            .onEnded { value in
+                let dx = value.translation.width
+                let dy = value.translation.height
+                guard abs(dx) > 60, abs(dx) > abs(dy) * 1.5 else { return }
+                Task {
+                    if dx < 0 {
+                        await viewModel.selectNextDay()
+                    } else {
+                        await viewModel.selectPreviousDay()
+                    }
+                }
+            }
     }
 
     private var header: some View {
