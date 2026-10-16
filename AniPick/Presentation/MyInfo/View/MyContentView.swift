@@ -102,7 +102,7 @@ final class MyContentViewModel: ObservableObject {
         MyPost(
             id: dto.postId,
             animeTitle: dto.animeTitle ?? "애니메이션 제목",
-            animeTag: "text",
+            animeTag: dto.genres?.first?.name ?? "",
             animeImageUrl: dto.animeCoverImageUrl,
             date: dto.createdAt ?? "",
             title: dto.title ?? "",
@@ -120,7 +120,7 @@ final class MyContentViewModel: ObservableObject {
             id: dto.commentId,
             postId: dto.postId,
             animeTitle: dto.animeTitle ?? "애니메이션 제목",
-            animeTag: "text",
+            animeTag: dto.genres?.first?.name ?? "",
             animeImageUrl: dto.animeCoverImageUrl,
             date: dto.createdAt ?? "",
             postTitle: dto.postTitle ?? "게시글제목",
@@ -154,7 +154,7 @@ struct MyContentView: View {
                 .padding(.horizontal, -20)
 
             // 총 개수
-            Text("총 \(viewModel.totalCount)개")
+            Text("총 \(viewModel.totalCount > 999 ? "999+" : "\(viewModel.totalCount)")개")
                 .customFontStyle(size: 14, color: .gray8)
                 .padding(.top, 14)
                 .padding(.bottom, 10)
@@ -296,7 +296,9 @@ struct MyContentView: View {
                         .foregroundColor(.anipickBlack)
                         .lineLimit(1)
 
-                    tagChip(post.animeTag)
+                    if !post.animeTag.isEmpty {
+                        tagChip(post.animeTag)
+                    }
                 }
             }
 
@@ -366,7 +368,9 @@ struct MyContentView: View {
                         .foregroundColor(.anipickBlack)
                         .lineLimit(1)
 
-                    tagChip(comment.animeTag)
+                    if !comment.animeTag.isEmpty {
+                        tagChip(comment.animeTag)
+                    }
                 }
             }
 
@@ -446,12 +450,10 @@ struct MyContentView: View {
         Text(tag)
             .font(.system(size: 12))
             .foregroundColor(.anipickPrimary)
-            .padding(.horizontal, 10)
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
-            .overlay(
-                RoundedRectangle(cornerRadius: 4)
-                    .stroke(Color.anipickPrimary, lineWidth: 1)
-            )
+            .background(Color.anipickPrimary.opacity(0.1))
+            .cornerRadius(4)
     }
 
     @ViewBuilder
