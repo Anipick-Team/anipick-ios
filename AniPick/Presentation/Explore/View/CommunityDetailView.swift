@@ -599,7 +599,7 @@ struct CommunityDetailView: View {
                 .frame(height: 1)
                 .foregroundColor(.gray7)
 
-            // 액션 바 (좋아요 | 댓글 | 공유)
+            // 액션 바 (좋아요 | 공유) — 댓글 버튼은 기능이 없어 디자인에서 삭제됨
             HStack(spacing: 0) {
                 Button {
                     viewModel.togglePostLike()
@@ -611,21 +611,6 @@ struct CommunityDetailView: View {
                         Text("좋아요")
                             .font(.system(size: 14))
                             .foregroundColor(post.isLiked ? .red : .gray6)
-                    }
-                }
-
-                Text("  |  ").font(.system(size: 14)).foregroundColor(.gray6)
-
-                Button {
-                    isCommentFocused = true
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "bubble.left")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray6)
-                        Text("댓글")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray6)
                     }
                 }
 
