@@ -157,8 +157,8 @@ struct CommunityWriteView: View {
         }
         .padding(.horizontal, 20)
         .frame(height: 58)
-        .background(Color.white)
-        .shadow(color: .black.opacity(0.12), radius: 5, y: 3)
+        // 그림자를 헤더 배경에만 적용 (컨테이너에 걸면 등록·수정 버튼에도 그림자가 생김)
+        .background(Color.white.shadow(.drop(color: .black.opacity(0.2), radius: 6, y: 2)))
     }
 
     @ViewBuilder
