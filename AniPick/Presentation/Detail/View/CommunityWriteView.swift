@@ -55,9 +55,17 @@ struct CommunityWriteView: View {
 
                     fieldTitle("제목")
                         .padding(.top, 22)
-                    TextField("제목을 입력해 주세요.", text: $title)
-                        .font(.system(size: 15))
-                        .foregroundColor(.anipickBlack)
+                    ZStack(alignment: .leading) {
+                        if title.isEmpty {
+                            Text("제목을 입력해 주세요.")
+                                .font(.system(size: 15))
+                                .foregroundColor(.gray4)
+                                .allowsHitTesting(false)
+                        }
+                        TextField("", text: $title)
+                            .font(.system(size: 15))
+                            .foregroundColor(.anipickBlack)
+                    }
                         .padding(.horizontal, 16)
                         .frame(height: 46)
                         .background(Color.gray7)
@@ -213,7 +221,7 @@ struct CommunityWriteView: View {
             if content.isEmpty {
                 Text("글 내용을 입력해 주세요.")
                     .font(.system(size: 15))
-                    .foregroundColor(.gray6)
+                    .foregroundColor(.gray4)
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                     .allowsHitTesting(false)
