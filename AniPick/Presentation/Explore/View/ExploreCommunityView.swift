@@ -212,10 +212,6 @@ struct ExploreCommunityView: View {
                     .padding(.vertical, 5)
                     .background(Color.anipickPrimary.opacity(0.1))
                     .cornerRadius(6)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 6)
-                            .stroke(Color.anipickPrimary.opacity(0.4), lineWidth: 1)
-                    )
             }
 
             Spacer()
