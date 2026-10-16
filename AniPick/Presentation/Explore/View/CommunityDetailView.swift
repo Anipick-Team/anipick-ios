@@ -395,7 +395,11 @@ struct CommunityDetailView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 100)
+                // 빈 곳 탭 시 키보드 숨김 (버튼 등 자식 뷰의 동작이 우선)
+                .contentShape(Rectangle())
+                .onTapGesture { isCommentFocused = false }
             }
+            .scrollDismissesKeyboard(.interactively)
 
             commentInputBar()
         }
@@ -490,6 +494,7 @@ struct CommunityDetailView: View {
     private func navigationHeader() -> some View {
         HStack {
             Button {
+                isCommentFocused = false
                 navigationManager.pop()
             } label: {
                 Image(systemName: "chevron.left")
@@ -500,6 +505,7 @@ struct CommunityDetailView: View {
             Spacer()
 
             Button {
+                isCommentFocused = false
                 isShowingPostActions = true
             } label: {
                 Image(systemName: "ellipsis")
@@ -649,6 +655,7 @@ struct CommunityDetailView: View {
 
                 Button {
                     actionComment = comment
+                    isCommentFocused = false
                     isShowingCommentActions = true
                 } label: {
                     Image(systemName: "ellipsis")
@@ -750,6 +757,7 @@ struct CommunityDetailView: View {
                         isMine: reply.isMine,
                         replies: []
                     )
+                    isCommentFocused = false
                     isShowingCommentActions = true
                     } label: {
                         Image(systemName: "ellipsis")
@@ -893,6 +901,7 @@ struct CommunityDetailView: View {
         reportTargetId = targetId
         selectedReportCategory = nil
         isReportDropdownExpanded = false
+        isCommentFocused = false
         isShowingReportCategory = true
     }
 
