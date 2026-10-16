@@ -256,8 +256,7 @@ struct CommunityView: View {
                     }
 
                     Text(post.content)
-                        .customFontStyle(size: 14, color: .anipickBlack)
-                        .foregroundColor(.gray8)
+                        .customFontStyle(size: 14, color: .gray4)
                         .lineLimit(3)
                         .fixedSize(horizontal: false, vertical: true)
                 }

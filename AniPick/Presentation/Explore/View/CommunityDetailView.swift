@@ -576,7 +576,7 @@ struct CommunityDetailView: View {
             // 본문 내용 (회색)
             Text(post.body)
                 .font(.system(size: 13))
-                .foregroundColor(.anipickBlack.opacity(0.72))
+                .foregroundColor(.gray4)
                 .lineLimit(nil)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
