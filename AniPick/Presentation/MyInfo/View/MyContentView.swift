@@ -341,9 +341,7 @@ struct MyContentView: View {
                 Spacer()
 
                 if post.isSpoiler {
-                    Text("스포일러")
-                        .font(.system(size: 12))
-                        .foregroundColor(.anipickPrimary)
+                    SpoilerTagView()
                 }
             }
         }

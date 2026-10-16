@@ -279,14 +279,7 @@ struct CommunityView: View {
                 Spacer()
 
                 if post.isSpoiler {
-                    Text("스포일러")
-                        .customFontStyle(size: 12, color: .anipickPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color.anipickPrimary, lineWidth: 1)
-                        )
+                    SpoilerTagView()
                 }
             }
         }
