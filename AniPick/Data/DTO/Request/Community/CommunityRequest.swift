@@ -8,6 +8,15 @@ struct CommunityPostRequest: Encodable {
     let imageIds: [Int]?
 }
 
+/// PATCH api/community/posts/{postId} 요청. 서버 PostUpdateRequest와 필드를 맞춘다.
+/// (seriesId를 보내면 서버가 알 수 없는 필드로 400을 반환)
+struct CommunityPostUpdateRequest: Encodable {
+    let title: String
+    let content: String
+    let isSpoiler: Bool
+    let imageIds: [Int]?
+}
+
 struct CommunityCommentRequest: Encodable {
     let content: String
     let parentCommentId: Int?

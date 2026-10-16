@@ -289,17 +289,24 @@ struct CommunityWriteView: View {
                 }
                 DLog("커뮤니티 이미지 준비 완료 - imageIds: \(imageIds)")
 
-                let request = CommunityPostRequest(
-                    seriesId: seriesId,
-                    title: trimmedTitle,
-                    content: trimmedContent,
-                    isSpoiler: isSpoiler,
-                    imageIds: imageIds.isEmpty ? nil : imageIds
-                )
+                let requestImageIds = imageIds.isEmpty ? nil : imageIds
                 let response: BaseResponse
                 if let postId {
+                    let request = CommunityPostUpdateRequest(
+                        title: trimmedTitle,
+                        content: trimmedContent,
+                        isSpoiler: isSpoiler,
+                        imageIds: requestImageIds
+                    )
                     response = try await CommunityAPIService.shared.updatePost(postId: postId, body: request)
                 } else {
+                    let request = CommunityPostRequest(
+                        seriesId: seriesId,
+                        title: trimmedTitle,
+                        content: trimmedContent,
+                        isSpoiler: isSpoiler,
+                        imageIds: requestImageIds
+                    )
                     response = try await CommunityAPIService.shared.createPost(request)
                 }
                 // 서버는 비즈니스 오류도 HTTP 200으로 내려주므로 code로 성공 여부를 가른다
