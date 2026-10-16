@@ -418,6 +418,12 @@ struct CommunityDetailView: View {
         .background(Color.gray7)
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
+        // 수정 화면에서 저장하고 돌아오면 바뀐 내용을 다시 불러온다 (VM은 init에서만 조회)
+        .onReceive(NotificationCenter.default.publisher(for: .communityPostUpdated)) { notification in
+            guard (notification.userInfo?["postId"] as? Int) == viewModel.postID else { return }
+            currentImageIndex = 0
+            viewModel.fetch()
+        }
         .confirmationDialog("게시글 메뉴", isPresented: $isShowingPostActions, titleVisibility: .visible) {
             if post.isMine {
                 Button("게시글 수정") {

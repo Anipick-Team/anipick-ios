@@ -117,6 +117,13 @@ struct CommunityWriteView: View {
             if let feedbackMessage {
                 CommunityToast(message: feedbackMessage)
                     .padding(.bottom, 28)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            if self.feedbackMessage == feedbackMessage {
+                                self.feedbackMessage = nil
+                            }
+                        }
+                    }
             }
         }
         .onChange(of: selectedPhotos) { photos in
@@ -287,17 +294,32 @@ struct CommunityWriteView: View {
                 } else {
                     response = try await CommunityAPIService.shared.createPost(request)
                 }
+                // 서버는 비즈니스 오류도 HTTP 200으로 내려주므로 code로 성공 여부를 가른다
+                guard response.code == 200 else {
+                    DLog("커뮤니티 글 등록 실패 - code: \(response.code), errorValue: \(response.errorValue ?? "")")
+                    await MainActor.run {
+                        isRegistering = false
+                        feedbackMessage = response.errorValue ?? "게시글을 저장하지 못했어요. 다시 시도해 주세요."
+                    }
+                    return
+                }
                 DLog("커뮤니티 글 등록 성공 - code: \(response.code), value: \(response.value)")
                 await MainActor.run {
                     isRegistering = false
                     feedbackMessage = postId == nil ? "게시글이 등록되었습니다." : "게시글이 수정되었습니다."
+                    if let postId {
+                        NotificationCenter.default.post(name: .communityPostUpdated, object: nil, userInfo: ["postId": postId])
+                    }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
                         dismiss()
                     }
                 }
             } catch {
                 DLog("커뮤니티 글 등록 실패 - error: \(error.localizedDescription)")
-                await MainActor.run { isRegistering = false }
+                await MainActor.run {
+                    isRegistering = false
+                    feedbackMessage = "게시글을 저장하지 못했어요. 다시 시도해 주세요."
+                }
             }
         }
     }
