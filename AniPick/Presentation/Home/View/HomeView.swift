@@ -492,7 +492,7 @@ struct WeekdayNewAnimeView: View {
 
     /// 가로 방향이 우세한 스와이프만 요일 이동으로 처리해 세로 스크롤과 겹치지 않게 한다.
     private var daySwipeGesture: some Gesture {
-        DragGesture(minimumDistance: 30)
+        return DragGesture(minimumDistance: 30)
             .onEnded { value in
                 let dx = value.translation.width
                 let dy = value.translation.height
