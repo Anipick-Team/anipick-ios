@@ -245,6 +245,10 @@ extension MyInfoViewModel {
     func moveToRatedAnimeListView() {
         self.navigationManager.push(route: .ratedAnimeList)
     }
+
+    func moveToMyContentView() {
+        self.navigationManager.push(route: .myContent)
+    }
     
     func moveToDetailAnime(animeId: Int) {
         self.navigationManager.push(route: .animeDetail(animeId: animeId))

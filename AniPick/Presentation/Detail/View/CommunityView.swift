@@ -245,23 +245,26 @@ struct CommunityView: View {
                     .customFontStyle(size: 12, color: .gray6)
             }
 
-            // 본문
-            if !post.title.isEmpty {
-                Text(post.title)
-                    .customFontStyle(size: 15, color: .anipickBlack, weight: .medium)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+            // 본문 + 우측 첫 번째 첨부 사진
+            HStack(alignment: .top, spacing: 12) {
+                VStack(alignment: .leading, spacing: 12) {
+                    if !post.title.isEmpty {
+                        Text(post.title)
+                            .customFontStyle(size: 15, color: .anipickBlack, weight: .medium)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
 
-            Text(post.content)
-                .customFontStyle(size: 14, color: .anipickBlack)
-                .foregroundColor(.gray8)
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
+                    Text(post.content)
+                        .customFontStyle(size: 14, color: .gray4)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
 
-            // 이미지 그리드
-            if !post.imageUrls.isEmpty {
-                imageGrid(post.imageUrls)
+                if let firstImageUrl = post.imageUrls.first {
+                    postThumbnail(firstImageUrl, imageCount: post.imageCount)
+                }
             }
 
             // 반응 + 스포일러 태그
@@ -275,14 +278,7 @@ struct CommunityView: View {
                 Spacer()
 
                 if post.isSpoiler {
-                    Text("스포일러")
-                        .customFontStyle(size: 12, color: .anipickPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color.anipickPrimary, lineWidth: 1)
-                        )
+                    SpoilerTagView()
                 }
             }
         }
@@ -307,35 +303,30 @@ struct CommunityView: View {
         }
     }
 
-    // MARK: - 이미지 그리드
+    // MARK: - 썸네일
     @ViewBuilder
-    private func imageGrid(_ urls: [String]) -> some View {
-        let maxDisplay = 5
-        let displayCount = min(urls.count, maxDisplay)
-        let overflow = urls.count - maxDisplay
+    private func postThumbnail(_ urlString: String, imageCount: Int) -> some View {
+        ZStack(alignment: .bottomTrailing) {
+            if urlString.isEmpty {
+                RoundedRectangle(cornerRadius: 8)
+                    .foregroundColor(.gray5)
+                    .frame(width: 96, height: 96)
+            } else {
+                CommunityRemoteImage(urlString: urlString)
+                    .frame(width: 96, height: 96)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            }
 
-        HStack(spacing: 4) {
-            ForEach(0..<displayCount, id: \.self) { idx in
-                ZStack {
-                    if !urls[idx].isEmpty {
-                        CommunityRemoteImage(urlString: urls[idx])
-                            .frame(width: 56, height: 56)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
-                    } else {
-                        RoundedRectangle(cornerRadius: 4)
-                            .foregroundColor(.gray5)
-                            .frame(width: 56, height: 56)
-                    }
-
-                    if idx == displayCount - 1 && overflow > 0 {
-                        RoundedRectangle(cornerRadius: 4)
-                            .foregroundColor(.black.opacity(0.35))
-                            .frame(width: 56, height: 56)
-
-                        Text("+\(overflow)")
-                            .customFontStyle(size: 14, color: .white, weight: .semibold)
-                    }
-                }
+            // 사진이 2장 이상이면 썸네일 외 나머지 장수를 표시
+            if imageCount >= 2 {
+                Text("+\(imageCount - 1)")
+                    .customFontStyle(size: 11, color: .white, weight: .semibold)
+                    .frame(minWidth: 24, minHeight: 24)
+                    .padding(.horizontal, 2)
+                    .background(Color.anipickBlack.opacity(0.9))
+                    .clipShape(Capsule())
+                    .padding(6)
+                    .accessibilityLabel("사진 \(imageCount)장")
             }
         }
     }

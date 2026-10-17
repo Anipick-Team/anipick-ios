@@ -12,7 +12,7 @@ enum HomeAPI: URLRequestConvertible {
     case recentReviews
     case upcomingSeason
     case comingSoonAnimes
-    case weekdayNewAnimes(day: Int, lastId: Int?, size: Int)
+    case weekdayNewAnimes(day: String, sort: String, lastId: Int?, size: Int)
     case fitAnimeRecommendation
     case animeRecommendation(animeId: Int)
     
@@ -28,7 +28,7 @@ enum HomeAPI: URLRequestConvertible {
         case .comingSoonAnimes:
             return "api/home/animes/coming-soon"
         case .weekdayNewAnimes:
-            return "api/home/animes/weekday"
+            return "api/animes"
         case .fitAnimeRecommendation:
             return "api/home/recommendation/animes"
         case .animeRecommendation(let animeId):
@@ -59,8 +59,8 @@ enum HomeAPI: URLRequestConvertible {
         switch self {
         case .trending, .recentReviews, .upcomingSeason, .comingSoonAnimes, .fitAnimeRecommendation, .animeRecommendation:
             return nil
-        case let .weekdayNewAnimes(day, lastId, size):
-            let rawParams: [String: Any?] = ["day": day, "lastId": lastId, "size": size]
+        case let .weekdayNewAnimes(day, sort, lastId, size):
+            let rawParams: [String: Any?] = ["day": day, "sort": sort, "lastId": lastId, "size": size]
             return rawParams.compactMapValues { $0 }
         }
     }

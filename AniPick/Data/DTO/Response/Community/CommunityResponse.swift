@@ -68,6 +68,7 @@ struct CommunityPostDTO: Decodable, Identifiable, Hashable {
     let title: String?
     let content: String?
     let thumbnailImageId: Int?
+    let imageCount: Int?
     let isSpoiler: Bool?
     let viewCount: Int?
     let likeCount: Int?
@@ -158,6 +159,7 @@ struct MyCommunityPost: Decodable, Identifiable, Hashable {
     let seriesId: Int?
     let animeTitle: String?
     let animeCoverImageUrl: String?
+    let genres: [CommunityGenre]?
     let title: String?
     let content: String?
     let thumbnailImageId: Int?
@@ -187,6 +189,7 @@ struct MyCommunityComment: Decodable, Identifiable, Hashable {
     let postId: Int?
     let animeTitle: String?
     let animeCoverImageUrl: String?
+    let genres: [CommunityGenre]?
     let postTitle: String?
     let content: String?
     let likeCount: Int?

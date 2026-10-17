@@ -6,7 +6,7 @@ enum CommunityAPI: URLRequestConvertible {
     case posts(seriesId: Int, sort: String = "latest", lastValue: String?, lastId: Int?, size: Int = 20)
     case createPost(CommunityPostRequest)
     case postDetail(postId: Int)
-    case updatePost(postId: Int, CommunityPostRequest)
+    case updatePost(postId: Int, CommunityPostUpdateRequest)
     case deletePost(postId: Int)
     case likePost(postId: Int), unlikePost(postId: Int)
     case comments(postId: Int, lastId: Int?, size: Int = 20)
@@ -70,7 +70,8 @@ enum CommunityAPI: URLRequestConvertible {
         request.setValue("Bearer \(UserDefaultsManager.shared.getAccessToken())", forHTTPHeaderField: "Authorization")
 
         switch self {
-        case let .createPost(body), let .updatePost(_, body): request = try JSONParameterEncoder.default.encode(body, into: request)
+        case let .createPost(body): request = try JSONParameterEncoder.default.encode(body, into: request)
+        case let .updatePost(_, body): request = try JSONParameterEncoder.default.encode(body, into: request)
         case let .createComment(_, body), let .updateComment(_, body): request = try JSONParameterEncoder.default.encode(body, into: request)
         case let .report(body): request = try JSONParameterEncoder.default.encode(body, into: request)
         default: request = try URLEncoding.default.encode(request, with: parameters)

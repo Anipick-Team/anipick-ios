@@ -60,3 +60,6 @@ secrets/
 .idea/
 .vscode/
 .claude/
+
+### QA ###
+/qa/

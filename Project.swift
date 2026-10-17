@@ -17,7 +17,7 @@ let project = Project(
             "CODE_SIGN_STYLE": "Automatic",
             "SWIFT_VERSION": "5.0",
             "MARKETING_VERSION": "1.2.0",
-            "CURRENT_PROJECT_VERSION": "1",
+            "CURRENT_PROJECT_VERSION": "3",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
             "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
             "SWIFT_EMIT_LOC_STRINGS": "YES",
@@ -63,6 +63,8 @@ let project = Project(
                     "INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents": "YES",
                     "INFOPLIST_KEY_UILaunchScreen_Generation": "YES",
                     "INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone": "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight",
+                    // 수출 규정: OS 제공 HTTPS 외 자체 암호화 없음 → App Store Connect 업로드 시 암호화 문항 생략
+                    "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
                     "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
                     "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
                     "DEVELOPMENT_ASSET_PATHS": "\"AniPick/Preview Content\"",

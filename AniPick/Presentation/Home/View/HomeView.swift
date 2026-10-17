@@ -111,7 +111,12 @@ struct HomeView: View {
                 }
 
                 sectionDivider()
-                
+
+                weekdayNewAnimeSection()
+                    .padding(.bottom, 24)
+
+                sectionDivider()
+
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 0) {
                         Text("최근 리뷰")
@@ -159,8 +164,14 @@ struct HomeView: View {
                 sectionDivider()
                 
                 // TODO: 닉네임 글자수가 너무 길 때, 닉네임을 말줄임 하는 것으로 viewModel에서 작업
-                self.sectionView(title: "최근 찾아보신 \(viewModel.recommendationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
-                    viewModel.moveToSimilarRecommendationView()
+                if viewModel.hasRecentSimilarAnime {
+                    self.sectionView(title: "최근 찾아보신 \(viewModel.recommendationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
+                        viewModel.moveToSimilarRecommendationView()
+                    }
+                } else {
+                    Image("empty_recent_viewed")
+                        .accessibilityLabel("아직 찾아본 애니가 없어요. 다양한 애니를 탐색해 보세요!")
+                        .padding(.bottom, 24)
                 }
                 
                 sectionDivider()
@@ -187,6 +198,7 @@ struct HomeView: View {
             viewModel.fetchRecommendationAnime()
             Task {
                 await viewModel.getTrendingAnimes()
+                await viewModel.getWeekdayNewAnimes()
                 await viewModel.getRecentsReviews()
                 await viewModel.getUpComingSeason()
                 await viewModel.getComingSoonSeason()
@@ -196,7 +208,8 @@ struct HomeView: View {
     
     private func sectionView(title: String, items: [Anime], action: @escaping () -> Void) -> some View {
         return VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 0) {
+            // 두 줄 제목에서도 > 버튼이 첫 줄에 맞도록 상단 정렬
+            HStack(alignment: .top, spacing: 0) {
                 Text(title)
                     .font(.system(size: 20, weight: .semibold))
                     .foregroundStyle(.anipickBlack)
@@ -264,15 +277,21 @@ struct HomeView: View {
 
             HStack(spacing: 8) {
                 ForEach(WeekdayNewAnimeDay.allCases) { day in
-                    Text(day.title)
-                        .customFontStyle(
-                            size: 14,
-                            color: day == .today ? .white : .gray8,
-                            weight: .semibold
-                        )
-                        .frame(width: 38, height: 38)
-                        .background(day == .today ? Color.primaryColor : Color.gray7)
-                        .clipShape(Circle())
+                    let isSelected = viewModel.selectedWeekday == day
+                    Button {
+                        Task { await viewModel.selectWeekday(day) }
+                    } label: {
+                        Text(day.title)
+                            .customFontStyle(
+                                size: 14,
+                                color: isSelected ? .white : .gray8,
+                                weight: .semibold
+                            )
+                            .frame(width: 38, height: 38)
+                            .background(isSelected ? Color.primaryColor : Color.gray7)
+                            .clipShape(Circle())
+                    }
+                    .buttonStyle(.plain)
                 }
             }
             .padding(.horizontal, 20)
@@ -347,10 +366,10 @@ struct HomeView: View {
                         height: 174
                     )
                     
-                    // 초록색 배경의 숫자 뱃지
+                    // 메인 컬러 배경의 숫자 뱃지
                     ZStack {
                         Rectangle()
-                            .foregroundColor(Color.green)
+                            .foregroundColor(Color.anipickPrimary)
                             .frame(width: 36, height: 36)
                         
                         Text("\(anime.rank ?? 0)")
@@ -407,7 +426,7 @@ struct WeekdayNewAnimeView: View {
                         Menu {
                             ForEach(WeekdayNewAnimeSort.allCases) { sort in
                                 Button(sort.title) {
-                                    viewModel.selectedSort = sort
+                                    Task { await viewModel.select(sort: sort) }
                                 }
                             }
                         } label: {
@@ -460,6 +479,8 @@ struct WeekdayNewAnimeView: View {
                     }
                 }
                 .padding(.horizontal, 20)
+                .contentShape(Rectangle())
+                .simultaneousGesture(daySwipeGesture)
             }
         }
         .background(Color.white)
@@ -467,6 +488,23 @@ struct WeekdayNewAnimeView: View {
         .task {
             await viewModel.loadIfNeeded()
         }
+    }
+
+    /// 가로 방향이 우세한 스와이프만 요일 이동으로 처리해 세로 스크롤과 겹치지 않게 한다.
+    private var daySwipeGesture: some Gesture {
+        return DragGesture(minimumDistance: 30)
+            .onEnded { value in
+                let dx = value.translation.width
+                let dy = value.translation.height
+                guard abs(dx) > 60, abs(dx) > abs(dy) * 1.5 else { return }
+                Task {
+                    if dx < 0 {
+                        await viewModel.selectNextDay()
+                    } else {
+                        await viewModel.selectPreviousDay()
+                    }
+                }
+            }
     }
 
     private var header: some View {

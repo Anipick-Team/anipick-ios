@@ -395,7 +395,11 @@ struct CommunityDetailView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
                 .padding(.bottom, 100)
+                // 빈 곳 탭 시 키보드 숨김 (버튼 등 자식 뷰의 동작이 우선)
+                .contentShape(Rectangle())
+                .onTapGesture { isCommentFocused = false }
             }
+            .scrollDismissesKeyboard(.interactively)
 
             commentInputBar()
         }
@@ -418,6 +422,12 @@ struct CommunityDetailView: View {
         .background(Color.gray7)
         .navigationBarHidden(true)
         .toolbar(.hidden, for: .tabBar)
+        // 수정 화면에서 저장하고 돌아오면 바뀐 내용을 다시 불러온다 (VM은 init에서만 조회)
+        .onReceive(NotificationCenter.default.publisher(for: .communityPostUpdated)) { notification in
+            guard (notification.userInfo?["postId"] as? Int) == viewModel.postID else { return }
+            currentImageIndex = 0
+            viewModel.fetch()
+        }
         .confirmationDialog("게시글 메뉴", isPresented: $isShowingPostActions, titleVisibility: .visible) {
             if post.isMine {
                 Button("게시글 수정") {
@@ -484,6 +494,7 @@ struct CommunityDetailView: View {
     private func navigationHeader() -> some View {
         HStack {
             Button {
+                isCommentFocused = false
                 navigationManager.pop()
             } label: {
                 Image(systemName: "chevron.left")
@@ -494,6 +505,7 @@ struct CommunityDetailView: View {
             Spacer()
 
             Button {
+                isCommentFocused = false
                 isShowingPostActions = true
             } label: {
                 Image(systemName: "ellipsis")
@@ -522,15 +534,7 @@ struct CommunityDetailView: View {
                 Spacer()
 
                 if post.isSpoiler {
-                    Text("스포일러")
-                        .font(.system(size: 12))
-                        .foregroundColor(.anipickPrimary)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 4)
-                                .stroke(Color.anipickPrimary, lineWidth: 1)
-                        )
+                    SpoilerTagView()
                 }
             }
             .padding(.horizontal, 16)
@@ -578,7 +582,7 @@ struct CommunityDetailView: View {
             // 본문 내용 (회색)
             Text(post.body)
                 .font(.system(size: 13))
-                .foregroundColor(.anipickBlack.opacity(0.72))
+                .foregroundColor(.gray4)
                 .lineLimit(nil)
                 .padding(.horizontal, 16)
                 .padding(.top, 8)
@@ -601,7 +605,7 @@ struct CommunityDetailView: View {
                 .frame(height: 1)
                 .foregroundColor(.gray7)
 
-            // 액션 바 (좋아요 | 댓글 | 공유)
+            // 액션 바 (좋아요 | 공유) — 댓글 버튼은 기능이 없어 디자인에서 삭제됨
             HStack(spacing: 0) {
                 Button {
                     viewModel.togglePostLike()
@@ -613,21 +617,6 @@ struct CommunityDetailView: View {
                         Text("좋아요")
                             .font(.system(size: 14))
                             .foregroundColor(post.isLiked ? .red : .gray6)
-                    }
-                }
-
-                Text("  |  ").font(.system(size: 14)).foregroundColor(.gray6)
-
-                Button {
-                    isCommentFocused = true
-                } label: {
-                    HStack(spacing: 5) {
-                        Image(systemName: "bubble.left")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray6)
-                        Text("댓글")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray6)
                     }
                 }
 
@@ -666,6 +655,7 @@ struct CommunityDetailView: View {
 
                 Button {
                     actionComment = comment
+                    isCommentFocused = false
                     isShowingCommentActions = true
                 } label: {
                     Image(systemName: "ellipsis")
@@ -767,6 +757,7 @@ struct CommunityDetailView: View {
                         isMine: reply.isMine,
                         replies: []
                     )
+                    isCommentFocused = false
                     isShowingCommentActions = true
                     } label: {
                         Image(systemName: "ellipsis")
@@ -819,15 +810,47 @@ struct CommunityDetailView: View {
     // MARK: - 댓글 입력 바
     @ViewBuilder
     private func commentInputBar() -> some View {
+        let isCommentEmpty = commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         HStack(spacing: 8) {
-            TextField(
-                editingCommentId != nil ? "댓글을 수정해 주세요." : (replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요."),
-                text: $commentText
-            )
-                .font(.system(size: 14))
-                .focused($isCommentFocused)
-                .submitLabel(.send)
-                .onSubmit { submitComment() }
+            // 다크모드에서도 보이도록 placeholder·입력 글자 색을 직접 지정
+            HStack(spacing: 8) {
+                ZStack(alignment: .leading) {
+                    if commentText.isEmpty {
+                        Text(editingCommentId != nil ? "댓글을 수정해 주세요." : (replyTargetId == nil ? "댓글을 작성해 주세요." : "답글을 작성해 주세요."))
+                            .font(.system(size: 14))
+                            .foregroundColor(.gray4)
+                            .allowsHitTesting(false)
+                    }
+                    TextField("", text: $commentText)
+                        .font(.system(size: 14))
+                        .foregroundColor(.anipickBlack)
+                        .tint(.anipickPrimary)
+                        .focused($isCommentFocused)
+                        .submitLabel(.send)
+                        .onSubmit { submitComment() }
+                }
+
+                Button {
+                    submitComment()
+                } label: {
+                    if viewModel.isSubmittingComment {
+                        ProgressView()
+                            .frame(width: 24, height: 24)
+                    } else {
+                        Image(.chevronUp)
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 24, height: 24)
+                            .foregroundColor(isCommentEmpty ? .gray4 : .anipickPrimary)
+                    }
+                }
+                .disabled(viewModel.isSubmittingComment || isCommentEmpty)
+                .accessibilityLabel("댓글 등록")
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 10)
+            .background(Color.gray5)
+            .cornerRadius(8)
 
             if replyTargetId != nil {
                 Button("취소") {
@@ -835,7 +858,7 @@ struct CommunityDetailView: View {
                     isCommentFocused = false
                 }
                 .font(.system(size: 12))
-                .foregroundColor(.gray6)
+                .foregroundColor(.gray4)
             }
 
             if editingCommentId != nil {
@@ -845,20 +868,11 @@ struct CommunityDetailView: View {
                     isCommentFocused = false
                 }
                 .font(.system(size: 12))
-                .foregroundColor(.gray6)
+                .foregroundColor(.gray4)
             }
-
-            Button {
-                submitComment()
-            } label: {
-                Image(systemName: viewModel.isSubmittingComment ? "hourglass" : "arrow.up.circle.fill")
-                    .font(.system(size: 22))
-                    .foregroundColor(commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .gray5 : .anipickPrimary)
-            }
-            .disabled(viewModel.isSubmittingComment || commentText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 16)
+        .padding(.vertical, 12)
         .background(Color.white)
         .overlay(
             Rectangle()
@@ -887,6 +901,7 @@ struct CommunityDetailView: View {
         reportTargetId = targetId
         selectedReportCategory = nil
         isReportDropdownExpanded = false
+        isCommentFocused = false
         isShowingReportCategory = true
     }
 

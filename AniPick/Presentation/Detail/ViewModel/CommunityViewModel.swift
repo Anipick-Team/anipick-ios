@@ -20,6 +20,8 @@ struct CommunityPost: Identifiable {
     let title: String
     let content: String
     let imageUrls: [String]
+    /// 첨부 사진 전체 개수 (썸네일은 첫 번째 1장만 내려옴)
+    let imageCount: Int
     let likeCount: Int
     let dislikeCount: Int
     let commentCount: Int
@@ -113,6 +115,7 @@ final class CommunityViewModel: ObservableObject {
             title: post.title ?? "",
             content: post.content ?? "",
             imageUrls: (post.thumbnailImageId.map { ["\(NetworkManager.baseUrl)api/image/\($0)"] } ?? []),
+            imageCount: post.imageCount ?? (post.thumbnailImageId == nil ? 0 : 1),
             likeCount: post.likeCount ?? 0,
             dislikeCount: 0,
             commentCount: post.commentCount ?? 0,

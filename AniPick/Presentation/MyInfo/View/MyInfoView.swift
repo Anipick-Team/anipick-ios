@@ -170,10 +170,17 @@ struct MyInfoView: View {
                         DLog("평가한 작품 탭으로 이동")
                         self.viewModel.moveToRatedAnimeListView()
                     }
-                    
+
                     Spacer().frame(height: 32)
-                    
-                    
+
+                    self.sectionCategoryButton(title: "내 콘텐츠", isShownChevron: true) {
+                        DLog("내 콘텐츠 탭으로 이동")
+                        self.viewModel.moveToMyContentView()
+                    }
+
+                    Spacer().frame(height: 32)
+
+
                     self.sectionCategoryButton(
                         title: "좋아요한 작품",
                         isShownChevron: viewModel.isEmptyLikeAnime

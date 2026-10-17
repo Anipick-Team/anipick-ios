@@ -40,6 +40,7 @@ struct AnimationInfoView: View {
     @State private var isShowToastReportReview: Bool = false
     @State private var isShowToastBlockUser: Bool = false
     @State private var isPresentMyReviewPopupView: Bool = false
+    @State private var previewImageURL: URL?
     @State private var isShowBlockPopupView: Bool = false
     @State private var selectedPopupItemReviewId: Int = 0
     @State private var selectedBlockUserId: Int = 0
@@ -72,27 +73,35 @@ struct AnimationInfoView: View {
                         let minY = geo.frame(in: .global).minY
                         
                         ZStack(alignment: .top) {
-                            if let bannerUrl = viewModel.animeDetailInfo?.bannerImageUrl {
+                            if let bannerURL = viewModel.bannerImageURL {
                                 ZStack {
-                                    AsyncImage(url: URL(string: bannerUrl)) { phase in
+                                    AsyncImage(url: bannerURL) { phase in
                                         switch phase {
                                         case .empty:
                                             Image(.animeThumbnail)
                                                 .resizable()
-                                                .frame(maxWidth: .infinity)
-                                                .frame(height: 280)
+                                                .scaledToFill()
+                                                .frame(width: UIScreen.main.bounds.width, height: 280)
+                                                .clipped()
                                         case .success(let image):
                                             image
                                                 .resizable()
                                                 .scaledToFill()
                                                 .frame(width: UIScreen.main.bounds.width, height: 280)
                                                 .clipped()
+                                                .contentShape(Rectangle())
+                                                .onTapGesture {
+                                                    self.previewImageURL = bannerURL
+                                                }
+                                                .accessibilityAddTraits(.isButton)
+                                                .accessibilityLabel("배너 원본 보기")
                                         case .failure:
                                             Image(.animeThumbnail)
                                                 .resizable()
-                                                .frame(maxWidth: .infinity)
-                                                .frame(height: 280)
-                                            
+                                                .scaledToFill()
+                                                .frame(width: UIScreen.main.bounds.width, height: 280)
+                                                .clipped()
+
                                         @unknown default:
                                             EmptyView()
                                         }
@@ -103,6 +112,7 @@ struct AnimationInfoView: View {
                                     
                                     Color.black.opacity(0.4)
                                         .frame(width: UIScreen.main.bounds.width, height: 280)
+                                        .allowsHitTesting(false)
                                 }
                                 
                             } else {
@@ -154,9 +164,15 @@ struct AnimationInfoView: View {
                                                     .frame(width: 133, height: 154)
                                                     .clipShape(RoundedRectangle(cornerRadius: 8))
                                                     .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.gray.opacity(0.3), lineWidth: 1))
+                                                    .contentShape(Rectangle())
+                                                    .onTapGesture {
+                                                        self.previewImageURL = viewModel.coverImageURL
+                                                    }
+                                                    .accessibilityAddTraits(.isButton)
+                                                    .accessibilityLabel("표지 원본 보기")
                                                     .padding(.bottom, 23)
                                                     .padding(.trailing, 20)
-                                                
+
                                             case .failure:
                                                 Image(.animeThumbnail)
                                                     .resizable()
@@ -229,7 +245,7 @@ struct AnimationInfoView: View {
                             
                             Spacer().frame(height: 32)
                             
-                            HStack(alignment: .center, spacing: 0) {
+                            HStack(alignment: .center, spacing: 4) {
                                 animationWatchState(animeId: detailInfo.animeId, title: .wantToWatch)
                                 animationWatchState(animeId: detailInfo.animeId, title: .watching)
                                 animationWatchState(animeId: detailInfo.animeId, title: .finished)
@@ -384,6 +400,13 @@ struct AnimationInfoView: View {
                     .position(x: UIScreen.main.bounds.width - 70, y: self.menuFrame2.maxY + 60)
                     .zIndex(1000)
             }
+
+            if let previewImageURL = self.previewImageURL {
+                ImagePreviewPopupView(imageURL: previewImageURL) {
+                    self.previewImageURL = nil
+                }
+                .zIndex(1001)
+            }
         }
         .overlay(alignment: .top) {
             if headerCollapsed {
@@ -519,7 +542,6 @@ struct AnimationInfoView: View {
                 .background(title == self.viewModel.selectedAnimationStatusTab ? .anipickPrimary : .gray5)
                 .cornerRadius(8)
         }
-        .padding(.horizontal, 2)
     }
     
     private func selectedTab(title: AnimationInfoTab, animationCount: Int = 0, action: (() -> Void)? = nil) -> some View {

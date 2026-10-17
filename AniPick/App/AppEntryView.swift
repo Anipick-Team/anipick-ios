@@ -88,6 +88,8 @@ struct AppEntryView: View {
                     AppDIContainer.makeMyInfoLikePersonView()
                 case .ratedAnimeList:
                     AppDIContainer.makeMyInfoRatedAnimeView()
+                case .myContent:
+                    MyContentView()
                 case .ranking:
                     AppDIContainer.makeRakingView()
                 case .research:
