@@ -72,6 +72,7 @@ enum AppRoute: Hashable {
     case preferenceSelection
     case content(activeTab: Tab)
     case comingSoonDetail
+    case weekdayNewAnime(day: Int)
     case mainLoginView
     case recentReview
     case recommendView(animeId: Int?)

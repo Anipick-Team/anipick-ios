@@ -13,6 +13,7 @@ enum UserDefaultKey: String {
     case nickname
     case email
     case sns
+    // 레거시: 이메일 기반 애플 로그인 시절 저장 키 (로그아웃 시 정리용)
     case appleUserId
     case appleEmail
     
@@ -24,8 +25,6 @@ enum UserDefaultKey: String {
     case lastVisitedAnime
 
     case imageId
-
-    case hasSeenServerRecoveryNotice
 
 }
 
@@ -171,7 +170,7 @@ extension UserDefaultsManager {
         self.setImageId(imageId: 0)
         // SNS 연동 정보
         self.setSNSAccount(sns: "")
-        self.setAppleUserId("")
+        defaults.removeObject(forKey: UserDefaultKey.appleUserId.rawValue)
         defaults.removeObject(forKey: UserDefaultKey.appleEmail.rawValue)
         // 유저 활동 기록
         self.clearHomeRecentKeyword()
@@ -184,26 +183,6 @@ extension UserDefaultsManager {
     
     func getImageId() -> Int {
         return defaults.integer(forKey: UserDefaultKey.imageId.rawValue)
-    }
-    
-    func setAppleUserId(_ value: String) {
-        defaults.set(value, forKey: UserDefaultKey.appleUserId.rawValue)
-    }
-    
-    func getAppleUserId() -> String {
-        return defaults.string(forKey: UserDefaultKey.appleUserId.rawValue) ?? ""
-    }
-}
-
-// MARK: - 공지
-extension UserDefaultsManager {
-    // 서버 복구 안내 팝업을 이미 확인했는지 여부 (로그아웃해도 유지)
-    func setHasSeenServerRecoveryNotice(_ value: Bool) {
-        defaults.set(value, forKey: UserDefaultKey.hasSeenServerRecoveryNotice.rawValue)
-    }
-
-    func getHasSeenServerRecoveryNotice() -> Bool {
-        return defaults.bool(forKey: UserDefaultKey.hasSeenServerRecoveryNotice.rawValue)
     }
 }
 
