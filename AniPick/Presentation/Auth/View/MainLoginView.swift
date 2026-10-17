@@ -114,48 +114,23 @@ struct MainLoginView: View {
                 }
             }
             
-            if viewModel.isShowSNSSignupPopup {
-                SNSSignupPopupView {
-                    self.viewModel.isShowSNSSignupPopup.toggle()
+            if let existingAccountType = viewModel.existingAccountType {
+                SNSSignupPopupView(
+                    title: existingAccountType.title,
+                    message: existingAccountType.message,
+                    confirmTitle: existingAccountType.confirmTitle
+                ) {
+                    self.viewModel.tappedExistingAccountClose()
                 } okAction: {
-                    self.viewModel.isShowSNSSignupPopup.toggle()
+                    self.viewModel.tappedExistingAccountConfirm()
                 }
-
             }
         }
             .navigationBarBackButtonHidden(true)
             
 
     }
-    
-    private func configure(_ request: ASAuthorizationAppleIDRequest) {
-        request.requestedScopes = [.fullName, .email]
-    }
-
-    private func handle(_ result: Result<ASAuthorization, Error>) {
-        switch result {
-        case .success(let auth):
-            if let appleIDCredential = auth.credential as? ASAuthorizationAppleIDCredential {
-                let userIdentifier = appleIDCredential.user
-               let fullName = appleIDCredential.fullName
-                let email = appleIDCredential.email
-                
-                if let data = String(data: appleIDCredential.authorizationCode!, encoding: .utf8) {
-                    DLog("authCode: \(data))")
-                }
-                DLog("User ID: \(userIdentifier)")
-                DLog("Full Name: \(String(describing: fullName))")
-                DLog("Email: \(String(describing: email))")
-                appleIDCredential.authorizationCode
-                DLog("user: \(appleIDCredential.identityToken)")
-                DLog("state: \(appleIDCredential.state)")
-            }
-        case .failure(let error):
-            DLog("Authorization failed: \(error.localizedDescription)")
-        }
-    }
 }
-
 
 #Preview {
   //  AppDIContainer.makeLoginView()

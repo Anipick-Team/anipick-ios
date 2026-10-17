@@ -8,6 +8,9 @@
 import SwiftUI
 
 struct SNSSignupPopupView: View {
+    var title: String = "SNS로 간편 가입된 계정입니다."
+    var message: String = "SNS로 로그인해주세요."
+    var confirmTitle: String = "SNS로 로그인"
     var cancelAction: () -> Void
     var okAction: () -> Void
     
@@ -17,11 +20,11 @@ struct SNSSignupPopupView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                Text("SNS로 간편 가입된 계정입니다.")
+                Text(title)
                     .customFontStyle(size: 20, color: .anipickBlack, weight: .bold)
                     .padding(.bottom, 12)
 
-                Text("SNS로 로그인해주세요.")
+                Text(message)
                     .customFontStyle(size: 14, color: .settingSubTitle)
                     
                 Spacer().frame(height: 37)
@@ -40,7 +43,7 @@ struct SNSSignupPopupView: View {
                     Button {
                         okAction()
                     } label: {
-                        Text("SNS로 로그인")
+                        Text(confirmTitle)
                             .customFontStyle(size: 16, color: .anipickPrimary)
                             .frame(maxWidth: .infinity)
                     }
