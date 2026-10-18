@@ -50,6 +50,8 @@ extension Project {
         let host = testHost ? Target.testHost(for: name) : nil
 
         // 단위 테스트 타깃이 앱 타깃에 의존하면 Tuist가 TEST_HOST·BUNDLE_LOADER를 설정한다.
+        // 테스트는 모듈의 공개 API에 드러나는 의존 모듈(예: ClientCore의 TransportError)도 import하므로
+        // 같은 의존을 선언한다 (선언하지 않으면 tuist inspect dependencies가 암시적 의존으로 잡는다).
         let tests = Target.target(
             name: "\(name)Tests",
             destinations: ProjectEnvironment.destinations,
@@ -58,6 +60,7 @@ extension Project {
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Tests/**"],
             dependencies: [.target(name: framework.name)]
+                + dependencies.map(\.target)
                 + (host.map { [.target(name: $0.name)] } ?? []),
             settings: .swift6(isolation: isolation)
         )
