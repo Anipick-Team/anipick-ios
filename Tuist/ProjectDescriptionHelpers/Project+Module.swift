@@ -16,7 +16,10 @@ extension Project {
         dependencies: [ModuleDependency] = [],
         hasResources: Bool = false
     ) -> Project {
-        precondition(layer == .core || layer == .shared, "Feature는 .feature(...), Client는 .client(...)를 쓴다")
+        precondition(
+            layer == .core || layer == .shared,
+            "Feature는 .feature(...), Client는 .client(...)를 쓴다"
+        )
 
         let framework = Target.target(
             name: name,
