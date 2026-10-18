@@ -301,6 +301,15 @@ final class AuthTokenStoreTests {
         #expect(store.refreshToken == "")
     }
 
+    @Test("D14 KC에 덮어쓴 빈 값이 남아 있으면 UD 값을 읽는다")
+    func ignoresEmptyKeychainValue() throws {
+        // D8로 KC에 빈 값이 남은 뒤, 다음 저장이 KC 실패로 UD에 들어간 상태
+        try givenKeychainTokens(access: "", refresh: nil)
+        givenLegacyTokens(access: "N", refresh: nil)
+
+        #expect(store.accessToken == "N")
+    }
+
     @Test("D9 재설치 정리 중 KC 삭제가 실패하면 빈 값으로 덮어쓰고 다음 실행에 다시 정리한다")
     func retriesFreshInstallCleanup() throws {
         try givenKeychainTokens(access: "A", refresh: "R")
