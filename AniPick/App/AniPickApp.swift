@@ -15,6 +15,9 @@ struct AniPickApp: App {
 //    @StateObject private var appState = AppState()
     
     init() {
+        // NavigationManager가 로그인 여부를 판단하기 위해 토큰을 읽기 전에 실행해야 한다.
+        UserDefaultsManager.shared.prepareTokenStorage()
+
         let appearance = UITabBarAppearance()
         appearance.configureWithOpaqueBackground()
         appearance.backgroundColor = .white   // 원하는 컬러

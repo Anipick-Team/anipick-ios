@@ -44,6 +44,7 @@ let project = Project(
             ],
             entitlements: .file(path: "AniPick/AniPick.entitlements"),
             dependencies: [
+                .project(target: "Storage", path: .relativeToRoot("Projects/Core/Storage")),
                 .external(name: "Alamofire"),
                 .external(name: "KakaoSDKAuth"),
                 .external(name: "KakaoSDKCommon"),

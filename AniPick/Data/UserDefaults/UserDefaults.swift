@@ -6,6 +6,8 @@
 //
 import SwiftUI
 
+import Storage
+
 enum UserDefaultKey: String {
     case accessToken
     case refreshToken
@@ -34,26 +36,36 @@ enum UserDefaultKey: String {
 final class UserDefaultsManager {
     static let shared = UserDefaultsManager()
     private let defaults = UserDefaults.standard
+    // 토큰은 Keychain에 저장한다. 이전 버전이 UserDefaults에 저장한 토큰은 앱 시작 시 옮긴다.
+    private let tokenStore = AuthTokenStore(
+        secureStore: Keychain(service: "com.moana.AniPick.auth"),
+        defaults: .standard
+    )
 
     private init() {}
 }
 
 // MARK: - Auth
 extension UserDefaultsManager {
+    /// 앱 시작 시 토큰을 읽는 어떤 코드보다 먼저 호출한다 (재설치 정리, UserDefaults 토큰 이관).
+    func prepareTokenStorage() {
+        tokenStore.prepareOnLaunch()
+    }
+
     func setAccessToken(accessToken: String) {
-        defaults.set(accessToken, forKey: UserDefaultKey.accessToken.rawValue)
+        tokenStore.setAccessToken(accessToken)
     }
-    
+
     func getAccessToken() -> String {
-        return defaults.string(forKey: UserDefaultKey.accessToken.rawValue) ?? ""
+        return tokenStore.accessToken
     }
-    
+
     func setRefreshToken(refreshToken: String) {
-        defaults.set(refreshToken, forKey: UserDefaultKey.refreshToken.rawValue)
+        tokenStore.setRefreshToken(refreshToken)
     }
-    
+
     func getRefreshToken() -> String {
-        return defaults.string(forKey: UserDefaultKey.refreshToken.rawValue) ?? ""
+        return tokenStore.refreshToken
     }
     
     // 값이 있으면 sns로 가입된 것, 빈 값이면 이메일로그인
