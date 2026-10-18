@@ -1,14 +1,14 @@
 import ProjectDescription
+import ProjectDescriptionHelpers
 
-let teamID = "3K4KWAG7KD"
-let bundleIDPrefix = "com.moana"
+let teamID = ProjectEnvironment.teamID
+let bundleIDPrefix = ProjectEnvironment.bundleIDPrefix
 
 let project = Project(
     name: "AniPick",
     options: .options(
         automaticSchemesOptions: .enabled(),
         developmentRegion: "en",
-        disableBundleAccessors: true,
         disableSynthesizedResourceAccessors: true
     ),
     settings: .settings(

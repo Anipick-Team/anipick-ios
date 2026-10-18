@@ -1,0 +1,77 @@
+import ProjectDescription
+
+extension Project {
+    /// 도메인별 Client 모듈 (Repository + UseCase를 합친 얇은 계층, 유일한 테스트 경계).
+    ///
+    /// ```
+    /// Projects/Clients/<Name>Client/
+    ///   Interface/        <Name>ClientInterface  protocol + 앱 모델 + 에러
+    ///   Sources/          <Name>ClientLive       Networking 사용, DTO → 앱 모델 변환
+    ///   Testing/          <Name>ClientTesting    시나리오형 Mock
+    ///   Tests/            <Name>ClientTests      DTO → 모델 변환 테스트
+    ///   Tests/Fixtures/   (선택) 서버 원본 JSON
+    /// ```
+    ///
+    /// - Parameters:
+    ///   - modules: Interface가 쓰는 Core 모듈 (대개 `.core("ClientCore")`)
+    ///   - liveModules: Live가 추가로 쓰는 모듈 (`.core("Networking")`, 외부 SDK 등)
+    public static func client(
+        _ name: String,
+        modules: [ModuleDependency] = [],
+        liveModules: [ModuleDependency] = [],
+        hasFixtures: Bool = false
+    ) -> Project {
+        let moduleName = "\(name)Client"
+
+        let interface = Target.target(
+            name: "\(moduleName)Interface",
+            destinations: ProjectEnvironment.destinations,
+            product: moduleProduct,
+            bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Interface",
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
+            sources: ["Interface/**"],
+            dependencies: modules.map(\.target),
+            settings: .swift6(isolation: .nonisolated)
+        )
+
+        let live = Target.target(
+            name: "\(moduleName)Live",
+            destinations: ProjectEnvironment.destinations,
+            product: moduleProduct,
+            bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Live",
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
+            sources: ["Sources/**"],
+            dependencies: [.target(name: interface.name)] + liveModules.map(\.target),
+            settings: .swift6(isolation: .nonisolated)
+        )
+
+        let testing = Target.target(
+            name: "\(moduleName)Testing",
+            destinations: ProjectEnvironment.destinations,
+            product: moduleProduct,
+            bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Testing",
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
+            sources: ["Testing/**"],
+            dependencies: [.target(name: interface.name)],
+            settings: .swift6(isolation: .nonisolated)
+        )
+
+        let tests = Target.target(
+            name: "\(moduleName)Tests",
+            destinations: ProjectEnvironment.destinations,
+            product: .unitTests,
+            bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Tests",
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
+            sources: ["Tests/**/*.swift"],
+            resources: hasFixtures ? ["Tests/Fixtures/**"] : nil,
+            dependencies: [.target(name: live.name), .target(name: testing.name)],
+            settings: .swift6(isolation: .nonisolated)
+        )
+
+        return Project(
+            name: moduleName,
+            options: .options(disableSynthesizedResourceAccessors: true),
+            targets: [interface, live, testing, tests]
+        )
+    }
+}
