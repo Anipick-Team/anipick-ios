@@ -12,12 +12,14 @@ extension Project {
     ///
     /// - Parameter testHost: 테스트에 호스트 앱이 필요한지. 호스트 없는 테스트 번들은 Keychain에
     ///   접근할 수 없어 `errSecMissingEntitlement`(-34018)로 실패한다 (2026-10-18 Storage 실측).
+    /// - Parameter hasTests: 동작 없이 타입만 정의하는 모듈(ClientCore 등)은 `false`
     public static func module(
         _ name: String,
         layer: ModuleLayer,
         isolation: DefaultIsolation,
         dependencies: [ModuleDependency] = [],
         hasResources: Bool = false,
+        hasTests: Bool = true,
         testHost: Bool = false
     ) -> Project {
         precondition(
@@ -36,6 +38,14 @@ extension Project {
             dependencies: dependencies.map(\.target),
             settings: .swift6(isolation: isolation)
         )
+
+        guard hasTests else {
+            return Project(
+                name: name,
+                options: .options(disableSynthesizedResourceAccessors: true),
+                targets: [framework]
+            )
+        }
 
         let host = testHost ? Target.testHost(for: name) : nil
 
