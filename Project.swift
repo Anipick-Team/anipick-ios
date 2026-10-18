@@ -34,7 +34,7 @@ let project = Project(
             destinations: [.iPhone],
             product: .app,
             bundleId: "\(bundleIDPrefix).AniPick",
-            deploymentTargets: .iOS("16.0"),
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
             infoPlist: .file(path: "AniPick/Info.plist"),
             sources: ["AniPick/**/*.swift"],
             resources: [
@@ -81,7 +81,7 @@ let project = Project(
             destinations: [.iPhone],
             product: .unitTests,
             bundleId: "\(bundleIDPrefix).AniPickTests",
-            deploymentTargets: .iOS("18.2"),
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
             infoPlist: .default,
             sources: ["AniPickTests/**"],
             dependencies: [
@@ -93,7 +93,7 @@ let project = Project(
             destinations: [.iPhone],
             product: .uiTests,
             bundleId: "\(bundleIDPrefix).AniPickUITests",
-            deploymentTargets: .iOS("18.2"),
+            deploymentTargets: ProjectEnvironment.deploymentTargets,
             infoPlist: .default,
             sources: ["AniPickUITests/**"],
             dependencies: [
