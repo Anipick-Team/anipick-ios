@@ -5,6 +5,7 @@
 //  이관한 닉네임 변경 화면이 레거시와 같은 모양인지 픽셀로 비교한다 (R 반복 1).
 //
 
+import AuthClientLive
 import Foundation
 import Navigation
 import Networking
@@ -37,6 +38,7 @@ struct EditNicknameEquivalenceTests {
                     client: HTTPClientStub.client,
                     preferences: Preferences()
                 ),
+                authClient: LiveAuthClient(client: Networking.HTTPClient(baseURL: URL(string: "https://example.invalid/")!, tokenProvider: nil), onLoggedOut: {}),
                 navigator: LegacyNavigator(navigationManager: NavigationManager())
             )
         )

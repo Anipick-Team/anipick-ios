@@ -12,6 +12,22 @@ public protocol UserClient: Sendable {
     func withdraw() async throws(WithdrawalError)
     func editPassword(current: String, new: String, confirmation: String)
         async throws(EditPasswordError)
+    /// 성공하면 저장된 이메일도 바꾼다.
+    func editEmail(newEmail: String, password: String) async throws(EditEmailError)
+}
+
+public enum EditEmailError: Error, Equatable, Sendable {
+    /// 이메일을 입력하지 않음
+    case emptyEmail
+    /// 이메일 형식이 아님
+    case invalidEmailFormat
+    /// 비밀번호가 틀림
+    case passwordMismatch
+    /// 이미 쓰는 이메일
+    case duplicatedEmail
+    /// 서버가 알 수 없는 결과 코드를 보냈다
+    case unexpectedResponse
+    case transport(TransportError)
 }
 
 public enum EditNicknameError: Error, Equatable, Sendable {

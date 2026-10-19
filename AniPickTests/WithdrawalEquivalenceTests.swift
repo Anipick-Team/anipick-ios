@@ -5,6 +5,7 @@
 //  이관한 회원 탈퇴 화면이 레거시와 같은 모양인지 픽셀로 비교한다 (R 반복 2).
 //
 
+import AuthClientLive
 import Foundation
 import Navigation
 import Networking
@@ -40,6 +41,7 @@ struct WithdrawalEquivalenceTests {
                 userClient: LiveUserClient(
                     client: HTTPClient(baseURL: URL(string: "https://example.invalid/")!, tokenProvider: nil)
                 ),
+                authClient: LiveAuthClient(client: HTTPClient(baseURL: URL(string: "https://example.invalid/")!, tokenProvider: nil), onLoggedOut: {}),
                 navigator: LegacyNavigator(navigationManager: NavigationManager())
             )
         )

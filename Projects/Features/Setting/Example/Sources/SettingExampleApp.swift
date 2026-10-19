@@ -1,3 +1,4 @@
+import AuthClientTesting
 import Navigation
 import SettingFeature
 import SettingInterface
@@ -92,6 +93,21 @@ struct ExampleRoot: View {
                             scenario: .init(editPasswordResult: .failure(.confirmationMismatch)))
                     }
                 }
+                Section("이메일 변경") {
+                    Button("성공 → 완료 팝업 (확인은 이 앱에서 이동 없음)") {
+                        open(.editEmail, scenario: .success)
+                    }
+                    Button("형식 오류 (103)") {
+                        open(
+                            .editEmail,
+                            scenario: .init(editEmailResult: .failure(.invalidEmailFormat)))
+                    }
+                    Button("비밀번호 틀림 (106)") {
+                        open(
+                            .editEmail,
+                            scenario: .init(editEmailResult: .failure(.passwordMismatch)))
+                    }
+                }
                 Section("회원 탈퇴") {
                     Button("성공 (이 앱에서는 이동 없음 — 로그인 화면 전환은 App의 Session)") {
                         open(.withdrawal, scenario: .success)
@@ -112,6 +128,7 @@ struct ExampleRoot: View {
         builder = SettingBuilder(
             dependencies: SettingDependencies(
                 userClient: MockUserClient(scenario),
+                authClient: MockAuthClient(),
                 navigator: navigator
             )
         )

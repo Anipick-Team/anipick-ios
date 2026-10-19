@@ -5,6 +5,7 @@ public enum SettingRoute: Hashable, Sendable {
     case editNickname
     case withdrawal
     case editPassword
+    case editEmail
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).

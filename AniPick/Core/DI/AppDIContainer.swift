@@ -5,6 +5,7 @@
 //  Created by cho on 6/8/25.
 //
 import SwiftUI
+import AuthClientLive
 import SettingFeature
 import SettingInterface
 import Session
@@ -23,6 +24,14 @@ struct AppDIContainer {
             userClient: LiveUserClient(
                 client: AppSession.httpClient,
                 onWithdrawn: { await AppSession.shared.signOut(.withdrawal) }
+            ),
+            authClient: LiveAuthClient(
+                client: AppSession.httpClient,
+                // 레거시 순서: 사용자 정보 정리 → 로그아웃 (EditEmailViewModel.swift:58-62)
+                onLoggedOut: {
+                    UserDefaultsManager.shared.logoutAllClearInfo()
+                    await AppSession.shared.signOut(.userLogout)
+                }
             ),
             navigator: navigator
         )

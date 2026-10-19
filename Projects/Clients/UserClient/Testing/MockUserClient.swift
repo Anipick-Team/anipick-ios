@@ -10,6 +10,7 @@ public final class MockUserClient: UserClient {
         public var editNicknameResult: Result<Void, EditNicknameError>
         public var withdrawalResult: Result<Void, WithdrawalError>
         public var editPasswordResult: Result<Void, EditPasswordError>
+        public var editEmailResult: Result<Void, EditEmailError>
         public var delay: Duration
 
         public init(
@@ -18,6 +19,7 @@ public final class MockUserClient: UserClient {
             editNicknameResult: Result<Void, EditNicknameError> = .success(()),
             withdrawalResult: Result<Void, WithdrawalError> = .success(()),
             editPasswordResult: Result<Void, EditPasswordError> = .success(()),
+            editEmailResult: Result<Void, EditEmailError> = .success(()),
             delay: Duration = .zero
         ) {
             self.nickname = nickname
@@ -25,6 +27,7 @@ public final class MockUserClient: UserClient {
             self.editNicknameResult = editNicknameResult
             self.withdrawalResult = withdrawalResult
             self.editPasswordResult = editPasswordResult
+            self.editEmailResult = editEmailResult
             self.delay = delay
         }
 
@@ -50,6 +53,32 @@ public final class MockUserClient: UserClient {
         var editedNicknames: [String] = []
         var withdrawalCount = 0
         var editedPasswords: [PasswordChange] = []
+        var editedEmails: [EmailChange] = []
+    }
+
+    public struct EmailChange: Equatable, Sendable {
+        public let newEmail: String
+        public let password: String
+
+        public init(newEmail: String, password: String) {
+            self.newEmail = newEmail
+            self.password = password
+        }
+    }
+
+    /// `editEmail`로 받은 값
+    public var editedEmails: [EmailChange] {
+        return state.withLock { $0.editedEmails }
+    }
+
+    public func editEmail(newEmail: String, password: String) async throws(EditEmailError) {
+        let scenario = state.withLock {
+            $0.editedEmails.append(EmailChange(newEmail: newEmail, password: password))
+            return $0.scenario
+        }
+        try? await Task.sleep(for: scenario.delay)
+        try scenario.editEmailResult.get()
+        state.withLock { $0.scenario.email = newEmail }
     }
 
     private let state: OSAllocatedUnfairLock<State>

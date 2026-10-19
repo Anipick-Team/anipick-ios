@@ -83,6 +83,24 @@ final class LiveUserClientFlowTests {
         #expect(defaults.string(forKey: "nickname") == "새닉")
     }
 
+    @Test("E9. 이메일 변경 성공이면 저장된 이메일을 바꾼다, 거절이면 그대로")
+    func savesEmailOnlyOnSuccess() async throws {
+        defaults.set("old@b.c", forKey: "email")
+        await #expect(throws: EditEmailError.duplicatedEmail) {
+            try await self.makeClient(
+                ClientStub(.json(#"{"code":109,"value":"FAIL","errorValue":null}"#))
+            )
+            .editEmail(newEmail: "dup@b.c", password: "p")
+        }
+        #expect(defaults.string(forKey: "email") == "old@b.c")
+
+        try await makeClient(
+            ClientStub(.json(#"{"code":200,"value":"SUCCESS","errorValue":null}"#))
+        )
+        .editEmail(newEmail: "new@b.c", password: "p")
+        #expect(defaults.string(forKey: "email") == "new@b.c")
+    }
+
     @Test("저장된 이메일이 없으면 빈 문자열")
     func readsCachedEmail() {
         let client = makeClient(ClientStub(.json("{}")))

@@ -99,6 +99,41 @@ struct LiveUserClientTests {
         }
     }
 
+    @Test("이메일 변경 요청: PUT api/setting/email, 본문 newEmail·password")
+    func buildsEditEmailEndpoint() throws {
+        let endpoint = LiveUserClient.editEmailEndpoint(newEmail: "a@b.c", password: "p")
+
+        #expect(endpoint.method == .put)
+        #expect(endpoint.path == "api/setting/email")
+        #expect(endpoint.requiresAuth)
+        guard case .json(let body) = endpoint.body else {
+            Issue.record("JSON 본문이 아니다")
+            return
+        }
+        let encoded = try JSONEncoder().encode(body)
+        #expect(
+            try JSONSerialization.jsonObject(with: encoded) as? [String: String]
+                == ["newEmail": "a@b.c", "password": "p"]
+        )
+    }
+
+    @Test(
+        "이메일 변경 결과 코드를 의미로 바꾼다",
+        arguments: [
+            (200, nil), (102, EditEmailError.emptyEmail), (103, .invalidEmailFormat),
+            (106, .passwordMismatch),
+            (109, .duplicatedEmail), (500, .unexpectedResponse),
+        ]
+    )
+    func mapsEditEmailCode(code: Int, expected: EditEmailError?) {
+        switch LiveUserClient.editEmailResult(code: code) {
+        case .success:
+            #expect(expected == nil)
+        case .failure(let error):
+            #expect(error == expected)
+        }
+    }
+
     @Test("저장된 닉네임이 없으면 \"--\", 있으면 그 값 (레거시 UserDefaults 키 nickname)")
     func readsCachedNickname() throws {
         let suiteName = "UserClientTests.\(UUID().uuidString)"

@@ -1,3 +1,4 @@
+import AuthClientInterface
 import Navigation
 import SettingInterface
 import SwiftUI
@@ -5,10 +6,12 @@ import UserClientInterface
 
 public struct SettingDependencies {
     public let userClient: any UserClient
+    public let authClient: any AuthClient
     public let navigator: any Navigator
 
-    public init(userClient: any UserClient, navigator: any Navigator) {
+    public init(userClient: any UserClient, authClient: any AuthClient, navigator: any Navigator) {
         self.userClient = userClient
+        self.authClient = authClient
         self.navigator = navigator
     }
 }
@@ -46,6 +49,15 @@ public struct SettingBuilder: SettingBuilding {
                 navigator: dependencies.navigator
             )
             return AnyView(EditPasswordView(state: EditPasswordReducer.State(), reducer: reducer))
+
+        case .editEmail:
+            let reducer = EditEmailReducer(
+                userClient: dependencies.userClient,
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator
+            )
+            let state = EditEmailReducer.State(currentEmail: dependencies.userClient.cachedEmail())
+            return AnyView(EditEmailView(state: state, reducer: reducer))
         }
     }
 }

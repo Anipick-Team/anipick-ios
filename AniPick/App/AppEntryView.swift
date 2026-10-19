@@ -69,7 +69,7 @@ struct AppEntryView: View {
                 case .editNickname:
                     AppDIContainer.settingBuilder.make(.editNickname)
                 case .editEmail:
-                    AppDIContainer.makeEditEmailView()
+                    AppDIContainer.settingBuilder.make(.editEmail)
                 case .editPassword:
                     AppDIContainer.settingBuilder.make(.editPassword)
                 case .deleteAccount:

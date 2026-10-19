@@ -107,6 +107,45 @@ public struct LiveUserClient: UserClient {
         }
     }
 
+    public func editEmail(newEmail: String, password: String) async throws(EditEmailError) {
+        let response: ServerResponse<EmptyResult>
+        do {
+            response = try await client.send(
+                Self.editEmailEndpoint(newEmail: newEmail, password: password))
+        } catch {
+            throw .transport(error)
+        }
+        try Self.editEmailResult(code: response.code).get()
+        preferences.set(newEmail, for: Self.emailKey)
+    }
+
+    static func editEmailEndpoint(newEmail: String, password: String) -> Endpoint<EmptyResult> {
+        return Endpoint(
+            method: .put,
+            path: "api/setting/email",
+            body: .json(["newEmail": newEmail, "password": password]),
+            requiresAuth: true
+        )
+    }
+
+    /// 레거시 `EditEmailViewModel.swift:78-96`
+    static func editEmailResult(code: Int) -> Result<Void, EditEmailError> {
+        switch code {
+        case 200:
+            return .success(())
+        case 102:
+            return .failure(.emptyEmail)
+        case 103:
+            return .failure(.invalidEmailFormat)
+        case 106:
+            return .failure(.passwordMismatch)
+        case 109:
+            return .failure(.duplicatedEmail)
+        default:
+            return .failure(.unexpectedResponse)
+        }
+    }
+
     static let withdrawalEndpoint = Endpoint<EmptyResult>(
         method: .patch,
         path: "api/setting/withdrawal",
