@@ -293,7 +293,9 @@ final class TokenInterceptorTests {
         request.cancel()
         let result = await response.value
 
-        #expect(result.failure?.isExplicitlyCancelledError == true)
+        // 이미 검증 에러가 기록된 요청은 취소돼도 그 에러가 남는다 (Alamofire 5.12 `Request.swift:461`)
+        #expect(result.success == nil)
+        #expect(request.isCancelled)
         // 갱신이 끝난 뒤에도 취소된 요청을 다시 보내지 않는지 본다
         try await Task.sleep(for: .milliseconds(400))
         #expect(server.requests.count == 1)
@@ -321,12 +323,5 @@ extension Result {
             return nil
         }
         return value
-    }
-
-    fileprivate var failure: Failure? {
-        guard case .failure(let error) = self else {
-            return nil
-        }
-        return error
     }
 }

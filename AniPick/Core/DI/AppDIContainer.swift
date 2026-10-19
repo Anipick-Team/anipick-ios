@@ -10,6 +10,7 @@ import SwiftUI
 struct AppDIContainer {
     static let navigationManager = NavigationManager()
     static let appState = AppState(navigationManager: navigationManager)
+    static let sessionState = SessionState(navigationManager: navigationManager)
     
     static func makeLoginView() -> some View {
         let apiService = AuthAPIService()

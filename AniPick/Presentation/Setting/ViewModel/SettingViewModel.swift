@@ -50,20 +50,25 @@ final class SettingViewModel: ObservableObject {
     }
     
     func tappedLogout() {
-        AF.request(LogoutAPI.logout)
-            .cURLDescription { description in
-                DLog("\(description)")
-            }
-            .responseDecodable(of: BaseResponse.self) { [weak self] response in
-                guard let self else { return }
-                switch response.result {
-                case .success(let value):
-                    DLog("🔐 [Login] 로그아웃 성공 - completeLogout (로그인 화면으로) \(value)")
-                    self.navigationManager.completeLogout()
-                case .failure(let error):
-                    DLog("logout error - \(error)")
+        // 토큰을 지우기 전에 요청을 만들어 로그아웃 직전 토큰을 싣는다.
+        if let request = try? LogoutAPI.logout.asURLRequest() {
+            AF.request(request)
+                .cURLDescription { description in
+                    DLog("\(description)")
                 }
-            }
+                .responseDecodable(of: BaseResponse.self) { response in
+                    switch response.result {
+                    case .success(let value):
+                        DLog("🔐 [Login] 서버 로그아웃 성공 \(value)")
+                    case .failure(let error):
+                        DLog("logout error - \(error)")
+                    }
+                }
+        }
+        // 서버 응답을 기다리지 않고 로그인 화면으로 (SessionState가 전환)
+        Task {
+            await AppSession.shared.signOut(.userLogout)
+        }
     }
  
     func moveToDeleteAccount() {

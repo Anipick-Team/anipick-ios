@@ -29,11 +29,12 @@ final class WithdrawalViewModel: ObservableObject {
                 case .success(let value):
                     DLog("withdrawal success - \(value)")
                     if value.code == 200 {
-                        self.navigationManager.completeLogout()
                         // TODO: User정보 전부 clear하는 값 필요
-                        UserDefaultsManager.shared.setAccessToken(accessToken: "")
-                        UserDefaultsManager.shared.setRefreshToken(refreshToken: "")
                         UserDefaultsManager.shared.setNickname("")
+                        // 토큰 삭제와 로그인 화면 전환은 Session이 맡는다.
+                        Task {
+                            await AppSession.shared.signOut(.withdrawal)
+                        }
                     }
                 case .failure(let error):
                     DLog("withdrawal error - \(error)")

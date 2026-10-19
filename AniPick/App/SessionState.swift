@@ -17,7 +17,12 @@ final class SessionState {
 
     /// 스트림이 끝날 때까지 로그아웃 이벤트마다 로그인 화면으로 돌아간다.
     func observe(_ events: AsyncStream<SessionEvent>) async {
-        // TODO: 1-6 계약 스텁 — 구현 전
-        for await _ in events {}
+        for await event in events {
+            switch event {
+            case .signedOut(let reason):
+                DLog("🔐 [Login] Session 로그아웃(\(reason)) - completeLogout")
+                navigationManager.completeLogout()
+            }
+        }
     }
 }

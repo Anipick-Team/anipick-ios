@@ -46,7 +46,8 @@ final class EditEmailViewModel: ObservableObject {
                 DLog("\(description)")
             }
             .responseDecodable(of: BaseResponse.self) { [weak self] response in
-                guard let self else { return }
+                // 화면이 사라졌으면 아무것도 하지 않는다 (현재 동작 유지)
+                guard self != nil else { return }
                 switch response.result {
                 case .success(let value):
                     DLog("logout success - \(value)")
@@ -54,8 +55,10 @@ final class EditEmailViewModel: ObservableObject {
                     DLog("logout error - \(error)")
                 }
                 UserDefaultsManager.shared.logoutAllClearInfo()
-                DLog("🔐 [Login] 이메일 변경 후 로그아웃 - completeLogout")
-                self.navigationManager.completeLogout()
+                DLog("🔐 [Login] 이메일 변경 후 로그아웃")
+                Task {
+                    await AppSession.shared.signOut(.userLogout)
+                }
             }
     }
     
