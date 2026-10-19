@@ -6,6 +6,7 @@
 //
 import Alamofire
 import SwiftUI
+import Utils
 
 final class AuthAPIService {
     static let shared = AuthAPIService()

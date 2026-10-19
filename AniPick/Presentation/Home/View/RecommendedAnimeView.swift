@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct RecommendedAnimeView: View {
     @Environment(\.dismiss) private var dismiss

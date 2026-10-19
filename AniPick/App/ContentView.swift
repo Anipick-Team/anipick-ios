@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 enum Tab: Hashable {
     case home

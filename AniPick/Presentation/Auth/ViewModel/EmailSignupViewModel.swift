@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 @MainActor
 final class EmailSignupViewModel: ObservableObject {

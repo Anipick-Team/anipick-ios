@@ -5,6 +5,7 @@
 
 import SwiftUI
 import DesignSystem
+import Utils
 
 // MARK: - 화면 모델
 struct MyPost: Identifiable {

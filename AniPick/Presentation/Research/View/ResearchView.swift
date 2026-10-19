@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 enum ResearchSelectedTab: String, CaseIterable {
     case yearQuarter = "년도/분기"

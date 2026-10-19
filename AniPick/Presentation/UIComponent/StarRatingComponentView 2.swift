@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import Utils
 
 struct StarRatingComponentView2: View {
     

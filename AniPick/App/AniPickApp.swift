@@ -8,6 +8,7 @@
 import SwiftUI
 import KakaoSDKAuth
 import DesignSystem
+import Utils
 
 @main
 struct AniPickApp: App {

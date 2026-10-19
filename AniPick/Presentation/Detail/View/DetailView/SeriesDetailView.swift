@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct SeriesDetailView: View {
     @Environment(\.dismiss) private var dismiss

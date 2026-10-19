@@ -5,6 +5,7 @@
 
 import SwiftUI
 import DesignSystem
+import Utils
 
 struct ReportReviewWithReasonPopupView: View {
     let cancelAction: () -> Void

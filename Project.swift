@@ -51,6 +51,7 @@ let project = Project(
                 .project(target: "Navigation", path: .relativeToRoot("Projects/Core/Navigation")),
                 .project(target: "Analytics", path: .relativeToRoot("Projects/Core/Analytics")),
                 .project(target: "DesignSystem", path: .relativeToRoot("Projects/Shared/DesignSystem")),
+                .project(target: "Utils", path: .relativeToRoot("Projects/Shared/Utils")),
                 // Firebase는 AnalyticsLive만 의존한다 (앱이 직접 의존하면 정적 라이브러리가 두 벌 링크된다)
                 .project(target: "AnalyticsLive", path: .relativeToRoot("Projects/Core/AnalyticsLive")),
                 .external(name: "Alamofire"),

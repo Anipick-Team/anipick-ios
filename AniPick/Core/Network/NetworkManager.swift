@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import Utils
 
 enum NetworkManager {
     // TODO: BaseUrl 입력 필요

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PopupView
+import Utils
 
 struct ScrollOffsetKey: PreferenceKey {
     static var defaultValue: CGFloat = 0

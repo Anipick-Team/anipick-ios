@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct RecommendedView: View {
     @Environment(\.dismiss) private var dismiss

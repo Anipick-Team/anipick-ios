@@ -8,6 +8,7 @@
 import SwiftUI
 import UIKit
 import AuthenticationServices
+import Utils
 
 struct MainLoginView: View {
     @StateObject var viewModel: MainLoginViewModel

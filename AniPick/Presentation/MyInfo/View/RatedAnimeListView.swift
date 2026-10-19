@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PopupView
+import Utils
 
 struct RatedAnimeListView: View {
     @Environment(\.dismiss) private var dismiss

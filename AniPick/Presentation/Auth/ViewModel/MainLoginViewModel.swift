@@ -12,6 +12,7 @@ import GoogleSignInSwift
 import Alamofire
 import AuthenticationServices
 import KakaoSDKAuth
+import Utils
 
 @MainActor
 final class MainLoginViewModel: ObservableObject {

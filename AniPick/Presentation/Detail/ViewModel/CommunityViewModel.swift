@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Utils
 
 enum CommunityFilter: String, CaseIterable {
     case all = "전체"

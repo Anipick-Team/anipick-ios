@@ -1,5 +1,6 @@
 import Alamofire
 import Foundation
+import Utils
 
 final class CommunityAPIService {
     static let shared = CommunityAPIService()

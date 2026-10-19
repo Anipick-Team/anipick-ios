@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import DesignSystem
+import Utils
 
 struct EditPasswordView: View {
     @Environment(\.dismiss) private var dismiss

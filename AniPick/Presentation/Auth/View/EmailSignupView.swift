@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct EmailSignupView: View {
     @Environment(\.dismiss) private var dismiss

@@ -7,6 +7,7 @@
 
 import Alamofire
 import SwiftUI
+import Utils
 
 struct ImagePicker: UIViewControllerRepresentable {
     class Coordinator: NSObject, UINavigationControllerDelegate, UIImagePickerControllerDelegate {

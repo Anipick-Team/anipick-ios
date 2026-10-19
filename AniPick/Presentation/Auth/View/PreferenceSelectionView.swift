@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct PreferenceSelectionView: View {
     @StateObject var viewModel: PreferenceSelectionViewModel

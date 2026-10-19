@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct MyInfoView: View {
     @StateObject var viewModel: MyInfoViewModel

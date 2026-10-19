@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct CommunityView: View {
     let animeId: Int

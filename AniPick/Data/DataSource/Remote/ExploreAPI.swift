@@ -7,6 +7,7 @@
 
 import Alamofire
 import Foundation
+import Utils
 
 enum ExploreSortCategory: String, CaseIterable {
     case popularity

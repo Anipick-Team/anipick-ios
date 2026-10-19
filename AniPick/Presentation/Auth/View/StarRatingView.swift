@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Utils
 
 struct StarRatingView: View {
     @State private var starRating: Double = 0.0

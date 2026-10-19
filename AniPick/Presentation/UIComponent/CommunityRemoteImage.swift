@@ -6,6 +6,7 @@
 import SwiftUI
 import UIKit
 import DesignSystem
+import Utils
 
 private enum CommunityImageCache {
     static let images = NSCache<NSURL, UIImage>()

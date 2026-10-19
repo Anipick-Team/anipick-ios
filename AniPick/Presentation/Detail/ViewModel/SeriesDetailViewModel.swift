@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Alamofire
+import Utils
 
 @MainActor
 final class SeriesDetailViewModel: ObservableObject {

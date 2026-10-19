@@ -7,6 +7,7 @@
 
 import Foundation
 import Alamofire
+import Utils
 
 @MainActor
 final class RecommendViewModel: ObservableObject {
