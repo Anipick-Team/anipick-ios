@@ -41,7 +41,9 @@ extension Project {
             bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Live",
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Sources/**"],
-            dependencies: [.target(name: interface.name)] + liveModules.map(\.target),
+            dependencies: [.target(name: interface.name)]
+                + modules.map(\.target)
+                + liveModules.map(\.target),
             settings: .swift6(isolation: .nonisolated)
         )
 
@@ -52,7 +54,7 @@ extension Project {
             bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Testing",
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Testing/**"],
-            dependencies: [.target(name: interface.name)],
+            dependencies: [.target(name: interface.name)] + modules.map(\.target),
             settings: .swift6(isolation: .nonisolated)
         )
 
@@ -64,7 +66,13 @@ extension Project {
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Tests/**/*.swift"],
             resources: hasFixtures ? ["Tests/Fixtures/**"] : nil,
-            dependencies: [.target(name: live.name), .target(name: testing.name)],
+            // 테스트는 Interface·Core 모듈도 import한다. 외부 SDK는 Live에 이미 링크되므로 뺀다
+            dependencies: [
+                .target(name: live.name), .target(name: testing.name),
+                .target(name: interface.name),
+            ]
+                + modules.filter { !$0.isExternal }.map(\.target)
+                + liveModules.filter { !$0.isExternal }.map(\.target),
             settings: .swift6(isolation: .nonisolated)
         )
 

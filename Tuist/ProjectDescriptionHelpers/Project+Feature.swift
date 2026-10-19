@@ -70,8 +70,15 @@ extension Project {
             bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(name)Tests",
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Tests/**"],
-            dependencies: [.target(name: feature.name), .target(name: testing.name)]
-                + dependencies.map(\.testing),
+            // 테스트는 Interface·Core 모듈·의존 Client의 Interface도 import한다
+            // (선언하지 않으면 tuist inspect dependencies가 암시적 의존으로 잡는다, 2026-10-19 Setting)
+            dependencies: [
+                .target(name: feature.name), .target(name: testing.name),
+                .target(name: interface.name),
+            ]
+                + dependencies.map(\.interface)
+                + dependencies.map(\.testing)
+                + modules.filter { !$0.isExternal }.map(\.target),
             settings: .swift6(isolation: .mainActor)
         )
 
@@ -83,8 +90,12 @@ extension Project {
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             infoPlist: .extendingDefault(with: ["UILaunchScreen": [:]]),
             sources: ["Example/Sources/**"],
-            dependencies: [.target(name: feature.name), .target(name: testing.name)]
-                + dependencies.map(\.testing),
+            dependencies: [
+                .target(name: feature.name), .target(name: testing.name),
+                .target(name: interface.name),
+            ]
+                + dependencies.map(\.testing)
+                + modules.filter { !$0.isExternal }.map(\.target),
             settings: .swift6(isolation: .mainActor)
         )
 
