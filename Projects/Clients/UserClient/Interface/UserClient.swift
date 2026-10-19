@@ -10,6 +10,8 @@ public protocol UserClient: Sendable {
     func cachedEmail() -> String
     /// 회원 탈퇴. 성공하면 저장된 닉네임을 비우고 로그아웃 처리(App이 주입)를 한다.
     func withdraw() async throws(WithdrawalError)
+    func editPassword(current: String, new: String, confirmation: String)
+        async throws(EditPasswordError)
 }
 
 public enum EditNicknameError: Error, Equatable, Sendable {
@@ -19,6 +21,16 @@ public enum EditNicknameError: Error, Equatable, Sendable {
     case invalidFormat
     /// 빈 닉네임
     case empty
+    /// 서버가 알 수 없는 결과 코드를 보냈다
+    case unexpectedResponse
+    case transport(TransportError)
+}
+
+public enum EditPasswordError: Error, Equatable, Sendable {
+    /// 현재 비밀번호가 틀림
+    case currentPasswordMismatch
+    /// 새 비밀번호와 확인이 다름
+    case confirmationMismatch
     /// 서버가 알 수 없는 결과 코드를 보냈다
     case unexpectedResponse
     case transport(TransportError)

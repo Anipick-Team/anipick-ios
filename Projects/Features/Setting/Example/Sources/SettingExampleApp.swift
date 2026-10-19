@@ -77,6 +77,21 @@ struct ExampleRoot: View {
                         }
                     }
                 }
+                Section("비밀번호 변경") {
+                    Button("성공") {
+                        open(.editPassword, scenario: .success)
+                    }
+                    Button("현재 비밀번호 틀림 (107)") {
+                        open(
+                            .editPassword,
+                            scenario: .init(editPasswordResult: .failure(.currentPasswordMismatch)))
+                    }
+                    Button("확인 불일치 (108)") {
+                        open(
+                            .editPassword,
+                            scenario: .init(editPasswordResult: .failure(.confirmationMismatch)))
+                    }
+                }
                 Section("회원 탈퇴") {
                     Button("성공 (이 앱에서는 이동 없음 — 로그인 화면 전환은 App의 Session)") {
                         open(.withdrawal, scenario: .success)

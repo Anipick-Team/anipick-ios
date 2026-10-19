@@ -71,7 +71,7 @@ struct AppEntryView: View {
                 case .editEmail:
                     AppDIContainer.makeEditEmailView()
                 case .editPassword:
-                    AppDIContainer.makeEditPasswordView()
+                    AppDIContainer.settingBuilder.make(.editPassword)
                 case .deleteAccount:
                     AppDIContainer.settingBuilder.make(.withdrawal)
                 case .myInfoInToWatchList:

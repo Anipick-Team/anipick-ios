@@ -9,6 +9,7 @@ public final class MockUserClient: UserClient {
         public var email: String
         public var editNicknameResult: Result<Void, EditNicknameError>
         public var withdrawalResult: Result<Void, WithdrawalError>
+        public var editPasswordResult: Result<Void, EditPasswordError>
         public var delay: Duration
 
         public init(
@@ -16,12 +17,14 @@ public final class MockUserClient: UserClient {
             email: String = "anipick@example.com",
             editNicknameResult: Result<Void, EditNicknameError> = .success(()),
             withdrawalResult: Result<Void, WithdrawalError> = .success(()),
+            editPasswordResult: Result<Void, EditPasswordError> = .success(()),
             delay: Duration = .zero
         ) {
             self.nickname = nickname
             self.email = email
             self.editNicknameResult = editNicknameResult
             self.withdrawalResult = withdrawalResult
+            self.editPasswordResult = editPasswordResult
             self.delay = delay
         }
 
@@ -30,13 +33,34 @@ public final class MockUserClient: UserClient {
         public static let offline = Scenario(editNicknameResult: .failure(.transport(.offline)))
     }
 
-    private let state:
-        OSAllocatedUnfairLock<
-            (scenario: Scenario, editedNicknames: [String], withdrawalCount: Int)
-        >
+    public struct PasswordChange: Equatable, Sendable {
+        public let current: String
+        public let new: String
+        public let confirmation: String
+
+        public init(current: String, new: String, confirmation: String) {
+            self.current = current
+            self.new = new
+            self.confirmation = confirmation
+        }
+    }
+
+    private struct State {
+        var scenario: Scenario
+        var editedNicknames: [String] = []
+        var withdrawalCount = 0
+        var editedPasswords: [PasswordChange] = []
+    }
+
+    private let state: OSAllocatedUnfairLock<State>
 
     public init(_ scenario: Scenario = .success) {
-        state = OSAllocatedUnfairLock(initialState: (scenario, [], 0))
+        state = OSAllocatedUnfairLock(initialState: State(scenario: scenario))
+    }
+
+    /// `editNickname`으로 받은 값
+    public var editedNicknames: [String] {
+        return state.withLock { $0.editedNicknames }
     }
 
     /// `withdraw` 호출 횟수
@@ -44,9 +68,9 @@ public final class MockUserClient: UserClient {
         return state.withLock { $0.withdrawalCount }
     }
 
-    /// `editNickname`으로 받은 값
-    public var editedNicknames: [String] {
-        return state.withLock { $0.editedNicknames }
+    /// `editPassword`로 받은 값
+    public var editedPasswords: [PasswordChange] {
+        return state.withLock { $0.editedPasswords }
     }
 
     public func cachedNickname() -> String {
@@ -75,5 +99,19 @@ public final class MockUserClient: UserClient {
         try? await Task.sleep(for: scenario.delay)
         try scenario.withdrawalResult.get()
         state.withLock { $0.scenario.nickname = "" }
+    }
+
+    public func editPassword(
+        current: String,
+        new: String,
+        confirmation: String
+    ) async throws(EditPasswordError) {
+        let change = PasswordChange(current: current, new: new, confirmation: confirmation)
+        let scenario = state.withLock {
+            $0.editedPasswords.append(change)
+            return $0.scenario
+        }
+        try? await Task.sleep(for: scenario.delay)
+        try scenario.editPasswordResult.get()
     }
 }

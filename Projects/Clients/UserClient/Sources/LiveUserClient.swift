@@ -60,6 +60,53 @@ public struct LiveUserClient: UserClient {
         await onWithdrawn()
     }
 
+    public func editPassword(
+        current: String,
+        new: String,
+        confirmation: String
+    ) async throws(EditPasswordError) {
+        let response: ServerResponse<EmptyResult>
+        do {
+            response = try await client.send(
+                Self.editPasswordEndpoint(current: current, new: new, confirmation: confirmation)
+            )
+        } catch {
+            throw .transport(error)
+        }
+        try Self.editPasswordResult(code: response.code).get()
+    }
+
+    static func editPasswordEndpoint(
+        current: String,
+        new: String,
+        confirmation: String
+    ) -> Endpoint<EmptyResult> {
+        return Endpoint(
+            method: .patch,
+            path: "api/setting/password",
+            body: .json([
+                "currentPassword": current,
+                "newPassword": new,
+                "confirmNewPassword": confirmation,
+            ]),
+            requiresAuth: true
+        )
+    }
+
+    /// 레거시 `EditPasswordViewModel.swift:84-93`
+    static func editPasswordResult(code: Int) -> Result<Void, EditPasswordError> {
+        switch code {
+        case 200:
+            return .success(())
+        case 107:
+            return .failure(.currentPasswordMismatch)
+        case 108:
+            return .failure(.confirmationMismatch)
+        default:
+            return .failure(.unexpectedResponse)
+        }
+    }
+
     static let withdrawalEndpoint = Endpoint<EmptyResult>(
         method: .patch,
         path: "api/setting/withdrawal",

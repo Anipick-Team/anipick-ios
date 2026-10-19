@@ -39,6 +39,13 @@ public struct SettingBuilder: SettingBuilding {
             )
             let state = WithdrawalReducer.State(email: dependencies.userClient.cachedEmail())
             return AnyView(WithdrawalView(state: state, reducer: reducer))
+
+        case .editPassword:
+            let reducer = EditPasswordReducer(
+                userClient: dependencies.userClient,
+                navigator: dependencies.navigator
+            )
+            return AnyView(EditPasswordView(state: EditPasswordReducer.State(), reducer: reducer))
         }
     }
 }

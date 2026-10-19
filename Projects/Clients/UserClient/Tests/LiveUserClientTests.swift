@@ -63,6 +63,42 @@ struct LiveUserClientTests {
         #expect(envelope.code == code)
     }
 
+    @Test("비밀번호 변경 요청: PATCH api/setting/password, 본문 3개")
+    func buildsEditPasswordEndpoint() throws {
+        let endpoint = LiveUserClient.editPasswordEndpoint(
+            current: "c", new: "n", confirmation: "k")
+
+        #expect(endpoint.method == .patch)
+        #expect(endpoint.path == "api/setting/password")
+        #expect(endpoint.requiresAuth)
+        guard case .json(let body) = endpoint.body else {
+            Issue.record("JSON 본문이 아니다")
+            return
+        }
+        let encoded = try JSONEncoder().encode(body)
+        #expect(
+            try JSONSerialization.jsonObject(with: encoded) as? [String: String]
+                == ["currentPassword": "c", "newPassword": "n", "confirmNewPassword": "k"]
+        )
+    }
+
+    @Test(
+        "비밀번호 변경 결과 코드를 의미로 바꾼다",
+        arguments: [
+            (200, nil), (107, EditPasswordError.currentPasswordMismatch),
+            (108, .confirmationMismatch),
+            (500, .unexpectedResponse),
+        ]
+    )
+    func mapsEditPasswordCode(code: Int, expected: EditPasswordError?) {
+        switch LiveUserClient.editPasswordResult(code: code) {
+        case .success:
+            #expect(expected == nil)
+        case .failure(let error):
+            #expect(error == expected)
+        }
+    }
+
     @Test("저장된 닉네임이 없으면 \"--\", 있으면 그 값 (레거시 UserDefaults 키 nickname)")
     func readsCachedNickname() throws {
         let suiteName = "UserClientTests.\(UUID().uuidString)"
