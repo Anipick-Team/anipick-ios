@@ -19,7 +19,6 @@ struct ScrollOffsetKey: PreferenceKey {
 
 struct AnimationInfoView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var navigationManager: NavigationManager
     @StateObject var viewModel: AnimationInfoViewModel
     @State private var starRating: Double = 0.0
     @State private var selectedAnimationStatusTab: AnimationWatchStatus = .empty
@@ -465,6 +464,18 @@ struct AnimationInfoView: View {
             }
                 
         }
+        // 접힌 헤더의 커뮤니티 탭에서도 열리므로 헤더 overlay 위에 띄운다.
+        .overlay {
+            if viewModel.isShowCommunityNotCreatedPopup {
+                CommunityNotCreatedPopupView(
+                    animeTitle: viewModel.animeDetailInfo?.title ?? "애니메이션"
+                ) {
+                    viewModel.isShowCommunityNotCreatedPopup = false
+                } inquiryAction: {
+                    viewModel.openCommunityInquiry()
+                }
+            }
+        }
      //   .animation(.easeInOut(duration: 0.22), value: headerCollapsed)
         .background(Color.white)
         .edgesIgnoringSafeArea(.top)
@@ -580,15 +591,7 @@ struct AnimationInfoView: View {
     }
 
     private func openCommunity(_ detailInfo: AnimeDetail) {
-        DLog("애니 상세 커뮤니티 탭 선택 - animeId: \(detailInfo.animeId)")
-        navigationManager.push(
-            route: .community(
-                animeId: detailInfo.animeId,
-                animeTitle: detailInfo.title ?? "애니메이션",
-                coverImageUrl: detailInfo.coverImageUrl,
-                genreNames: detailInfo.genres?.map(\.name) ?? []
-            )
-        )
+        viewModel.openCommunity(detailInfo)
     }
 }
 
