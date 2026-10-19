@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import DesignSystem
 
 struct LikePersonListView: View {
     @Environment(\.dismiss) private var dismiss

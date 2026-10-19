@@ -24,7 +24,8 @@ extension Project {
         hasResources: Bool = false,
         hasTests: Bool = true,
         testHost: Bool = false,
-        product: Product = moduleProduct
+        product: Product = moduleProduct,
+        settings: SettingsDictionary = [:]
     ) -> Project {
         precondition(
             layer == .core || layer == .shared,
@@ -40,7 +41,7 @@ extension Project {
             sources: ["Sources/**"],
             resources: hasResources ? ["Resources/**"] : nil,
             dependencies: dependencies.map(\.target),
-            settings: .swift6(isolation: isolation)
+            settings: .swift6(isolation: isolation, extra: settings)
         )
 
         guard hasTests else {

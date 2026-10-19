@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 enum FilterButtonState: String {
     case notSelected

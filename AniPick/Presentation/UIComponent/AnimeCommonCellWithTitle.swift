@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct AnimeCommonCellWithTitle: View {
     let imageUrl: String?

@@ -16,7 +16,7 @@ struct MainLoginView: View {
         ZStack {
             VStack(spacing: 0) {
                 Spacer()
-                Image("AniPickLogo_green")
+                Image("AniPickLogo_green", bundle: .designSystem)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 120)

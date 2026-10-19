@@ -5,6 +5,7 @@
 
 import SwiftUI
 import Kingfisher
+import DesignSystem
 
 /// 애니 표지·배너 원본 이미지를 보여주는 팝업
 struct ImagePreviewPopupView: View {

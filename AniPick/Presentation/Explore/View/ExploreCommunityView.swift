@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct ExploreCommunityView: View {
     @EnvironmentObject private var navigationManager: NavigationManager

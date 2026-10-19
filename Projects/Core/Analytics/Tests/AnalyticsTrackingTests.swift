@@ -35,7 +35,9 @@ final class RecordingTracker: AnalyticsTracking {
 }
 
 private struct SampleError: LocalizedError {
-    var errorDescription: String? { "서버 오류" }
+    var errorDescription: String? {
+        return "서버 오류"
+    }
 }
 
 @Suite("AnalyticsTracking 조합")

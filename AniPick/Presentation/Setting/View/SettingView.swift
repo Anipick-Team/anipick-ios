@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct SettingView: View {
     @Environment(\.dismiss) private var dismiss

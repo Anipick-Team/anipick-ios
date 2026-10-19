@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 enum RankingFilter: String {
     case realTime = "실시간"

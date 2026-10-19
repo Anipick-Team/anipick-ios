@@ -7,6 +7,7 @@
 
 import SwiftUI
 import Kingfisher
+import DesignSystem
 
 struct AnimeImageCommonCell: View {
     let imageUrl: String?

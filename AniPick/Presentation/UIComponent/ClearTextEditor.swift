@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import DesignSystem
 
 struct ClearTextEditor: UIViewRepresentable {
     @Binding var text: String

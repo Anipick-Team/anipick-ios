@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct LogoutPopupView: View {
     var cancelAction: () -> Void

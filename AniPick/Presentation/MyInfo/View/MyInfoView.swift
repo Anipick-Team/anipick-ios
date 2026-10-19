@@ -50,7 +50,7 @@ struct MyInfoView: View {
                                     .frame(width: 70, height: 70)
                                     .clipShape(Circle())
                             } else {
-                                Image("cloud-image")
+                                Image("cloud-image", bundle: .designSystem)
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 70, height: 70)
@@ -65,7 +65,7 @@ struct MyInfoView: View {
                                         .fill(Color.anipickPrimary)
                                         .frame(width: 28, height: 28)
 
-                                    Image("edit-profile-button")
+                                    Image("edit-profile-button", bundle: .designSystem)
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 14, height: 14)
@@ -137,7 +137,7 @@ struct MyInfoView: View {
                                         .foregroundColor(.white)
                                         .offset(x: 25, y: -10)
 
-                                    Image("cloud-image")
+                                    Image("cloud-image", bundle: .designSystem)
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: 100, height: 82)
@@ -300,7 +300,7 @@ struct MyInfoView: View {
                 
                 Spacer()
                 if isShownChevron {
-                    Image("chevron-right")
+                    Image("chevron-right", bundle: .designSystem)
                         .resizable()
                         .frame(width: 18, height: 18)
                 }

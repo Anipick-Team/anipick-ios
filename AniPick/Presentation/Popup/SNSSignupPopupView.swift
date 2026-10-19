@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct SNSSignupPopupView: View {
     var title: String = "SNS로 간편 가입된 계정입니다."

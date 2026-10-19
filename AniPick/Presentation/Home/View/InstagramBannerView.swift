@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct InstagramBannerView: View {
     private let instagramURL = "https://www.instagram.com/anipick.official?igsh=Y2tkc2k1M3FmNDll"
@@ -14,7 +15,7 @@ struct InstagramBannerView: View {
 
             // 양쪽 인스타그램 아이콘
             HStack(spacing: 0) {
-                Image("instagramIconSmall")
+                Image("instagramIconSmall", bundle: .designSystem)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 64, height: 64)
@@ -22,7 +23,7 @@ struct InstagramBannerView: View {
 
                 Spacer()
 
-                Image("instagramIcon")
+                Image("instagramIcon", bundle: .designSystem)
                     .resizable()
                     .scaledToFit()
                     .frame(width: 80, height: 80)

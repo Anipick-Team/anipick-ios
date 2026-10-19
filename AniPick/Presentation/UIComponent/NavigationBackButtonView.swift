@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct NavigationBackButtonView: View {
     let title: String

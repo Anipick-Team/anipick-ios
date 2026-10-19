@@ -10,15 +10,18 @@ public enum DefaultIsolation: String {
 extension Settings {
     /// 새 TMA 모듈 공통 설정: Swift 6 언어 모드 + Approachable Concurrency(SE-0461).
     /// 레거시 앱 타깃(Swift 5 모드)에는 적용하지 않는다.
-    public static func swift6(isolation: DefaultIsolation) -> Settings {
-        return .settings(
-            base: [
-                "DEVELOPMENT_TEAM": .string(ProjectEnvironment.teamID),
-                "CODE_SIGN_STYLE": "Automatic",
-                "SWIFT_VERSION": "6",
-                "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
-                "SWIFT_DEFAULT_ACTOR_ISOLATION": .string(isolation.rawValue),
-            ]
-        )
+    /// - Parameter extra: 모듈마다 덧붙이는 설정 (예: DesignSystem의 에셋 심볼 자동 생성 끄기)
+    public static func swift6(
+        isolation: DefaultIsolation,
+        extra: SettingsDictionary = [:]
+    ) -> Settings {
+        let base: SettingsDictionary = [
+            "DEVELOPMENT_TEAM": .string(ProjectEnvironment.teamID),
+            "CODE_SIGN_STYLE": "Automatic",
+            "SWIFT_VERSION": "6",
+            "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
+            "SWIFT_DEFAULT_ACTOR_ISOLATION": .string(isolation.rawValue),
+        ]
+        return .settings(base: base.merging(extra) { _, extra in extra })
     }
 }

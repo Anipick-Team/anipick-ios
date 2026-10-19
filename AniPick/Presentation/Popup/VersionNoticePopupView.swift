@@ -1,4 +1,5 @@
 import SwiftUI
+import DesignSystem
 
 struct VersionNoticePopupView: View {
     let title: String

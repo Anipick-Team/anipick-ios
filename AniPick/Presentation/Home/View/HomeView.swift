@@ -84,7 +84,7 @@ struct HomeView: View {
                 sectionDivider()
                 
                 if self.viewModel.recommendationAnimes.isEmpty {
-                     Image("empty_recommendation")
+                     Image("empty_recommendation", bundle: .designSystem)
                         .padding(.bottom, 24)
                 } else {
                     let nickName = UserDefaultsManager.shared.getNickname()
@@ -169,7 +169,7 @@ struct HomeView: View {
                         viewModel.moveToSimilarRecommendationView()
                     }
                 } else {
-                    Image("empty_recent_viewed")
+                    Image("empty_recent_viewed", bundle: .designSystem)
                         .accessibilityLabel("아직 찾아본 애니가 없어요. 다양한 애니를 탐색해 보세요!")
                         .padding(.bottom, 24)
                 }

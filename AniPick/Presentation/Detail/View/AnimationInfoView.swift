@@ -130,7 +130,7 @@ struct AnimationInfoView: View {
                                             dismiss()
                                             DLog("뒤로가기 누름")
                                         } label: {
-                                            Image("chevron-left-stroke")
+                                            Image("chevron-left-stroke", bundle: .designSystem)
                                                 .resizable()
                                                 .frame(width: 24, height: 24)
                                         }
@@ -415,7 +415,7 @@ struct AnimationInfoView: View {
                         Button {
                             dismiss()
                         } label: {
-                            Image("chevron-left-stroke")
+                            Image("chevron-left-stroke", bundle: .designSystem)
                                 .resizable()
                                 .frame(width: 24, height: 24)
                         }

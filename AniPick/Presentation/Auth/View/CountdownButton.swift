@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct CountdownButton: View {
     let duration: TimeInterval = 180            // 3분

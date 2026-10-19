@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct EditEmailPopupView: View {
     var okAction: () -> Void

@@ -7,6 +7,7 @@
 
 import SwiftUI
 import KakaoSDKAuth
+import DesignSystem
 
 @main
 struct AniPickApp: App {
@@ -30,8 +31,8 @@ struct AniPickApp: App {
         let item = appearance.stackedLayoutAppearance
         item.normal.iconColor = .gray6
         item.selected.iconColor = .anipickPrimary
-        item.normal.titleTextAttributes = [.foregroundColor: UIColor(named: "Gray6Color") ?? .lightGray]
-        item.selected.titleTextAttributes = [.foregroundColor: UIColor(named: "AnipickPrimaryColor") ?? .lightGray]
+        item.normal.titleTextAttributes = [.foregroundColor: UIColor(named: "Gray6Color", in: .designSystem, compatibleWith: nil) ?? .lightGray]
+        item.selected.titleTextAttributes = [.foregroundColor: UIColor(named: "AnipickPrimaryColor", in: .designSystem, compatibleWith: nil) ?? .lightGray]
         
         UITabBar.appearance().standardAppearance = appearance
         if #available(iOS 15.0, *) {

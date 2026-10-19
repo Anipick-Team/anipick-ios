@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 /// 커뮤니티 게시글의 스포일러 태그 (chips 배경 + primary 텍스트, 테두리 없음)
 struct SpoilerTagView: View {

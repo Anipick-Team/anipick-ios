@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct WithdrawlUserPopupView: View {
     var closeAction: () -> Void

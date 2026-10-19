@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct AnimationDetailInfoView: View {
     let detailInfo: AnimeDetail
@@ -280,7 +281,7 @@ struct AnimationDetailInfoView: View {
                     .customFontStyle(size: 18, color: .anipickBlack, weight: .black)
                 
                 Spacer()
-                Image("chevron-right")
+                Image("chevron-right", bundle: .designSystem)
                     .resizable()
                     .frame(width: 18, height: 18)
                     .foregroundColor(.gray6)

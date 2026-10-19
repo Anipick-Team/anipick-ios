@@ -4,6 +4,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct AdultSettingView: View {
     @Environment(\.dismiss) private var dismiss

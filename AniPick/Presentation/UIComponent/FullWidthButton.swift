@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import DesignSystem
 
 struct FullWidthButton: View {
     @Binding var isEnable: Bool
