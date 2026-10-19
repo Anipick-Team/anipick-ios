@@ -17,6 +17,8 @@ public actor AuthSession: TokenProviding {
     private let tokenStore: AuthTokenStore
     private let refresher: any TokenRefreshing
     private var refreshTask: Task<Result<Void, TransportError>, Never>?
+    /// 로그아웃·만료 때마다 1씩 오른다. 갱신을 기다리는 사이 로그아웃됐는지 판단한다.
+    private var signOutCount = 0
 
     public init(tokenStore: AuthTokenStore, refresher: any TokenRefreshing) {
         (events, continuation) = AsyncStream.makeStream(of: SessionEvent.self)
@@ -53,6 +55,7 @@ public actor AuthSession: TokenProviding {
     }
 
     public func signOut(_ reason: SignOutReason) {
+        signOutCount += 1
         clearTokens()
         continuation.yield(.signedOut(reason))
     }
@@ -65,8 +68,15 @@ public actor AuthSession: TokenProviding {
             expire()
             return .failure(.sessionExpired)
         }
+        let signOutCountAtStart = signOutCount
         do throws(TransportError) {
-            guard let tokens = try await refresher.refresh(refreshToken: refreshToken) else {
+            let tokens = try await refresher.refresh(refreshToken: refreshToken)
+            // 기다리는 사이 로그아웃됐으면 결과를 버린다 — 지운 토큰을 되살리지 않는다.
+            // 로그아웃 이벤트는 이미 나갔으므로 다시 알리지 않는다.
+            guard signOutCount == signOutCountAtStart else {
+                return .failure(.sessionExpired)
+            }
+            guard let tokens else {
                 expire()
                 return .failure(.sessionExpired)
             }
@@ -85,6 +95,7 @@ public actor AuthSession: TokenProviding {
 
     /// 지울 토큰이 있었을 때만 알린다 — 이미 만료된 뒤 들어온 요청이 이벤트를 반복하지 않게.
     private func expire() {
+        signOutCount += 1
         let hadTokens = !tokenStore.accessToken.isEmpty || !tokenStore.refreshToken.isEmpty
         clearTokens()
         if hadTokens {
