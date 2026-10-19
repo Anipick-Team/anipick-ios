@@ -98,6 +98,7 @@ let project = Project(
                 .project(target: "Session", path: .relativeToRoot("Projects/Core/Session")),
                 .project(target: "Navigation", path: .relativeToRoot("Projects/Core/Navigation")),
                 .project(target: "MVICore", path: .relativeToRoot("Projects/Core/MVICore")),
+                .project(target: "DesignSystem", path: .relativeToRoot("Projects/Shared/DesignSystem")),
                 .external(name: "Alamofire"),
             ]
         ),
