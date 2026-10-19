@@ -27,7 +27,6 @@ struct AppEntryView: View {
                 DLog("🔐 [Login] AppEntryView 루트 전환 - isLoggedIn=\(newValue) → \(newValue ? "홈" : "로그인") 화면")
             }
             .onAppear {
-                TokenInterceptor.shared.navigationManager = navigationManager
                 viewModel.fetchMataData()
                 // 서버가 내려가도 공지가 보이도록 앱에 포함된 비상 공지를 먼저 준비합니다.
                 showVersionNotice = UserDefaultsManager.shared.getSeenVersionNoticeTitle() != versionNotice.title

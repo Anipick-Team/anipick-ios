@@ -45,6 +45,9 @@ let project = Project(
             entitlements: .file(path: "AniPick/AniPick.entitlements"),
             dependencies: [
                 .project(target: "Storage", path: .relativeToRoot("Projects/Core/Storage")),
+                .project(target: "ClientCore", path: .relativeToRoot("Projects/Core/ClientCore")),
+                .project(target: "Networking", path: .relativeToRoot("Projects/Core/Networking")),
+                .project(target: "Session", path: .relativeToRoot("Projects/Core/Session")),
                 .external(name: "Alamofire"),
                 .external(name: "KakaoSDKAuth"),
                 .external(name: "KakaoSDKCommon"),
@@ -87,6 +90,10 @@ let project = Project(
             sources: ["AniPickTests/**"],
             dependencies: [
                 .target(name: "AniPick"),
+                .project(target: "Storage", path: .relativeToRoot("Projects/Core/Storage")),
+                .project(target: "ClientCore", path: .relativeToRoot("Projects/Core/ClientCore")),
+                .project(target: "Session", path: .relativeToRoot("Projects/Core/Session")),
+                .external(name: "Alamofire"),
             ]
         ),
         .target(

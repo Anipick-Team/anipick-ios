@@ -37,7 +37,8 @@ final class UserDefaultsManager {
     static let shared = UserDefaultsManager()
     private let defaults = UserDefaults.standard
     // 토큰은 Keychain에 저장한다. 이전 버전이 UserDefaults에 저장한 토큰은 앱 시작 시 옮긴다.
-    private let tokenStore = AuthTokenStore(
+    // AppSession도 같은 저장소를 쓴다.
+    let tokenStore = AuthTokenStore(
         secureStore: Keychain(service: "com.moana.AniPick.auth"),
         defaults: .standard
     )
