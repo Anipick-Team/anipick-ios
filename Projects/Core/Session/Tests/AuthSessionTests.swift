@@ -260,6 +260,38 @@ final class AuthSessionTests {
 
         #expect(await eventsBeforeMarker(session) == [.signedOut(.expired)])
     }
+
+    // MARK: - 갱신 중 로그아웃 (1-6 D9)
+
+    @Test("갱신 중에 로그아웃하면 늦게 도착한 새 토큰을 저장하지 않는다")
+    func discardsRefreshResultAfterSignOut() async throws {
+        let (session, refresher) = makeSession(
+            .tokens(TokenPair(accessToken: "A2", refreshToken: "R2")),
+            delay: .milliseconds(200)
+        )
+        givenTokens(access: "A1", refresh: "R1")
+
+        let refresh = Task { () -> TransportError? in
+            do throws(TransportError) {
+                try await session.refreshAccessToken()
+                return nil
+            } catch {
+                return error
+            }
+        }
+        let deadline = ContinuousClock.now + .seconds(2)
+        while await refresher.callCount == 0, ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(5))
+        }
+        try #require(await refresher.callCount == 1)
+        await session.signOut(.withdrawal)
+        let error = await refresh.value
+
+        #expect(error == .sessionExpired)
+        #expect(await session.accessToken() == nil)
+        #expect(tokenStore.refreshToken == "")
+        #expect(await eventsBeforeMarker(session) == [.signedOut(.withdrawal)])
+    }
 }
 
 @Suite("HTTPTokenRefresher")
