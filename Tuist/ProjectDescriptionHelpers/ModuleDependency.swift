@@ -28,6 +28,8 @@ public struct InterfaceDependency {
 /// Core·Shared 모듈과 외부 패키지 의존. Core·Shared는 상위 모듈(Feature·Client)을 알지 못한다.
 public struct ModuleDependency {
     let target: TargetDependency
+    /// 외부 SDK(정적 라이브러리)는 모듈 framework에 이미 링크되므로 테스트 타깃에 다시 넣지 않는다.
+    var isExternal = false
 
     public static func core(_ name: String) -> ModuleDependency {
         return ModuleDependency(target: .project(target: name, path: ModuleLayer.core.path(name)))
@@ -39,7 +41,7 @@ public struct ModuleDependency {
 
     /// 외부 SDK는 소유 모듈 한 곳에서만 의존한다 (Firebase → Analytics, Kakao·Google → AuthClientLive).
     public static func external(_ name: String) -> ModuleDependency {
-        return ModuleDependency(target: .external(name: name))
+        return ModuleDependency(target: .external(name: name), isExternal: true)
     }
 }
 

@@ -13,6 +13,9 @@ extension Project {
     /// - Parameter testHost: 테스트에 호스트 앱이 필요한지. 호스트 없는 테스트 번들은 Keychain에
     ///   접근할 수 없어 `errSecMissingEntitlement`(-34018)로 실패한다 (2026-10-18 Storage 실측).
     /// - Parameter hasTests: 동작 없이 타입만 정의하는 모듈(ClientCore 등)은 `false`
+    /// - Parameter product: 기본은 `moduleProduct`(동적). 외부 SDK를 감싸는 모듈은 `.staticFramework` —
+    ///   동적 framework가 정적 SDK를 품으면 앱이 쓰는 다른 SDK와 공유하는 정적 라이브러리
+    ///   (GoogleUtilities 등)가 앱과 framework에 한 벌씩 링크된다 (2026-10-19 AnalyticsLive).
     public static func module(
         _ name: String,
         layer: ModuleLayer,
@@ -20,7 +23,8 @@ extension Project {
         dependencies: [ModuleDependency] = [],
         hasResources: Bool = false,
         hasTests: Bool = true,
-        testHost: Bool = false
+        testHost: Bool = false,
+        product: Product = moduleProduct
     ) -> Project {
         precondition(
             layer == .core || layer == .shared,
@@ -30,7 +34,7 @@ extension Project {
         let framework = Target.target(
             name: name,
             destinations: ProjectEnvironment.destinations,
-            product: moduleProduct,
+            product: product,
             bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(name)",
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Sources/**"],
@@ -52,6 +56,7 @@ extension Project {
         // 단위 테스트 타깃이 앱 타깃에 의존하면 Tuist가 TEST_HOST·BUNDLE_LOADER를 설정한다.
         // 테스트는 모듈의 공개 API에 드러나는 의존 모듈(예: ClientCore의 TransportError)도 import하므로
         // 같은 의존을 선언한다 (선언하지 않으면 tuist inspect dependencies가 암시적 의존으로 잡는다).
+        // 외부 SDK는 뺀다 — 정적 라이브러리라 테스트 번들에 한 벌 더 링크된다 (2026-10-19 Analytics).
         let tests = Target.target(
             name: "\(name)Tests",
             destinations: ProjectEnvironment.destinations,
@@ -60,7 +65,7 @@ extension Project {
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Tests/**"],
             dependencies: [.target(name: framework.name)]
-                + dependencies.map(\.target)
+                + dependencies.filter { !$0.isExternal }.map(\.target)
                 + (host.map { [.target(name: $0.name)] } ?? []),
             settings: .swift6(isolation: isolation)
         )
