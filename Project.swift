@@ -48,6 +48,7 @@ let project = Project(
                 .project(target: "ClientCore", path: .relativeToRoot("Projects/Core/ClientCore")),
                 .project(target: "Networking", path: .relativeToRoot("Projects/Core/Networking")),
                 .project(target: "Session", path: .relativeToRoot("Projects/Core/Session")),
+                .project(target: "Navigation", path: .relativeToRoot("Projects/Core/Navigation")),
                 .external(name: "Alamofire"),
                 .external(name: "KakaoSDKAuth"),
                 .external(name: "KakaoSDKCommon"),
@@ -93,6 +94,8 @@ let project = Project(
                 .project(target: "Storage", path: .relativeToRoot("Projects/Core/Storage")),
                 .project(target: "ClientCore", path: .relativeToRoot("Projects/Core/ClientCore")),
                 .project(target: "Session", path: .relativeToRoot("Projects/Core/Session")),
+                .project(target: "Navigation", path: .relativeToRoot("Projects/Core/Navigation")),
+                .project(target: "MVICore", path: .relativeToRoot("Projects/Core/MVICore")),
                 .external(name: "Alamofire"),
             ]
         ),

@@ -13,6 +13,8 @@ final class NavigationManager: ObservableObject {
     @Published var path = NavigationPath()
     // 로그인 여부 (루트 화면 게이팅). push 유실과 무관하게 로그인 완료를 보장하기 위한 공유 상태.
     @Published var isLoggedIn: Bool = !UserDefaultsManager.shared.getAccessToken().isEmpty
+    // 새 Feature 화면을 모달로 띄울 때 (LegacyNavigator.present). AppEntryView가 sheet로 표시한다.
+    @Published var presentedRoute: PresentedRoute?
 
     /// 로그인 성공 시 호출. nav push에 의존하지 않고 즉시 루트를 홈(로그인 상태)으로 전환한다.
     func completeLogin() {

@@ -164,6 +164,9 @@ struct AppEntryView: View {
             }
         }
         .background(Color.white)
+        .sheet(item: $navigationManager.presentedRoute) { presented in
+            modalDestination(presented.route)
+        }
         .overlay {
             if showVersionNotice {
                 VersionNoticePopupView(
@@ -181,6 +184,15 @@ struct AppEntryView: View {
                 }
             }
         }
+    }
+}
+
+extension AppEntryView {
+    /// 새 Feature가 present한 Route의 목적지. 처음 모달 Route가 생기는 이관 반복에서 case를 추가한다.
+    @ViewBuilder
+    private func modalDestination(_ route: AnyHashable) -> some View {
+        let _ = assertionFailure("모달 목적지가 등록되지 않은 Route: \(route)")
+        EmptyView()
     }
 }
 
