@@ -7,6 +7,7 @@
 import SwiftUI
 import SettingFeature
 import SettingInterface
+import Session
 import UserClientLive
 
 @MainActor
@@ -19,7 +20,10 @@ struct AppDIContainer {
     // MARK: - 새 Feature 빌더 (이관 Phase 3). 레거시 make…View는 1릴리스 유지 (R13)
     static let settingBuilder: any SettingBuilding = SettingBuilder(
         dependencies: SettingDependencies(
-            userClient: LiveUserClient(client: AppSession.httpClient),
+            userClient: LiveUserClient(
+                client: AppSession.httpClient,
+                onWithdrawn: { await AppSession.shared.signOut(.withdrawal) }
+            ),
             navigator: navigator
         )
     )

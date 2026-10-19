@@ -7,14 +7,23 @@ import UserClientInterface
 public struct LiveUserClient: UserClient {
     /// 레거시 `UserDefaultsManager`와 같은 키
     static let nicknameKey = PreferenceKey("nickname", defaultValue: "--")
+    static let emailKey = PreferenceKey("email", defaultValue: "")
 
     private let client: HTTPClient
     private let preferences: Preferences
+    private let onWithdrawn: @Sendable () async -> Void
 
-    /// - Parameter client: 인증 클라이언트 (`tokenProvider`가 있는 것)
-    public init(client: HTTPClient, preferences: Preferences = Preferences()) {
+    /// - Parameters:
+    ///   - client: 인증 클라이언트 (`tokenProvider`가 있는 것)
+    ///   - onWithdrawn: 탈퇴 성공 후 로그아웃 처리 (App: `AuthSession.signOut(.withdrawal)`)
+    public init(
+        client: HTTPClient,
+        preferences: Preferences = Preferences(),
+        onWithdrawn: @escaping @Sendable () async -> Void = {}
+    ) {
         self.client = client
         self.preferences = preferences
+        self.onWithdrawn = onWithdrawn
     }
 
     public func cachedNickname() -> String {
@@ -31,6 +40,31 @@ public struct LiveUserClient: UserClient {
         try Self.editNicknameResult(code: response.code).get()
         preferences.set(nickname, for: Self.nicknameKey)
     }
+
+    public func cachedEmail() -> String {
+        return preferences.value(for: Self.emailKey)
+    }
+
+    public func withdraw() async throws(WithdrawalError) {
+        let response: ServerResponse<EmptyResult>
+        do {
+            response = try await client.send(Self.withdrawalEndpoint)
+        } catch {
+            throw .transport(error)
+        }
+        guard response.code == 200 else {
+            throw .rejected
+        }
+        // 레거시 순서: 닉네임 비우기 → 로그아웃 (WithdrawalViewModel.swift:29-36)
+        preferences.set("", for: Self.nicknameKey)
+        await onWithdrawn()
+    }
+
+    static let withdrawalEndpoint = Endpoint<EmptyResult>(
+        method: .patch,
+        path: "api/setting/withdrawal",
+        requiresAuth: true
+    )
 
     static func editNicknameEndpoint(_ nickname: String) -> Endpoint<EmptyResult> {
         return Endpoint(

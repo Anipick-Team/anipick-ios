@@ -69,21 +69,37 @@ struct ExampleRoot: View {
 
     var body: some View {
         NavigationStack(path: $navigator.path) {
-            List(MockUserClient.Scenario.Name.allCases, id: \.self) { name in
-                Button(name.rawValue) {
-                    builder = SettingBuilder(
-                        dependencies: SettingDependencies(
-                            userClient: MockUserClient(name.scenario),
-                            navigator: navigator
-                        )
-                    )
-                    navigator.push(SettingRoute.editNickname)
+            List {
+                Section("닉네임 변경") {
+                    ForEach(MockUserClient.Scenario.Name.allCases, id: \.self) { name in
+                        Button(name.rawValue) {
+                            open(.editNickname, scenario: name.scenario)
+                        }
+                    }
+                }
+                Section("회원 탈퇴") {
+                    Button("성공 (이 앱에서는 이동 없음 — 로그인 화면 전환은 App의 Session)") {
+                        open(.withdrawal, scenario: .success)
+                    }
+                    Button("거절") {
+                        open(.withdrawal, scenario: .init(withdrawalResult: .failure(.rejected)))
+                    }
                 }
             }
-            .navigationTitle("닉네임 변경 시나리오")
+            .navigationTitle("설정 시나리오")
             .navigationDestination(for: SettingRoute.self) { route in
                 builder?.make(route)
             }
         }
+    }
+
+    private func open(_ route: SettingRoute, scenario: MockUserClient.Scenario) {
+        builder = SettingBuilder(
+            dependencies: SettingDependencies(
+                userClient: MockUserClient(scenario),
+                navigator: navigator
+            )
+        )
+        navigator.push(route)
     }
 }

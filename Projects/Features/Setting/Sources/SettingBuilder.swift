@@ -31,6 +31,14 @@ public struct SettingBuilder: SettingBuilding {
                 currentNickname: dependencies.userClient.cachedNickname()
             )
             return AnyView(EditNicknameView(state: state, reducer: reducer))
+
+        case .withdrawal:
+            let reducer = WithdrawalReducer(
+                userClient: dependencies.userClient,
+                navigator: dependencies.navigator
+            )
+            let state = WithdrawalReducer.State(email: dependencies.userClient.cachedEmail())
+            return AnyView(WithdrawalView(state: state, reducer: reducer))
         }
     }
 }
