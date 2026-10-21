@@ -12,6 +12,8 @@ public protocol UserClient: Sendable {
     func withdraw() async throws(WithdrawalError)
     func editPassword(current: String, new: String, confirmation: String)
         async throws(EditPasswordError)
+    /// 가입한 SNS (`KAKAO`·`GOOGLE`·`APPLE`). 이메일 가입이면 `""`
+    func cachedSNSAccount() -> String
     /// 성공하면 저장된 이메일도 바꾼다.
     func editEmail(newEmail: String, password: String) async throws(EditEmailError)
 }

@@ -2,8 +2,10 @@ import SwiftUI
 
 /// 제목·설명·버튼 1~2개로 된 확인 팝업. `.popup(isPresented:)`와 함께 쓴다.
 ///
-/// 레거시 `SNSSignupPopupView`·`EditEmailPopupView`와 같은 모양이다.
-/// (`LogoutPopupView`는 여백·최대 너비가 조금 다르다 — Figma 대조 후 표준을 정한다, 이관 2-1b)
+/// - `.standard`: 레거시 `SNSSignupPopupView`·`EditEmailPopupView`와 같은 모양
+/// - `.compact`: 레거시 `LogoutPopupView`와 같은 모양 (여백 20, 최대 너비 300, 제목 아래 8)
+///
+/// 두 모양 중 무엇이 표준인지는 Figma 대조 후 정한다 (이관 2-1b).
 ///
 /// ```swift
 /// .popup(isPresented: store.state.isLogoutConfirmPresented) {
@@ -15,6 +17,12 @@ import SwiftUI
 /// }
 /// ```
 public struct ConfirmPopup: View {
+    public enum Style: Sendable {
+        case standard
+        case compact
+    }
+
+    private let style: Style
     private let title: String
     private let message: String
     private let cancelTitle: String?
@@ -24,6 +32,7 @@ public struct ConfirmPopup: View {
 
     /// - Parameter cancelTitle: `nil`이면 확인 버튼 하나만 둔다
     public init(
+        style: Style = .standard,
         title: String,
         message: String,
         cancelTitle: String? = "취소",
@@ -31,6 +40,7 @@ public struct ConfirmPopup: View {
         onCancel: @escaping () -> Void = {},
         onConfirm: @escaping () -> Void
     ) {
+        self.style = style
         self.title = title
         self.message = message
         self.cancelTitle = cancelTitle
@@ -40,11 +50,29 @@ public struct ConfirmPopup: View {
     }
 
     public var body: some View {
-        VStack(spacing: 0) {
+        switch style {
+        case .standard:
+            content
+                .padding(.vertical, 20)
+                .padding(20)
+                .background(Color.white)
+                .cornerRadius(16)
+                .padding(.horizontal, 20)
+        case .compact:
+            content
+                .padding(20)
+                .background(Color.white)
+                .cornerRadius(16)
+                .frame(maxWidth: 300)
+        }
+    }
+
+    private var content: some View {
+        return VStack(spacing: 0) {
             Text(title)
                 .font(.system(size: 20, weight: .bold))
                 .foregroundColor(.anipickBlack)
-                .padding(.bottom, 12)
+                .padding(.bottom, style == .compact ? 8 : 12)
 
             Text(message)
                 .font(.system(size: 14))
@@ -77,11 +105,6 @@ public struct ConfirmPopup: View {
             }
             .frame(height: 22)
         }
-        .padding(.vertical, 20)
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(16)
-        .padding(.horizontal, 20)
     }
 }
 

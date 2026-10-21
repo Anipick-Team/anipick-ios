@@ -7,6 +7,7 @@ public final class MockUserClient: UserClient {
     public struct Scenario: Sendable {
         public var nickname: String
         public var email: String
+        public var snsAccount: String
         public var editNicknameResult: Result<Void, EditNicknameError>
         public var withdrawalResult: Result<Void, WithdrawalError>
         public var editPasswordResult: Result<Void, EditPasswordError>
@@ -16,6 +17,7 @@ public final class MockUserClient: UserClient {
         public init(
             nickname: String = "애니픽",
             email: String = "anipick@example.com",
+            snsAccount: String = "",
             editNicknameResult: Result<Void, EditNicknameError> = .success(()),
             withdrawalResult: Result<Void, WithdrawalError> = .success(()),
             editPasswordResult: Result<Void, EditPasswordError> = .success(()),
@@ -24,6 +26,7 @@ public final class MockUserClient: UserClient {
         ) {
             self.nickname = nickname
             self.email = email
+            self.snsAccount = snsAccount
             self.editNicknameResult = editNicknameResult
             self.withdrawalResult = withdrawalResult
             self.editPasswordResult = editPasswordResult
@@ -118,6 +121,10 @@ public final class MockUserClient: UserClient {
 
     public func cachedEmail() -> String {
         return state.withLock { $0.scenario.email }
+    }
+
+    public func cachedSNSAccount() -> String {
+        return state.withLock { $0.scenario.snsAccount }
     }
 
     public func withdraw() async throws(WithdrawalError) {

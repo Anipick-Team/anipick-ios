@@ -27,13 +27,16 @@ struct AppDIContainer {
             ),
             authClient: LiveAuthClient(
                 client: AppSession.httpClient,
+                accessToken: { await AppSession.shared.accessToken() },
                 // 레거시 순서: 사용자 정보 정리 → 로그아웃 (EditEmailViewModel.swift:58-62)
                 onLoggedOut: {
                     UserDefaultsManager.shared.logoutAllClearInfo()
                     await AppSession.shared.signOut(.userLogout)
                 }
             ),
-            navigator: navigator
+            navigator: navigator,
+            openURL: { UIApplication.shared.open($0) },
+            appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         )
     )
     

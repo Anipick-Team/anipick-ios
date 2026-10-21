@@ -8,6 +8,7 @@ public struct LiveUserClient: UserClient {
     /// 레거시 `UserDefaultsManager`와 같은 키
     static let nicknameKey = PreferenceKey("nickname", defaultValue: "--")
     static let emailKey = PreferenceKey("email", defaultValue: "")
+    static let snsKey = PreferenceKey("sns", defaultValue: "")
 
     private let client: HTTPClient
     private let preferences: Preferences
@@ -43,6 +44,10 @@ public struct LiveUserClient: UserClient {
 
     public func cachedEmail() -> String {
         return preferences.value(for: Self.emailKey)
+    }
+
+    public func cachedSNSAccount() -> String {
+        return preferences.value(for: Self.snsKey)
     }
 
     public func withdraw() async throws(WithdrawalError) {

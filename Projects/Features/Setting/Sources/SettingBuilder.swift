@@ -1,4 +1,5 @@
 import AuthClientInterface
+import Foundation
 import Navigation
 import SettingInterface
 import SwiftUI
@@ -8,11 +9,23 @@ public struct SettingDependencies {
     public let userClient: any UserClient
     public let authClient: any AuthClient
     public let navigator: any Navigator
+    /// 문의하기·약관 등 외부 링크
+    public let openURL: @MainActor @Sendable (URL) -> Void
+    /// "앱 버전" 행에 보일 값 (App: `CFBundleShortVersionString`)
+    public let appVersion: String?
 
-    public init(userClient: any UserClient, authClient: any AuthClient, navigator: any Navigator) {
+    public init(
+        userClient: any UserClient,
+        authClient: any AuthClient,
+        navigator: any Navigator,
+        openURL: @escaping @MainActor @Sendable (URL) -> Void = { _ in },
+        appVersion: String? = nil
+    ) {
         self.userClient = userClient
         self.authClient = authClient
         self.navigator = navigator
+        self.openURL = openURL
+        self.appVersion = appVersion
     }
 }
 
@@ -25,6 +38,19 @@ public struct SettingBuilder: SettingBuilding {
 
     public func make(_ route: SettingRoute) -> AnyView {
         switch route {
+        case .main:
+            let reducer = SettingReducer(
+                userClient: dependencies.userClient,
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator,
+                openURL: dependencies.openURL
+            )
+            let state = SettingReducer.State(
+                snsAccount: dependencies.userClient.cachedSNSAccount(),
+                appVersion: dependencies.appVersion
+            )
+            return AnyView(SettingView(state: state, reducer: reducer))
+
         case .editNickname:
             let reducer = EditNicknameReducer(
                 userClient: dependencies.userClient,

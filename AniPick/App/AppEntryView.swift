@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SettingInterface
 import Utils
 
 struct AppEntryView: View {
@@ -51,6 +52,10 @@ struct AppEntryView: View {
                 if !UserDefaultsManager.shared.getHasSeenServerRecoveryNotice() {
                     showServerRecoveryNotice = true
                 }
+            }
+            // 새 Feature가 push한 Route의 목적지. 탭 루트에서 한 번만 등록한다 (A2)
+            .navigationDestination(for: SettingRoute.self) { route in
+                AppDIContainer.settingBuilder.make(route)
             }
             .navigationDestination(for: AppRoute.self) { route in
                 switch route {
@@ -110,7 +115,7 @@ struct AppEntryView: View {
                     // TODO: 성인인증 화면 구현 시 연결
                     AppDIContainer.makeAdultSettingView()
                 case .setting:
-                    AppDIContainer.makeSettingView()
+                    AppDIContainer.settingBuilder.make(.main)
                 case .inquiry:
                     InquiryView()
                 case .preferenceSelection:

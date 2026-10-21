@@ -71,6 +71,14 @@ struct ExampleRoot: View {
     var body: some View {
         NavigationStack(path: $navigator.path) {
             List {
+                Section("설정 메인") {
+                    Button("이메일 가입") {
+                        open(.main, scenario: .success)
+                    }
+                    Button("카카오 가입 (이메일·비밀번호 변경 막힘)") {
+                        open(.main, scenario: .init(snsAccount: "KAKAO"))
+                    }
+                }
                 Section("닉네임 변경") {
                     ForEach(MockUserClient.Scenario.Name.allCases, id: \.self) { name in
                         Button(name.rawValue) {
@@ -129,7 +137,9 @@ struct ExampleRoot: View {
             dependencies: SettingDependencies(
                 userClient: MockUserClient(scenario),
                 authClient: MockAuthClient(),
-                navigator: navigator
+                navigator: navigator,
+                openURL: { print("외부 링크: \($0)") },
+                appVersion: "1.2.0"
             )
         )
         navigator.push(route)

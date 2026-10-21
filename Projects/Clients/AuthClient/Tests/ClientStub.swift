@@ -12,12 +12,20 @@ final class ClientStub: Sendable {
 
     let host = "auth-\(UUID().uuidString.lowercased()).test"
     private let state = OSAllocatedUnfairLock(
-        initialState: (reply: Reply.json("{}"), requests: [URLRequest]())
+        initialState: (reply: Reply.json("{}"), requests: [URLRequest](), delay: 0.0)
     )
 
-    init(_ reply: Reply) {
-        state.withLock { $0.reply = reply }
+    /// - Parameter delay: 응답을 늦추는 초
+    init(_ reply: Reply, delay: Double = 0) {
+        state.withLock {
+            $0.reply = reply
+            $0.delay = delay
+        }
         ClientStubProtocol.register(self)
+    }
+
+    var delay: Double {
+        return state.withLock { $0.delay }
     }
 
     var requests: [URLRequest] {
@@ -73,7 +81,14 @@ final class ClientStubProtocol: URLProtocol, @unchecked Sendable {
             client?.urlProtocol(self, didFailWithError: URLError(.unsupportedURL))
             return
         }
-        switch stub.handle(request) {
+        let reply = stub.handle(request)
+        DispatchQueue.global().asyncAfter(deadline: .now() + stub.delay) { [self] in
+            respond(reply, url: url)
+        }
+    }
+
+    private func respond(_ reply: ClientStub.Reply, url: URL) {
+        switch reply {
         case .json(let body):
             let response = HTTPURLResponse(
                 url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!

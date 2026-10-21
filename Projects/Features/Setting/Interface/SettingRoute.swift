@@ -2,6 +2,8 @@ import SwiftUI
 
 /// 설정 Feature의 화면. 이관하는 대로 case를 늘린다.
 public enum SettingRoute: Hashable, Sendable {
+    /// 설정 메인
+    case main
     case editNickname
     case withdrawal
     case editPassword
