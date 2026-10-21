@@ -67,6 +67,12 @@ final class CommunityDetailViewModel: ObservableObject {
         fetch()
     }
 
+    /// 공유할 아이템 목록 반환 — 게시글 Universal Link (앱 설치 시 게시글 상세로 진입)
+    func makeShareItems() -> [Any] {
+        guard let link = DeepLink.communityPost(id: postId).universalLink else { return [] }
+        return [link]
+    }
+
     func fetch() {
         isLoading = true
         errorMessage = nil
@@ -623,7 +629,7 @@ struct CommunityDetailView: View {
                 Spacer()
 
                 Button {
-                    ShareSheet.present(items: ["\(post.title)\n\(post.body)"])
+                    ShareSheet.present(items: viewModel.makeShareItems())
                     DLog("커뮤니티 게시글 공유 실행 - postId: \(viewModel.postID)")
                 } label: {
                     Image(systemName: "square.and.arrow.up")

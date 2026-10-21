@@ -40,15 +40,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         guard userActivity.activityType == NSUserActivityTypeBrowsingWeb,
               let url = userActivity.webpageURL else { return false }
 
-        let components = url.pathComponents.filter { $0 != "/" }
-        if url.host == "anipick.p-e.kr",
-           components.count >= 4,
-           components[0] == "app",
-           components[1] == "anime",
-           components[2] == "detail",
-           let id = Int(components[3]) {
+        let link = DeepLink(url: url)
+        if link != .unknown {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                AppDIContainer.appState.deepLink = .anime(id: id)
+                AppDIContainer.appState.deepLink = link
             }
         }
         return true
