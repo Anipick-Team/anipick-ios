@@ -164,6 +164,7 @@ extension PreferenceSelectionViewModel {
     func moveToMainView() {
         // 신규 유저 온보딩(취향선택) 완료 → push가 아닌 상태 전환으로 홈 진입 (push 유실 방지)
         DLog("🔐 [Login] 취향선택 완료 → completeLogin (홈)")
+        AnalyticsManager.logOnboardingComplete(ratedCount: self.storedRatedAnimeList.count)
         self.navigationManager.completeLogin()
     }
     

@@ -18,6 +18,7 @@ class AppDelegate: NSObject, UIApplicationDelegate {
     ) -> Bool {
         // TODO: 보안처리 필요
         FirebaseApp.configure()
+        AnalyticsManager.restoreUser()
         KakaoSDK.initSDK(appKey: "0342f72c46d8653e8a501fe5704a540c")
         return true
     }
