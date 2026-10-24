@@ -37,7 +37,7 @@ struct HomeAnimeCard: View {
     }
 
     private func rankBadge(_ rank: Int) -> some View {
-        Text("\(rank)")
+        return Text("\(rank)")
             .font(.system(size: 14, weight: .black))
             .foregroundStyle(.white)
             .frame(width: 36, height: 36)
