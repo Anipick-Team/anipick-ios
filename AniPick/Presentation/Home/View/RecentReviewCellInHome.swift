@@ -20,7 +20,7 @@ struct RecentReviewCellInHome: View {
     
     @State private var isShowToastBlockUser: Bool = false
     let item: ReviewItem
-    @StateObject var viewModel: RecentReviewViewModel
+    let viewModel: RecentReviewViewModel
     let id: Int = 0
     let onReportButtonTapped: (_ id: Int, _ buttonFrame: CGRect) -> Void
     let tappedMoreButton: ((Bool) -> Void)?

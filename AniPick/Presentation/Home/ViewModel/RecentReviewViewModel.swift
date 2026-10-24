@@ -17,6 +17,11 @@ final class RecentReviewViewModel: ObservableObject {
     private let session = NetworkSession.authenticated
     
     private var lastId: Int? = nil
+    private var isLoading = false
+    private var isLoadingMore = false
+    private var hasMore = true
+    /// 새로고침할 때마다 올린다. 이전 세대의 load more 응답이 새 목록에 붙지 않게 한다.
+    private var generation = 0
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
         self.fetchRecentReview()
@@ -27,46 +32,67 @@ final class RecentReviewViewModel: ObservableObject {
 extension RecentReviewViewModel {
     
     func fetchRecentReview() {
+        self.generation += 1
+        let generation = self.generation
         self.lastId = nil
+        self.hasMore = true
+        self.isLoading = true
+        self.isLoadingMore = false
         session.request(ReviewAPI.recentReview(lastId: nil))
             .cURLDescription { description in
                 DLog("\(description)")
             }
             .responseDecodable(of: RecentReviewsResponse.self) { [weak self] response in
-                guard let self else { return }
+                guard let self, self.generation == generation else { return }
+                self.isLoading = false
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 뷰 - \(value)")
                     if let result = value.result,
                        let recentList = result.reviews {
                         self.recentReviewList = recentList
-                        self.lastId = result.cursor?.lastId
+                        self.updateCursor(result.cursor?.lastId)
                     }
                 case .failure(let error):
                     DLog("최근 리뷰 뷰 - \(error)")
                 }
             }
     }
-    
+
     func fetchLoadMoreRecentReview() {
-        session.request(ReviewAPI.recentReview(lastId: self.lastId))
+        guard !isLoading, !isLoadingMore, hasMore else { return }
+        guard let lastId else {
+            hasMore = false
+            return
+        }
+        let generation = self.generation
+        self.isLoadingMore = true
+        session.request(ReviewAPI.recentReview(lastId: lastId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
             .responseDecodable(of: RecentReviewsResponse.self) { [weak self] response in
-                guard let self else { return }
+                guard let self, self.generation == generation else { return }
+                self.isLoadingMore = false
                 switch response.result {
                 case .success(let value):
                     DLog("최근 리뷰 뷰 - \(value)")
                     if let result = value.result,
                        let recentList = result.reviews {
                         self.recentReviewList += recentList
-                        self.lastId = result.cursor?.lastId
+                        self.updateCursor(result.cursor?.lastId)
+                        if recentList.isEmpty { self.hasMore = false }
                     }
                 case .failure(let error):
                     DLog("최근 리뷰 뷰 - \(error)")
                 }
             }
+    }
+
+    /// 커서가 없으면 마지막 페이지로 본다. 그대로 요청하면 `lastId: nil`로 첫 페이지를 다시 받아 붙인다.
+    private func updateCursor(_ lastId: Int?) {
+        self.lastId = lastId
+        if lastId == nil { self.hasMore = false }
     }
     
     func reportReview(reviewId: Int, message: String, completionHandler: @escaping (Bool) -> Void) {
