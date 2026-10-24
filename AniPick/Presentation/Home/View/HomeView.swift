@@ -120,9 +120,6 @@ struct HomeView: View {
                             .padding(.horizontal, 20)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 32)
-                    .background(.gray7)
                     
                     // TODO: 얘가 기본 default값 UI
                     self.sectionView(title: self.highlightedTitle("\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기", " 방영예정"), items: viewModel.upcomingAnimes) {
@@ -273,43 +270,55 @@ struct HomeView: View {
             Button {
                 self.viewModel.moveToRecentReviewView()
             } label: {
+                // Figma `review`: 229x136, 위아래 12·좌우 16, 테두리 1px #DFDFDF
                 VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 0) {
+                    VStack(alignment: .leading, spacing: 7) {
                         Text(item.animeTitle ?? "--")
-                            .font(.system(size: 12))
-                            .padding(.bottom, 7)
+                            .customFontStyle(size: 12, color: .homeTextGray, weight: .medium)
                             .lineLimit(1)
-                        
+
                         Text(item.reviewContent ?? "--")
-                            .frame(width: 197, alignment: .leading)
+                            .customFontStyle(size: 16, color: .homeBlack, weight: .medium)
+                            .lineSpacing(3)  // 줄 높이 22.4pt(140%)에 맞춘 근사값
                             .multilineTextAlignment(.leading)
                             .lineLimit(2)
-                            .font(.system(size: 16))
-                            .padding(.bottom, 17)
-                        
-                        HStack(spacing: 0) {
-                            Text(item.nickname ?? "--")
-                                .lineLimit(1)
-                            
-                            Rectangle()
-                                .frame(width: 1, height: 10)
-                                .padding(.horizontal, 8)
-                            
-                            // TODO: 날짜 변환 필요
-                            Text(item.createdAt ?? "--")
-                        }
-                        .font(.system(size: 12))
-                        
+                            .frame(height: 50, alignment: .topLeading)
                     }
-                    .foregroundStyle(.anipickBlack)
-                    .frame(width: 197, height: 112)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
-                    .background(.white)
-                    .cornerRadius(8)
+
+                    Spacer(minLength: 16)
+
+                    // 닉네임은 날짜를 뺀 남은 폭(약 117)에서 말줄임
+                    HStack(spacing: 8) {
+                        Text(item.nickname ?? "--")
+                            .lineLimit(1)
+
+                        Rectangle()
+                            .frame(width: 1, height: 10)
+
+                        Text(self.reviewDateText(item.createdAt))
+                            .fixedSize()
+                    }
+                    .customFontStyle(size: 12, color: .homeTextGray, weight: .medium)
+                }
+                .frame(width: 197, height: 112, alignment: .leading)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.gray6, lineWidth: 1)
                 }
             }
         }
+    }
+
+    /// 서버 날짜 앞부분의 `yyyy-MM-dd`·`yyyy.MM.dd`를 `yyyy.MM.dd`로 맞춘다. 다른 형식이면 그대로 둔다.
+    private func reviewDateText(_ raw: String?) -> String {
+        guard let raw else { return "--" }
+        let prefix = String(raw.prefix(10))
+        let isDate = prefix.range(of: #"^\d{4}[-.]\d{2}[-.]\d{2}$"#, options: .regularExpression) != nil
+        return isDate ? prefix.replacingOccurrences(of: "-", with: ".") : raw
     }
     
     private func animationCell(anime: Anime, action: @escaping () -> Void) -> some View {
