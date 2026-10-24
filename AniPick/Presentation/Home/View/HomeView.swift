@@ -30,17 +30,19 @@ struct HomeView: View {
                         .frame(width: 24, height: 24)
                 }
             }
-            .padding(.top, 12)
+            .padding(.vertical, 12)
             .padding(.horizontal, 20)
-            
-            Spacer().frame(height: 24)
-            
-            Rectangle()
-                .frame(maxWidth: .infinity)
-                .frame(height: 1)
-                .foregroundStyle(.gray6)
-                .padding(.horizontal, -20)
-            
+            .frame(height: 60)
+            .background(Color.white)
+            .overlay(alignment: .bottom) {
+                Rectangle()
+                    .frame(height: 2)
+                    .foregroundStyle(.gray6)
+            }
+            // Figma effect `header`: X 0, Y 2, Blur 12, #000000 20%
+            .shadow(color: .black.opacity(0.2), radius: 6, x: 0, y: 2)
+            .zIndex(1)  // 그림자가 아래 스크롤 영역에 가려지지 않도록
+
             ScrollView(showsIndicators: false) {
                 VStack(spacing: 100) {
                     VStack(spacing: 0) {
