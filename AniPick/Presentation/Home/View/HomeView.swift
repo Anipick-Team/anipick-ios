@@ -235,7 +235,7 @@ struct HomeView: View {
                         Text(day.title)
                             .customFontStyle(
                                 size: 18,
-                                color: isSelected ? .white : .homeTextGray,
+                                color: isSelected ? .white : .textGray,
                                 weight: .bold
                             )
                             .frame(width: 45, height: 45)
@@ -274,7 +274,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     VStack(alignment: .leading, spacing: 7) {
                         Text(item.animeTitle ?? "--")
-                            .customFontStyle(size: 12, color: .homeTextGray, weight: .medium)
+                            .customFontStyle(size: 12, color: .textGray, weight: .medium)
                             .lineLimit(1)
 
                         Text(item.reviewContent ?? "--")
@@ -298,7 +298,7 @@ struct HomeView: View {
                         Text(self.reviewDateText(item.createdAt))
                             .fixedSize()
                     }
-                    .customFontStyle(size: 12, color: .homeTextGray, weight: .medium)
+                    .customFontStyle(size: 12, color: .textGray, weight: .medium)
                 }
                 .frame(width: 197, height: 112, alignment: .leading)
                 .padding(.horizontal, 16)
@@ -480,12 +480,6 @@ struct WeekdayNewAnimeView: View {
     }
 }
 
-
-// TODO: 색상 토큰(Figma `color/use/text gray`)을 정리하면 에셋으로 교체
-private extension Color {
-    /// Figma `color/use/text gray` #89919C (현재 `TextGrayColor`·`Gray8Color`는 #B1B6C1)
-    static let homeTextGray = Color(red: 0x89 / 255, green: 0x91 / 255, blue: 0x9C / 255)
-}
 
 #Preview {
     AppDIContainer.makeHomeView()
