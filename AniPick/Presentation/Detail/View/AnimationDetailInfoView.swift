@@ -133,10 +133,10 @@ struct AnimationDetailInfoView: View {
                 .padding(.horizontal, 12)
                 
             }
-            .frame(width: UIScreen.main.bounds.width - 20)   // ★ 가로 영역 고정!
             .contentShape(Rectangle())                  // 터치영역 명확화
             .clipped()                                  // 부모 확장 방지
             .scrollDisabled(false)
+            .padding(.horizontal, -20)                  // 부모 좌우 여백(20)을 상쇄해 창 폭에 맞춤
             .padding(.bottom, 20)
             
             
@@ -165,10 +165,10 @@ struct AnimationDetailInfoView: View {
                     }
                     .padding(.horizontal, 12)
                 }
-                .frame(width: UIScreen.main.bounds.width - 20)
                 .contentShape(Rectangle())
                 .clipped()
                 .scrollDisabled(false)
+                .padding(.horizontal, -20)
                 .padding(.bottom, 20)
             
             
