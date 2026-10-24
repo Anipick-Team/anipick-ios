@@ -64,7 +64,7 @@ struct RecentReviewView: View {
                                     }
                             }
                             .frame(height: 0)
-                            ForEach(viewModel.recentReviewList, id: \.self) { item in
+                            ForEach(viewModel.recentReviewList, id: \.reviewId) { item in
                                 RecentReviewCellInHome(
                                     item: item,
                                     viewModel: viewModel,
@@ -74,12 +74,7 @@ struct RecentReviewView: View {
                                     self.menuFrame = buttonFrame
                                     self.selectedBlockUserId = item.userId ?? 0
                                 }, tappedMoreButton: { value in
-                                    if value {
-                                        self.viewModel.tappedLikeReviewButton(reviewId: item.reviewId ?? 0)
-                                    } else {
-                                        self.viewModel.tappedDislikeReviewButton(reviewId: item.reviewId ?? 0)
-                                    }
-
+                                    self.viewModel.setLike(reviewId: item.reviewId ?? 0, liked: value)
                                 })
                                 .onTapGesture {
                                     self.viewModel.moveToDetailAnimation(animeId: item.animeId ?? 0)

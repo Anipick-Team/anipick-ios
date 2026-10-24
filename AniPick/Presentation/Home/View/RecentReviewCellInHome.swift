@@ -13,8 +13,6 @@ struct RecentReviewCellInHome: View {
     @State private var starRating: Double = 0
     @State private var isShowBlockMenu: Bool = false
     @State private var reviewContentLimit: Int? = 2
-    @State private var currentUserTappedLike: Bool = false
-    @State private var tmpHeartCount: Int = 0
     @State private var collapsedHeight: CGFloat = 0   // 3줄 기준 높이
     @State private var fullHeight: CGFloat = 0        // 전체 높이
     
@@ -233,22 +231,16 @@ struct RecentReviewCellInHome: View {
             HStack(alignment: .center, spacing: 0) {
                 Button {
                     DLog("좋아요 버튼 탭탭, 누를때 fill, unfill heart로 변경되어야함")
-                    self.currentUserTappedLike.toggle()
-                    tappedMoreButton?(self.currentUserTappedLike)
-                    if self.currentUserTappedLike {
-                        self.tmpHeartCount = 1
-                    } else {
-                        self.tmpHeartCount = 0
-                    }
+                    tappedMoreButton?(!(item.likedByCurrentUser ?? false))
                 } label: {
-                    Image(self.currentUserTappedLike ? .fillHeartGreen : .unfilledHeart)
+                    Image(item.likedByCurrentUser == true ? .fillHeartGreen : .unfilledHeart)
                         .resizable()
                         .frame(width: 16, height: 16)
                         .padding(.trailing, 4)
                 }
                 
                 if let likeCount = item.likeCount {
-                    Text("\(likeCount + self.tmpHeartCount)")
+                    Text("\(likeCount)")
                         .foregroundStyle(.gray6)
                         .font(.system(size: 14))
                 }
@@ -273,7 +265,6 @@ struct RecentReviewCellInHome: View {
         .background(Color.white)
         .cornerRadius(8)
         .onAppear {
-            self.currentUserTappedLike = item.likedByCurrentUser ?? false
             if let url = item.profileImageUrl {
                 self.viewModel.convertProfileImage(url) { image in
                     self.profileImage = image

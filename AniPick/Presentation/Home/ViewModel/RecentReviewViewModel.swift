@@ -22,6 +22,7 @@ final class RecentReviewViewModel: ObservableObject {
     private var hasMore = true
     /// 새로고침할 때마다 올린다. 이전 세대의 load more 응답이 새 목록에 붙지 않게 한다.
     private var generation = 0
+    private var pendingLikeReviewIds = Set<Int>()
     init(navigationManager: NavigationManager) {
         self.navigationManager = navigationManager
         self.fetchRecentReview()
@@ -164,35 +165,39 @@ extension RecentReviewViewModel {
     }
     
     
-    func tappedLikeReviewButton(reviewId: Int) {
-        session.request(ReviewAPI.likeReview(id: reviewId))
+    /// 좋아요 상태를 목록에 먼저 반영하고 요청한다. 실패(네트워크 오류·code != 200)하면 이전 상태로 되돌린다.
+    /// 셀이 다시 나타나도 목록 값을 그리므로 상태가 유지된다.
+    func setLike(reviewId: Int, liked: Bool) {
+        guard !pendingLikeReviewIds.contains(reviewId),
+              let index = recentReviewList.firstIndex(where: { $0.reviewId == reviewId }),
+              (recentReviewList[index].likedByCurrentUser ?? false) != liked else { return }
+        let previous = recentReviewList[index]
+        let generation = self.generation
+        recentReviewList[index].likedByCurrentUser = liked
+        recentReviewList[index].likeCount = previous.likeCount.map { max(0, $0 + (liked ? 1 : -1)) }
+        pendingLikeReviewIds.insert(reviewId)
+
+        session.request(liked ? ReviewAPI.likeReview(id: reviewId) : ReviewAPI.cancelReview(id: reviewId))
             .cURLDescription { description in
                 DLog("\(description)")
             }
             .responseDecodable(of: BaseResponse.self) { [weak self] response in
                 guard let self else { return }
+                self.pendingLikeReviewIds.remove(reviewId)
+                let succeeded: Bool
                 switch response.result {
                 case .success(let value):
-                    DLog("최근 리뷰 좋아요 success - \(value)")
+                    DLog("최근 리뷰 좋아요\(liked ? "" : " 취소") 응답 - \(value)")
+                    succeeded = value.code == 200
                 case .failure(let error):
-                    DLog("최근 리뷰 좋아요 failure - \(error)")
+                    DLog("최근 리뷰 좋아요\(liked ? "" : " 취소") failure - \(error)")
+                    succeeded = false
                 }
-            }
-    }
-    
-    func tappedDislikeReviewButton(reviewId: Int) {
-        session.request(ReviewAPI.cancelReview(id: reviewId))
-            .cURLDescription { description in
-                DLog("\(description)")
-            }
-            .responseDecodable(of: BaseResponse.self) { [weak self] response in
-                guard let self else { return }
-                switch response.result {
-                case .success(let value):
-                    DLog("최근 리뷰 좋아요 취소 success - \(value)")
-                case .failure(let error):
-                    DLog("최근 리뷰 좋아요 취소 failure - \(error)")
-                }
+                // 그사이 새로고침됐다면 새 목록이 서버 상태이므로 되돌리지 않는다.
+                guard !succeeded, self.generation == generation,
+                      let index = self.recentReviewList.firstIndex(where: { $0.reviewId == reviewId }) else { return }
+                self.recentReviewList[index].likedByCurrentUser = previous.likedByCurrentUser
+                self.recentReviewList[index].likeCount = previous.likeCount
             }
     }
     
