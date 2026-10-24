@@ -17,7 +17,7 @@ let project = Project(
             "CODE_SIGN_STYLE": "Automatic",
             "SWIFT_VERSION": "5.0",
             "MARKETING_VERSION": "1.2.0",
-            "CURRENT_PROJECT_VERSION": "4",
+            "CURRENT_PROJECT_VERSION": "5",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
             "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
             "SWIFT_EMIT_LOC_STRINGS": "YES",
