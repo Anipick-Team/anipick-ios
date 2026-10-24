@@ -31,7 +31,7 @@ struct ReportReviewPopupView: View {
                         cancelAction()
                     } label: {
                         Text("취소")
-                            .customFontStyle(size: 16, color: .textGray)
+                            .customFontStyle(size: 16, color: .gray6)
                             .frame(maxWidth: .infinity)
                     }
 
