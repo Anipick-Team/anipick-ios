@@ -223,7 +223,7 @@ struct ExploreCommunityView: View {
         .onTapGesture {
             navigationManager.push(
                 route: .community(
-                    animeId: item.id,
+                    seriesId: item.id,
                     animeTitle: item.title,
                     coverImageUrl: item.coverImageUrl,
                     genreNames: item.genres

@@ -125,9 +125,9 @@ struct AppEntryView: View {
                     AppDIContainer.makeRecentReviewView()
                 case .recommendView(let animeId):
                     AppDIContainer.makeRecommendationView(animeId: animeId)
-                case let .community(animeId, animeTitle, coverImageUrl, genreNames):
+                case let .community(seriesId, animeTitle, coverImageUrl, genreNames):
                     CommunityView(
-                        animeId: animeId,
+                        seriesId: seriesId,
                         animeTitle: animeTitle,
                         coverImageUrl: coverImageUrl,
                         genreNames: genreNames

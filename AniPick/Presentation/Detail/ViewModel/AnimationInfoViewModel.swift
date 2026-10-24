@@ -551,17 +551,19 @@ extension AnimationInfoViewModel {
             defer { self.isCheckingCommunityBoard = false }
             do {
                 let board = try await CommunityAPIService.shared.boardByAnime(animeId: detailInfo.animeId)
-                guard board.result?.hasBoard == true, board.result?.seriesId != nil else {
+                guard let result = board.result, result.hasBoard == true, let seriesId = result.seriesId else {
                     DLog("커뮤니티 게시판 없음 - animeId: \(detailInfo.animeId)")
                     self.isShowCommunityNotCreatedPopup = true
                     return
                 }
+                // 게시판 헤더는 탐색 경로와 같도록 시리즈 기준 값을 쓰고, 비어 있으면 애니 상세 값으로 채운다.
+                let genreNames = result.genres?.compactMap(\.name) ?? []
                 self.navigationManager.push(
                     route: .community(
-                        animeId: detailInfo.animeId,
-                        animeTitle: detailInfo.title ?? "애니메이션",
-                        coverImageUrl: detailInfo.coverImageUrl,
-                        genreNames: detailInfo.genres?.map(\.name) ?? []
+                        seriesId: seriesId,
+                        animeTitle: result.title ?? detailInfo.title ?? "애니메이션",
+                        coverImageUrl: result.coverImageUrl ?? detailInfo.coverImageUrl,
+                        genreNames: genreNames.isEmpty ? (detailInfo.genres?.map(\.name) ?? []) : genreNames
                     )
                 )
             } catch {
