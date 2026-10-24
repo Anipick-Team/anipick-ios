@@ -176,7 +176,7 @@ struct HomeView: View {
         // 두 줄 제목에서도 > 버튼이 첫 줄에 맞도록 상단 정렬
         return HStack(alignment: .top, spacing: 0) {
             title
-                .customFontStyle(size: 18, color: .homeBlack, weight: .bold)
+                .customFontStyle(size: 18, color: .anipickBlack, weight: .bold)
                 .lineSpacing(4)  // 줄 높이 25.2pt(140%)에 맞춘 근사값
                 .padding(.vertical, 2)
                 .multilineTextAlignment(.leading)
@@ -278,7 +278,7 @@ struct HomeView: View {
                             .lineLimit(1)
 
                         Text(item.reviewContent ?? "--")
-                            .customFontStyle(size: 16, color: .homeBlack, weight: .medium)
+                            .customFontStyle(size: 16, color: .anipickBlack, weight: .medium)
                             .lineSpacing(3)  // 줄 높이 22.4pt(140%)에 맞춘 근사값
                             .multilineTextAlignment(.leading)
                             .lineLimit(2)
@@ -481,10 +481,8 @@ struct WeekdayNewAnimeView: View {
 }
 
 
-// TODO: 색상 토큰(Figma `color/use/black`·`text gray`)을 정리하면 에셋으로 교체
+// TODO: 색상 토큰(Figma `color/use/text gray`)을 정리하면 에셋으로 교체
 private extension Color {
-    /// Figma `color/use/black` #21202B (현재 `AnipickBlackColor`는 #2F2E41)
-    static let homeBlack = Color(red: 0x21 / 255, green: 0x20 / 255, blue: 0x2B / 255)
     /// Figma `color/use/text gray` #89919C (현재 `TextGrayColor`·`Gray8Color`는 #B1B6C1)
     static let homeTextGray = Color(red: 0x89 / 255, green: 0x91 / 255, blue: 0x9C / 255)
 }
