@@ -51,6 +51,11 @@ struct ContentView: View {
         }
         .onAppear {
             DLog("")
+            // 상세 화면에서 돌아올 때도 다시 호출되어 현재 탭을 기록한다
+            AnalyticsManager.logScreen(viewModel.activeTab.screenName)
+        }
+        .onChange(of: viewModel.activeTab) { tab in
+            AnalyticsManager.logScreen(tab.screenName)
         }
         .background(Color.white)
         .navigationBarBackButtonHidden()

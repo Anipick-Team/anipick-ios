@@ -118,3 +118,73 @@ enum AppRoute: Hashable {
     case recommend(animeId: Int, animeTitle: String)
     
 }
+
+// MARK: - Analytics 화면 이름
+extension AppRoute {
+    /// screen_view 이벤트에 쓰는 화면 이름. nil이면 그 화면이 직접 기록한다 (탭 화면).
+    var screenName: String? {
+        switch self {
+        case .homeView: return "home"
+        case .emailLogin: return "email_login"
+        case .LoginProblem: return "login_problem"
+        case .emailSignup: return "email_signup"
+        case .findPassword: return "find_password"
+        case .successLogin: return "success_login"
+        case .homeSearch: return "home_search"
+        case .ranking: return "ranking"
+        case .research: return "research"
+        case .review: return "review_write"
+        case .explore: return "explore"
+        case .animeDetail: return "anime_detail"
+        case .resetPassword: return "reset_password"
+        case .preferenceSelection: return "preference_selection"
+        case .content: return nil
+        case .comingSoonDetail: return "coming_soon"
+        case .weekdayNewAnime: return "weekday_new_anime"
+        case .mainLoginView: return "login"
+        case .recentReview: return "recent_review"
+        case .recommendView, .recommend2, .recommend: return "recommend"
+        case .community: return "community"
+        case .communityDetail: return "community_detail"
+        case .communityWrite: return "community_write"
+        case .communityEdit: return "community_edit"
+        case .setting: return "setting"
+        case .editNickname: return "edit_nickname"
+        case .editEmail: return "edit_email"
+        case .editPassword: return "edit_password"
+        case .linkedSNS: return "linked_sns"
+        case .adultCheck: return "adult_check"
+        case .adultSetting: return "adult_setting"
+        case .appVersion: return "app_version"
+        case .inquiry: return "inquiry"
+        case .termsOfService: return "terms_of_service"
+        case .privacyPolicy: return "privacy_policy"
+        case .notice: return "notice"
+        case .logout: return "logout"
+        case .deleteAccount: return "delete_account"
+        case .myInfo: return "my_info"
+        case .myInfoInToWatchList: return "my_to_watch_list"
+        case .myInfoWatchingList: return "my_watching_list"
+        case .finishedWatchList: return "my_finished_list"
+        case .likeAnimeList: return "my_liked_anime"
+        case .likePersonList: return "my_liked_person"
+        case .ratedAnimeList: return "my_rated_anime"
+        case .myContent: return "my_content"
+        case .producerDetail: return "producer_detail"
+        case .voiceActorDetail: return "voice_actor_detail"
+        case .characterAndVoiceActorDetail: return "character_voice_actor"
+        case .seriesDetail: return "series_detail"
+        }
+    }
+}
+
+extension Tab {
+    var screenName: String {
+        switch self {
+        case .home: return "home"
+        case .ranking: return "ranking"
+        case .research: return "explore"
+        case .myInfo: return "my_info"
+        }
+    }
+}

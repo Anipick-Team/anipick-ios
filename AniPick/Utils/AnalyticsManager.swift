@@ -35,6 +35,24 @@ enum AnalyticsManager {
         setUser(userId: defaults.getUserId(), loginMethod: sns.isEmpty ? "email" : sns)
     }
 
+    // MARK: - 화면 조회
+    // SwiftUI 화면은 자동 수집이 부정확해 직접 기록한다. 크래시 직전 화면을 알 수 있게 Crashlytics에도 남긴다.
+    static func logScreen(_ name: String) {
+        Analytics.logEvent(AnalyticsEventScreenView, parameters: [
+            AnalyticsParameterScreenName: name,
+            AnalyticsParameterScreenClass: name
+        ])
+        Crashlytics.crashlytics().setCustomValue(name, forKey: "last_screen")
+        Crashlytics.crashlytics().log("[Screen] \(name)")
+    }
+
+    // MARK: - 온보딩 (취향 선택)
+    static func logOnboardingComplete(ratedCount: Int) {
+        Analytics.logEvent("onboarding_complete", parameters: [
+            "rated_count": ratedCount
+        ])
+    }
+
     // MARK: - 애니 상세
     static func logAnimeDetailView(animeId: Int, animeTitle: String?) {
         Analytics.logEvent("anime_detail_view", parameters: [
