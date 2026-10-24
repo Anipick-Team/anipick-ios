@@ -50,22 +50,9 @@ struct HomeView: View {
                             .padding(.top, 20)
                             .padding(.bottom, 28)
 
-                        HStack(spacing: 0) {
-                            Text("실시간 인기 애니메이션")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundStyle(.anipickBlack)
-                            
-                            Spacer()
-                            
-                            Button {
-                                self.viewModel.moveToRankingView()
-                            } label: {
-                                Image(.chevronLeftGray)
-                                    .resizable()
-                                    .frame(width: 24, height: 24)
-                            }
+                        self.sectionHeader(title: Text(verbatim: "실시간 인기 애니메이션")) {
+                            self.viewModel.moveToRankingView()
                         }
-                        .padding(.horizontal, 20)
                         
                         Spacer().frame(height: 16)
                         
@@ -96,7 +83,7 @@ struct HomeView: View {
                         let nickName = UserDefaultsManager.shared.getNickname()
                         if let title = viewModel.referenceAnimeTitle {
                             self.sectionView(
-                                title: "\(title) 을 재밌게 보셨다면,\n이 작품들도 마음에 드실 거에요!",
+                                title: self.highlightedTitle(title, " 을 재밌게 보셨다면,\n이 작품들도 마음에 드실 거에요!"),
                                 items: viewModel.recommendationAnimes
                             ) {
                                 viewModel.moveToRecommendationView(animeId: 0, animeTitle: viewModel.referenceAnimeTitle)
@@ -104,7 +91,7 @@ struct HomeView: View {
                             }
                         } else {
                             self.sectionView(
-                                title: "오늘의 추천작, \(nickName) 님의\n취향에 맞춰 준비했어요!",
+                                title: self.highlightedTitle(prefix: "오늘의 추천작, ", nickName, " 님의\n취향에 맞춰 준비했어요!"),
                                 items: viewModel.recommendationAnimes
                             ) {
                                 viewModel.moveToRecommendationView(animeId: 0, animeTitle: viewModel.referenceAnimeTitle)
@@ -117,23 +104,10 @@ struct HomeView: View {
                     weekdayNewAnimeSection()
 
                     VStack(alignment: .leading, spacing: 0) {
-                        HStack(spacing: 0) {
-                            Text("최근 리뷰")
-                                .font(.system(size: 20, weight: .semibold))
-                                .foregroundStyle(.anipickBlack)
-                            
-                            Spacer()
-                            
-                            Button {
-                                DLog("최근 리뷰 탭탭")
-                                viewModel.moveToRecentReviewView()
-                            } label: {
-                                Image(.chevronLeftGray)
-                                    .resizable()
-                                    .frame(width: 24, height: 24)
-                            }
+                        self.sectionHeader(title: Text(verbatim: "최근 리뷰")) {
+                            DLog("최근 리뷰 탭탭")
+                            viewModel.moveToRecentReviewView()
                         }
-                        .padding(.horizontal, 20)
                         .padding(.bottom, 16)
                         
                         
@@ -151,7 +125,7 @@ struct HomeView: View {
                     .background(.gray7)
                     
                     // TODO: 얘가 기본 default값 UI
-                    self.sectionView(title: "\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기 방영예정", items: viewModel.upcomingAnimes) {
+                    self.sectionView(title: self.highlightedTitle("\(viewModel.seasonYearString)년도 \(viewModel.seasonString)분기", " 방영예정"), items: viewModel.upcomingAnimes) {
                         self.viewModel.moveToExploreView(
                             season: self.viewModel.seasonString,
                             year: self.viewModel.seasonYearString
@@ -160,7 +134,7 @@ struct HomeView: View {
                     
                     // TODO: 닉네임 글자수가 너무 길 때, 닉네임을 말줄임 하는 것으로 viewModel에서 작업
                     if viewModel.hasRecentSimilarAnime {
-                        self.sectionView(title: "최근 찾아보신 \(viewModel.recommendationFirstTitle)과\n비슷한 작품이에요!", items: viewModel.recommendationSimilarAnimes) {
+                        self.sectionView(title: self.highlightedTitle(prefix: "최근 찾아보신 ", viewModel.recommendationFirstTitle, "과\n비슷한 작품이에요!"), items: viewModel.recommendationSimilarAnimes) {
                             viewModel.moveToSimilarRecommendationView()
                         }
                     } else {
@@ -168,7 +142,7 @@ struct HomeView: View {
                             .accessibilityLabel("아직 찾아본 애니가 없어요. 다양한 애니를 탐색해 보세요!")
                     }
                     
-                    self.sectionView(title: "공개 예정", items: viewModel.comingSoonAnimes) {
+                    self.sectionView(title: Text(verbatim: "공개 예정"), items: viewModel.comingSoonAnimes) {
                         DLog("공개 예정 탭탭")
                         self.viewModel.moveToComingSoonView()
                     }
@@ -200,26 +174,38 @@ struct HomeView: View {
         }
     }
     
-    private func sectionView(title: String, items: [Anime], action: @escaping () -> Void) -> some View {
-        return VStack(alignment: .leading, spacing: 0) {
-            // 두 줄 제목에서도 > 버튼이 첫 줄에 맞도록 상단 정렬
-            HStack(alignment: .top, spacing: 0) {
-                Text(title)
-                    .font(.system(size: 20, weight: .semibold))
-                    .foregroundStyle(.anipickBlack)
-                
-                Spacer()
-                
-                Button {
-                    action()
-                } label: {
-                    Image(.chevronLeftGray)
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                }
+    /// 섹션 제목 줄 (Figma `H3`: Bold 18, 줄 높이 140%)
+    private func sectionHeader(title: Text, action: @escaping () -> Void) -> some View {
+        // 두 줄 제목에서도 > 버튼이 첫 줄에 맞도록 상단 정렬
+        return HStack(alignment: .top, spacing: 0) {
+            title
+                .customFontStyle(size: 18, color: .homeBlack, weight: .bold)
+                .lineSpacing(4)  // 줄 높이 25.2pt(140%)에 맞춘 근사값
+                .padding(.vertical, 2)
+                .multilineTextAlignment(.leading)
+
+            Spacer()
+
+            Button {
+                action()
+            } label: {
+                Image(.chevronLeftGray)
+                    .resizable()
+                    .frame(width: 24, height: 24)
             }
-            .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+        }
+        .padding(.horizontal, 20)
+    }
+
+    /// 섹션 제목에서 `highlight` 부분만 primary 색으로 칠한다
+    private func highlightedTitle(prefix: String = "", _ highlight: String, _ suffix: String) -> Text {
+        return Text("\(Text(verbatim: prefix))\(Text(verbatim: highlight).foregroundColor(.primaryColor))\(Text(verbatim: suffix))")
+    }
+
+    private func sectionView(title: Text, items: [Anime], action: @escaping () -> Void) -> some View {
+        return VStack(alignment: .leading, spacing: 0) {
+            self.sectionHeader(title: title, action: action)
+                .padding(.bottom, 16)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 0) {
@@ -237,21 +223,9 @@ struct HomeView: View {
     
     private func weekdayNewAnimeSection() -> some View {
         VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: 0) {
-                Text("요일별 신작")
-                    .customFontStyle(size: 20, color: .anipickBlack, weight: .semibold)
-
-                Spacer()
-
-                Button {
-                    viewModel.moveToWeekdayNewAnimeView()
-                } label: {
-                    Image(.chevronLeftGray)
-                        .resizable()
-                        .frame(width: 24, height: 24)
-                }
+            sectionHeader(title: Text(verbatim: "요일별 신작")) {
+                viewModel.moveToWeekdayNewAnimeView()
             }
-            .padding(.horizontal, 20)
             .padding(.bottom, 14)
 
             HStack(spacing: 8) {
@@ -492,6 +466,12 @@ struct WeekdayNewAnimeView: View {
     }
 }
 
+
+// TODO: 색상 토큰(Figma `color/use/black`·`text gray`)을 정리하면 에셋으로 교체
+private extension Color {
+    /// Figma `color/use/black` #21202B (현재 `AnipickBlackColor`는 #2F2E41)
+    static let homeBlack = Color(red: 0x21 / 255, green: 0x20 / 255, blue: 0x2B / 255)
+}
 
 #Preview {
     AppDIContainer.makeHomeView()
