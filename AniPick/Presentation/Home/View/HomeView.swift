@@ -70,9 +70,15 @@ struct HomeView: View {
                         HStack(spacing: 0) {
                             let animes = viewModel.trendingAnimes
                             ForEach(animes, id: \.self) { item in
-                                self.animationCellWithRakingLabel(index: 1, anime: item) {
+                                Button {
                                     DLog("실시간 인기 애니메이션 탭했을 때 이동이동")
                                     self.viewModel.moveToAnimeDetailView(animeId: item.animeId ?? 0)
+                                } label: {
+                                    HomeAnimeCard(
+                                        imageUrl: item.coverImageUrl,
+                                        title: item.title,
+                                        rank: item.rank
+                                    )
                                 }
                                 .padding(.trailing, 12)
                             }
@@ -354,51 +360,11 @@ struct HomeView: View {
         }
     }
     
-    private func animationCellWithRakingLabel(index: Int, anime: TrendingAnimes, action: @escaping () -> Void) -> some View {
-        return Button {
-            action()
-        } label: {
-            VStack(alignment: .leading, spacing: 0) {
-                ZStack(alignment: .topLeading) {
-                    AnimeImageCommonCell(
-                        imageUrl: anime.coverImageUrl,
-                        width: 128,
-                        height: 174
-                    )
-                    
-                    // 메인 컬러 배경의 숫자 뱃지
-                    ZStack {
-                        Rectangle()
-                            .foregroundColor(Color.anipickPrimary)
-                            .frame(width: 36, height: 36)
-                        
-                        Text("\(anime.rank ?? 0)")
-                            .foregroundColor(.white)
-                            .font(.system(size: 14, weight: .black))
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-                
-                Text(anime.title ?? "")
-                    .customFontStyle(size: 16, color: .anipickBlack)
-                    .frame(width: 128, height: 45, alignment: .leading)
-                    .multilineTextAlignment(.leading)
-                    .lineLimit(2)
-                    .padding(.top, 6)
-            }
-        }
-    }
-    
     private func animationCell(anime: Anime, action: @escaping () -> Void) -> some View {
         return Button {
             action()
         } label: {
-            AnimeCommonCellWithTitle(
-                imageUrl: anime.coverImageUrl,
-                width: 128,
-                height: 174,
-                title: anime.title
-            )
+            HomeAnimeCard(imageUrl: anime.coverImageUrl, title: anime.title)
         }
     }
 }
