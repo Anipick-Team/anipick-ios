@@ -34,8 +34,8 @@ struct ReviewItem: Decodable, Hashable {
     let nickname: String?
     let profileImageUrl: String?
     let createdAt: String? // 또는 Date로 변환도 가능
-    let likeCount: Int?
-    let likedByCurrentUser: Bool?
+    var likeCount: Int?
+    var likedByCurrentUser: Bool?
     let isMine: Bool?
     let content: String?
     let isSpoiler: Bool?
