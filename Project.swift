@@ -69,6 +69,7 @@ let project = Project(
                 .external(name: "PopupView"),
                 .external(name: "FirebaseAnalytics"),
                 .external(name: "FirebaseCrashlytics"),
+                .external(name: "FirebasePerformance"),
                 .external(name: "Kingfisher"),
             ],
             settings: .settings(
