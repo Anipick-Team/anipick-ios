@@ -226,9 +226,10 @@ struct HomeView: View {
             sectionHeader(title: Text(verbatim: "요일별 신작")) {
                 viewModel.moveToWeekdayNewAnimeView()
             }
-            .padding(.bottom, 14)
+            .padding(.bottom, 20)
 
-            HStack(spacing: 8) {
+            // 칩 7개를 좌우 끝에 맞춰 균등 배치 (Figma space-between)
+            HStack(spacing: 0) {
                 ForEach(WeekdayNewAnimeDay.allCases) { day in
                     let isSelected = viewModel.selectedWeekday == day
                     Button {
@@ -236,19 +237,23 @@ struct HomeView: View {
                     } label: {
                         Text(day.title)
                             .customFontStyle(
-                                size: 14,
-                                color: isSelected ? .white : .gray8,
-                                weight: .semibold
+                                size: 18,
+                                color: isSelected ? .white : .homeTextGray,
+                                weight: .bold
                             )
-                            .frame(width: 38, height: 38)
-                            .background(isSelected ? Color.primaryColor : Color.gray7)
+                            .frame(width: 45, height: 45)
+                            .background(isSelected ? Color.primaryColor : Color.gray6)
                             .clipShape(Circle())
                     }
                     .buttonStyle(.plain)
+
+                    if day != WeekdayNewAnimeDay.allCases.last {
+                        Spacer(minLength: 0)
+                    }
                 }
             }
             .padding(.horizontal, 20)
-            .padding(.bottom, 16)
+            .padding(.bottom, 20)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
@@ -471,6 +476,8 @@ struct WeekdayNewAnimeView: View {
 private extension Color {
     /// Figma `color/use/black` #21202B (현재 `AnipickBlackColor`는 #2F2E41)
     static let homeBlack = Color(red: 0x21 / 255, green: 0x20 / 255, blue: 0x2B / 255)
+    /// Figma `color/use/text gray` #89919C (현재 `TextGrayColor`·`Gray8Color`는 #B1B6C1)
+    static let homeTextGray = Color(red: 0x89 / 255, green: 0x91 / 255, blue: 0x9C / 255)
 }
 
 #Preview {
