@@ -55,6 +55,8 @@ fastlane/.env*
 *Secrets*.xcconfig
 *Secret*.plist
 secrets/
+# Firebase 구성 파일 (Firebase 콘솔에서 내려받아 AniPick/ 아래에 둔다)
+GoogleService-Info.plist
 
 ### IDE / Tools ###
 .idea/
