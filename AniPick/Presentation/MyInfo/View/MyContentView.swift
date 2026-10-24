@@ -347,7 +347,8 @@ struct MyContentView: View {
                 }
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
         .cornerRadius(12)
@@ -401,7 +402,8 @@ struct MyContentView: View {
                     .foregroundColor(.gray6)
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
         .cornerRadius(12)
