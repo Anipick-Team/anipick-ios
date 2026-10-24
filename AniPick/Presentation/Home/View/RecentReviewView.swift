@@ -53,7 +53,7 @@ struct RecentReviewView: View {
                 
                 ZStack(alignment: .topLeading) {
                     ScrollView(showsIndicators: false) {
-                        VStack(alignment: .leading, spacing: 0) {
+                        LazyVStack(alignment: .leading, spacing: 0) {
                             GeometryReader { geo in
                                 Color.clear
                                     .onChange(of: geo.frame(in: .global).minY) { newValue in
