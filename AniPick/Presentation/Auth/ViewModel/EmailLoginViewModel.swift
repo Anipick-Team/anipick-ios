@@ -59,11 +59,13 @@ extension EmailLoginViewModel {
                     UserDefaultsManager.shared.setNickname(result.nickname ?? "---")
                     UserDefaultsManager.shared.setEmail(self.emailString)
                     UserDefaultsManager.shared.setSNSAccount(sns: "")
+                    UserDefaultsManager.shared.setUserId(result.userId)
                     DLog("🔐 [Login][Email] 서버 200, 토큰 저장 완료 (accessToken 길이=\(accessToken.count))")
                     if accessToken.isEmpty {
                         DLog("⚠️ [Login][Email] 200이지만 accessToken이 비어있음 - 서버 응답 확인 필요")
                         AnalyticsManager.logLoginIssue(provider: "email", reason: "200 but empty accessToken")
                     }
+                    AnalyticsManager.setUser(userId: result.userId, loginMethod: "email")
                     AnalyticsManager.logLogin(method: "email")
                     DLog("🔐 [Login][Email] completeLogin (홈)")
                     self.navigationManager.completeLogin()

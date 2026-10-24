@@ -31,6 +31,7 @@ final class NavigationManager: ObservableObject {
         DLog("🔐 [Login] completeLogout 호출 - isLoggedIn=false 전환, path 초기화")
         path = NavigationPath()
         isLoggedIn = false
+        AnalyticsManager.clearUser()
     }
 
     func push(route: AppRoute) {

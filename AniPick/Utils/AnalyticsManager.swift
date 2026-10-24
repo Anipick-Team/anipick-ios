@@ -10,6 +10,31 @@ import FirebaseCrashlytics
 
 enum AnalyticsManager {
 
+    // MARK: - 사용자 식별 (Crashlytics·Analytics 공통)
+    // 서버 내부 userId만 쓴다. 이메일·닉네임 같은 개인정보는 넣지 않는다.
+    static func setUser(userId: Int?, loginMethod: String) {
+        let id = userId.map(String.init)
+        Crashlytics.crashlytics().setUserID(id)
+        Crashlytics.crashlytics().setCustomValue(loginMethod, forKey: "login_method")
+        Analytics.setUserID(id)
+        Analytics.setUserProperty(loginMethod, forName: "login_method")
+    }
+
+    static func clearUser() {
+        Crashlytics.crashlytics().setUserID(nil)
+        Crashlytics.crashlytics().setCustomValue(nil, forKey: "login_method")
+        Analytics.setUserID(nil)
+        Analytics.setUserProperty(nil, forName: "login_method")
+    }
+
+    // 앱 실행 시 이미 로그인된 사용자의 식별 정보를 다시 붙인다
+    static func restoreUser() {
+        let defaults = UserDefaultsManager.shared
+        guard !defaults.getAccessToken().isEmpty else { return }
+        let sns = defaults.getSNSAccount()
+        setUser(userId: defaults.getUserId(), loginMethod: sns.isEmpty ? "email" : sns)
+    }
+
     // MARK: - 애니 상세
     static func logAnimeDetailView(animeId: Int, animeTitle: String?) {
         Analytics.logEvent("anime_detail_view", parameters: [
