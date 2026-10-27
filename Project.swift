@@ -1,0 +1,123 @@
+import ProjectDescription
+
+let teamID = "3K4KWAG7KD"
+let bundleIDPrefix = "com.moana"
+
+let project = Project(
+    name: "AniPick",
+    options: .options(
+        automaticSchemesOptions: .enabled(),
+        developmentRegion: "en",
+        disableBundleAccessors: true,
+        disableSynthesizedResourceAccessors: true
+    ),
+    settings: .settings(
+        base: [
+            "DEVELOPMENT_TEAM": .string(teamID),
+            "CODE_SIGN_STYLE": "Automatic",
+            "SWIFT_VERSION": "5.0",
+            "MARKETING_VERSION": "1.2.0",
+            "CURRENT_PROJECT_VERSION": "7",
+            "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
+            "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
+            "SWIFT_EMIT_LOC_STRINGS": "YES",
+            "ENABLE_USER_SCRIPT_SANDBOXING": "YES",
+        ],
+        configurations: [
+            .debug(name: .debug),
+            .release(name: .release),
+        ]
+    ),
+    targets: [
+        .target(
+            name: "AniPick",
+            destinations: [.iPhone],
+            product: .app,
+            bundleId: "\(bundleIDPrefix).AniPick",
+            deploymentTargets: .iOS("16.0"),
+            infoPlist: .file(path: "AniPick/Info.plist"),
+            sources: ["AniPick/**/*.swift"],
+            resources: [
+                "AniPick/Resourses/**",
+                "AniPick/Preview Content/**",
+                "AniPick/GoogleService-Info.plist",
+            ],
+            entitlements: .file(path: "AniPick/AniPick.entitlements"),
+            scripts: [
+                // Crashlytics dSYM 업로드. 스크립트 샌드박싱이 켜져 있어 읽는 파일을 입력으로 선언한다
+                .post(
+                    script: "\"${SRCROOT}/Tuist/.build/checkouts/firebase-ios-sdk/Crashlytics/run\"",
+                    name: "Upload dSYM to Crashlytics",
+                    inputPaths: [
+                        "$(SRCROOT)/Tuist/.build/checkouts/firebase-ios-sdk/Crashlytics/run",
+                        "$(SRCROOT)/Tuist/.build/checkouts/firebase-ios-sdk/Crashlytics/upload-symbols",
+                        "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+                        "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+                        "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+                        "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+                        "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+                    ]
+                ),
+            ],
+            dependencies: [
+                .external(name: "Alamofire"),
+                .external(name: "KakaoSDKAuth"),
+                .external(name: "KakaoSDKCommon"),
+                .external(name: "KakaoSDKUser"),
+                .external(name: "GoogleSignIn"),
+                .external(name: "GoogleSignInSwift"),
+                .external(name: "PopupView"),
+                .external(name: "FirebaseAnalytics"),
+                .external(name: "FirebaseCrashlytics"),
+                .external(name: "FirebasePerformance"),
+                .external(name: "Kingfisher"),
+            ],
+            settings: .settings(
+                base: [
+                    "GENERATE_INFOPLIST_FILE": "YES",
+                    "INFOPLIST_KEY_CFBundleDisplayName": "애니픽",
+                    "INFOPLIST_KEY_UIApplicationSceneManifest_Generation": "YES",
+                    "INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents": "YES",
+                    "INFOPLIST_KEY_UILaunchScreen_Generation": "YES",
+                    "INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone": "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight",
+                    // 수출 규정: OS 제공 HTTPS 외 자체 암호화 없음 → App Store Connect 업로드 시 암호화 문항 생략
+                    "INFOPLIST_KEY_ITSAppUsesNonExemptEncryption": "NO",
+                    "ASSETCATALOG_COMPILER_APPICON_NAME": "AppIcon",
+                    "ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME": "AccentColor",
+                    "DEVELOPMENT_ASSET_PATHS": "\"AniPick/Preview Content\"",
+                    "ENABLE_PREVIEWS": "YES",
+                    "OTHER_LDFLAGS": ["$(inherited)", "-ObjC"],
+                    "SUPPORTS_MACCATALYST": "NO",
+                    "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD": "NO",
+                    "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD": "NO",
+                    // Crashlytics 업로드 스크립트가 Debug 빌드에서도 dSYM을 입력으로 요구한다
+                    "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
+                ]
+            )
+        ),
+        .target(
+            name: "AniPickTests",
+            destinations: [.iPhone],
+            product: .unitTests,
+            bundleId: "\(bundleIDPrefix).AniPickTests",
+            deploymentTargets: .iOS("18.2"),
+            infoPlist: .default,
+            sources: ["AniPickTests/**"],
+            dependencies: [
+                .target(name: "AniPick"),
+            ]
+        ),
+        .target(
+            name: "AniPickUITests",
+            destinations: [.iPhone],
+            product: .uiTests,
+            bundleId: "\(bundleIDPrefix).AniPickUITests",
+            deploymentTargets: .iOS("18.2"),
+            infoPlist: .default,
+            sources: ["AniPickUITests/**"],
+            dependencies: [
+                .target(name: "AniPick"),
+            ]
+        ),
+    ]
+)

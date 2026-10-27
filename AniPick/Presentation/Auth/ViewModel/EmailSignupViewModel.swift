@@ -64,6 +64,9 @@ extension EmailSignupViewModel {
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "nickname - null")
                 UserDefaultsManager.shared.setEmail(self.emailString)
                 UserDefaultsManager.shared.setSNSAccount(sns: "")
+                // 가입 응답에는 userId가 없어 로그인 방식만 붙인다
+                UserDefaultsManager.shared.setUserId(nil)
+                AnalyticsManager.setUser(userId: nil, loginMethod: "email")
                 AnalyticsManager.logSignUp()
                 self.navigationManager.push(route: .preferenceSelection)
             } else if response.code == 109 {

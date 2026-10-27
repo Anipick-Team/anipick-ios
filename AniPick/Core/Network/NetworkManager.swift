@@ -81,7 +81,60 @@ enum NetworkManager {
             }
         }
     }
-}
 
+    /// URLRequestConvertible 기반 요청이 필요한 화면(API별 인코딩/헤더 처리)에서 사용합니다.
+    static func request<T: Decodable>(_ convertible: URLRequestConvertible) async throws -> T {
+        try await withCheckedThrowingContinuation { continuation in
+            defaultSession.request(convertible)
+                .validate()
+                .cURLDescription { description in
+                    DLog("\(description)")
+                }
+                .responseDecodable(of: T.self) { response in
+                    switch response.result {
+                    case .success(let value):
+                        DLog("response - \(value)")
+                        continuation.resume(returning: value)
+                    case .failure(let error):
+                        DLog("fail - \(error)")
+                        continuation.resume(throwing: error)
+                    }
+                }
+        }
+    }
+
+    static func upload<T: Decodable>(
+        data: Data,
+        path: String,
+        fieldName: String,
+        fileName: String,
+        mimeType: String
+    ) async throws -> T {
+        let headers: HTTPHeaders = [
+            "Authorization": "Bearer \(UserDefaultsManager.shared.getAccessToken())"
+        ]
+
+        return try await withCheckedThrowingContinuation { continuation in
+            defaultSession.upload(
+                multipartFormData: { formData in
+                    formData.append(data, withName: fieldName, fileName: fileName, mimeType: mimeType)
+                },
+                to: baseUrl + path,
+                headers: headers
+            )
+            .validate()
+            .responseDecodable(of: T.self) { response in
+                switch response.result {
+                case .success(let value):
+                    DLog("이미지 업로드 응답 성공 - path: \(path)")
+                    continuation.resume(returning: value)
+                case .failure(let error):
+                    DLog("이미지 업로드 응답 실패 - path: \(path), error: \(error)")
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+}
 
 

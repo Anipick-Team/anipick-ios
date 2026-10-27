@@ -1,1 +1,67 @@
+### macOS ###
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+### Xcode ###
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+*.xccheckout
+DerivedData/
+build/
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+timeline.xctimeline
+playground.xcworkspace
+
+### Tuist (generated) ###
+*.xcodeproj
+*.xcworkspace
+Derived/
+Tuist/.build/
+graph.dot
+graph.png
+graph.json
+
+### Swift Package Manager ###
+.build/
+.swiftpm/
+Packages/
+
+### Fastlane ###
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+fastlane/.env*
+
+### Secrets / Credentials ###
+# 서명 인증서, 프로비저닝 프로필, API 키 파일
+*.p8
+*.p12
+*.cer
+*.certSigningRequest
+*.mobileprovision
+*.provisionprofile
+*.pem
+# 환경 변수, 비밀 설정 파일
+.env
+.env.*
+*Secrets*.xcconfig
+*Secret*.plist
+secrets/
+# Firebase 구성 파일 (Firebase 콘솔에서 내려받아 AniPick/ 아래에 둔다)
+GoogleService-Info.plist
+
+### IDE / Tools ###
+.idea/
+.vscode/
 .claude/
+
+### QA ###
+/qa/

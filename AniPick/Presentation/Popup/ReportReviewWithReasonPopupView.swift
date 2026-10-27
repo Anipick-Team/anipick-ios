@@ -108,7 +108,7 @@ struct ReportReviewWithReasonPopupView: View {
                 cancelAction()
             } label: {
                 Text("닫기")
-                    .customFontStyle(size: 20, color: .textGray)
+                    .customFontStyle(size: 20, color: .gray6)
                     .frame(maxWidth: .infinity)
             }
 

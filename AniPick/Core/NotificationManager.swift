@@ -12,6 +12,8 @@ extension Notification.Name {
     static let presentReportPopup = Notification.Name("presentReportPopup")
     static let presentBlockUserPopup = Notification.Name("presentBlockUserPopup")
     static let reloadRatedAnime = Notification.Name("reloadRatedAnime")
+    /// 커뮤니티 게시글 수정 완료. userInfo["postId"]: Int
+    static let communityPostUpdated = Notification.Name("communityPostUpdated")
 }
 
 
