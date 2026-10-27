@@ -10,11 +10,13 @@ struct CommunityPostRequest: Encodable {
 
 /// PATCH api/community/posts/{postId} 요청. 서버 PostUpdateRequest와 필드를 맞춘다.
 /// (seriesId를 보내면 서버가 알 수 없는 필드로 400을 반환)
+/// 서버는 전체 교체 방식이라 빠진 필드를 비운다(content 누락 → "", imageIds 누락 → 사진 전량 삭제).
+/// 그래서 모든 필드를 non-optional로 두어 항상 보낸다.
 struct CommunityPostUpdateRequest: Encodable {
     let title: String
     let content: String
     let isSpoiler: Bool
-    let imageIds: [Int]?
+    let imageIds: [Int]
 }
 
 struct CommunityCommentRequest: Encodable {
