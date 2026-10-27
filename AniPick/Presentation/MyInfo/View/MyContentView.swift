@@ -317,10 +317,12 @@ struct MyContentView: View {
                             .foregroundColor(.anipickBlack)
                             .lineLimit(2)
 
-                        Text(post.body)
-                            .font(.system(size: 13))
-                            .foregroundColor(.gray6)
-                            .lineLimit(3)
+                        if !post.body.isEmpty {
+                            Text(post.body)
+                                .font(.system(size: 13))
+                                .foregroundColor(.gray6)
+                                .lineLimit(3)
+                        }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
 
@@ -333,10 +335,12 @@ struct MyContentView: View {
                         .foregroundColor(.anipickBlack)
                         .lineLimit(2)
 
-                    Text(post.body)
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray6)
-                        .lineLimit(2)
+                    if !post.body.isEmpty {
+                        Text(post.body)
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray6)
+                            .lineLimit(2)
+                    }
                 }
             }
 

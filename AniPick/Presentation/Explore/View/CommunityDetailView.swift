@@ -584,15 +584,19 @@ struct CommunityDetailView: View {
                 .lineLimit(nil)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
+                // 본문이 없으면 본문 아래 여백을 제목이 대신 가진다
+                .padding(.bottom, post.body.isEmpty ? 14 : 0)
 
             // 본문 내용 (회색)
-            Text(post.body)
-                .font(.system(size: 13))
-                .foregroundColor(.gray4)
-                .lineLimit(nil)
-                .padding(.horizontal, 16)
-                .padding(.top, 8)
-                .padding(.bottom, 14)
+            if !post.body.isEmpty {
+                Text(post.body)
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray4)
+                    .lineLimit(nil)
+                    .padding(.horizontal, 16)
+                    .padding(.top, 8)
+                    .padding(.bottom, 14)
+            }
 
             // 통계 (조회수 | 좋아요 | 댓글 수)
             HStack(spacing: 0) {
