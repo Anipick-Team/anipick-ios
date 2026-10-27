@@ -256,6 +256,8 @@ struct CommunityWriteView: View {
     }
 
     private func register() {
+        // .disabled는 다음 렌더링에 반영되므로 연속 탭은 여기서 막는다
+        guard !isRegistering else { return }
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         titleError = trimmedTitle.isEmpty
@@ -319,8 +321,8 @@ struct CommunityWriteView: View {
                     return
                 }
                 DLog("커뮤니티 글 등록 성공 - code: \(response.code), value: \(response.value)")
+                // 성공 시에는 화면이 닫힐 때까지 isRegistering을 유지해 같은 글이 다시 등록되지 않게 한다
                 await MainActor.run {
-                    isRegistering = false
                     feedbackMessage = postId == nil ? "게시글이 등록되었습니다." : "게시글이 수정되었습니다."
                     if let postId {
                         NotificationCenter.default.post(name: .communityPostUpdated, object: nil, userInfo: ["postId": postId])
