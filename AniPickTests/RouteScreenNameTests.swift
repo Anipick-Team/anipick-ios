@@ -71,6 +71,12 @@ struct RouteScreenNameTests {
         #expect(
             DetailRoute.voiceActor(id: 1).screenName == AppRoute.voiceActorDetail(animeId: 1).screenName)
         #expect(DetailRoute.producer(id: 1).screenName == AppRoute.producerDetail(studioId: 1).screenName)
+        #expect(
+            DetailRoute.series(animeId: 1, animeTitle: "").screenName
+                == AppRoute.seriesDetail(animeId: 1, animeTitle: "").screenName)
+        #expect(
+            DetailRoute.recommendations(animeId: 1, animeTitle: "").screenName
+                == AppRoute.recommend(animeId: 1, animeTitle: "").screenName)
     }
 
     @Test("커뮤니티 게시글 Route")

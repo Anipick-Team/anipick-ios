@@ -54,6 +54,9 @@ struct AppEntryView: View {
                 case .producer(let id):
                     AppDIContainer.makeProducerDetailView(studioId: id)
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                default:
+                    AppDIContainer.detailBuilder.make(route)
+                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 }
             }
             .navigationDestination(for: ExploreRoute.self) { route in
@@ -174,10 +177,10 @@ struct AppEntryView: View {
                     case .characterAndVoiceActorDetail(let animeId):
                         AppDIContainer.makeCharacterAndVoiceActorDetailVIew(animeId: animeId)
                     case let .seriesDetail(animeId, animeTitle):
-                        AppDIContainer.makeSeriesDetialView(animeId: animeId, animeTitle: animeTitle)
+                        AppDIContainer.detailBuilder.make(.series(animeId: animeId, animeTitle: animeTitle))
                     
                     case let .recommend(animeId, animeTitle):
-                        AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
+                        AppDIContainer.detailBuilder.make(.recommendations(animeId: animeId, animeTitle: animeTitle))
                     case let .recommend2(animeId, animeTitle):
                         AppDIContainer.homeBuilder.make(.recommendations(animeId: animeId, animeTitle: animeTitle))
                     default:

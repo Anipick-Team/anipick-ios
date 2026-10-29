@@ -228,6 +228,8 @@ extension DetailRoute {
         case .anime: return "anime_detail"
         case .voiceActor: return "voice_actor_detail"
         case .producer: return "producer_detail"
+        case .series: return "series_detail"
+        case .recommendations: return "recommend"
         }
     }
 }

@@ -1,5 +1,10 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-// 아직 레거시 화면이다. App이 Route를 레거시 화면에 연결한다 (이관 때 .feature로 바꾼다)
-let project = Project.featureInterface("Detail")
+// 애니 상세와 상세에서 들어가는 화면. 아직 레거시인 화면은 App이 Route를 가로챈다 (같은 Feature 안의 Strangler)
+let project = Project.feature(
+    "Detail",
+    dependencies: [.client("Detail")],
+    modules: [.core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
+    testModules: [.shared("FeatureTestSupport"), .core("ClientCore")]
+)

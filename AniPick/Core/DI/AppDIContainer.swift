@@ -6,6 +6,9 @@
 //
 import Combine
 import DesignSystem
+import DetailClientLive
+import DetailFeature
+import DetailInterface
 import HomeFeature
 import HomeClientLive
 import HomeInterface
@@ -134,6 +137,13 @@ struct AppDIContainer {
         }
         return request
     }
+
+    static let detailBuilder: any DetailBuilding = DetailBuilder(
+        dependencies: DetailDependencies(
+            detailClient: LiveDetailClient(client: AppSession.httpClient),
+            navigator: navigator
+        )
+    )
 
     static let homeBuilder: any HomeBuilding = HomeBuilder(
         dependencies: HomeDependencies(
