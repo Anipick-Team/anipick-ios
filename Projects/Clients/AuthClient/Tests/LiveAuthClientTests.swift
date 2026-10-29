@@ -204,7 +204,7 @@ struct LiveAuthClientTests {
     }
 
     @Test(
-        "FP13. 비밀번호 찾기: 인증번호 보내기·확인은 POST, 재설정은 PATCH, 모두 토큰 없이. 확인에 성공하면 이메일을 저장한다 (재설정 본문은 그 값을 읽는다 — 본문은 스트림이라 확인하지 못함)")
+        "FP13. 비밀번호 찾기: 보내기·확인 POST, 재설정 PATCH, 토큰 없음. 인증 성공 시 이메일 저장")
     func findPassword() async throws {
         let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","errorValue":null}"#))
         let defaults = UserDefaults(suiteName: "auth-\(UUID().uuidString)")!

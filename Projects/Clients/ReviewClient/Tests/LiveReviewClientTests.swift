@@ -1,6 +1,7 @@
 import ClientCore
 import Foundation
 import Networking
+import ReviewClientInterface
 import Testing
 
 @testable import ReviewClientLive
@@ -63,5 +64,34 @@ struct LiveReviewClientTests {
         #expect(request.httpMethod == "DELETE")
         #expect(request.url?.path() == "/api/reviews/77")
         #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer T")
+    }
+
+    @Test("PS8. 취향 선택 별점: POST api/reviews/bulk, JSON 배열 [{animeId, rating}], 토큰")
+    func storesInitialRatings() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","errorValue":null}"#))
+
+        try await LiveReviewClient(client: stub.client)
+            .storeInitialRatings([
+                InitialRating(animeId: 1, rating: 4.5), InitialRating(animeId: 2, rating: 3),
+            ])
+
+        let request = try #require(stub.requests.first)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.path() == "/api/reviews/bulk")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer T")
+        guard
+            case .json(let body) = LiveReviewClient.bulkEndpoint([
+                InitialRating(animeId: 1, rating: 4.5)
+            ]).body
+        else {
+            Issue.record("JSON 본문이 아니다")
+            return
+        }
+        let json =
+            try JSONSerialization.jsonObject(with: try JSONEncoder().encode(body))
+            as? [[String: Any]]
+        #expect(json?.count == 1)
+        #expect(json?.first?["animeId"] as? Int == 1)
+        #expect(json?.first?["rating"] as? Double == 4.5)
     }
 }

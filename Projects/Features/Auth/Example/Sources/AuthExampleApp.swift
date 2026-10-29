@@ -2,6 +2,10 @@ import AuthClientInterface
 import AuthClientTesting
 import AuthFeature
 import AuthInterface
+import ExploreClientInterface
+import ExploreClientTesting
+import MetadataClientTesting
+import ReviewClientTesting
 import FeatureTestSupport
 import SwiftUI
 
@@ -53,6 +57,11 @@ struct ExampleRoot: View {
                         open(.findPassword, result: .missingResult)
                     }
                 }
+                Section("취향 선택") {
+                    Button("가입 직후 온보딩") {
+                        open(.preferenceSelection, result: .missingResult)
+                    }
+                }
                 Section("기타") {
                     Button("로그인 문제") {
                         open(.loginProblem, result: .missingResult)
@@ -61,7 +70,7 @@ struct ExampleRoot: View {
             }
             .navigationTitle(loggedIn ? "로그인 완료" : "로그인 시나리오")
             .navigationDestination(for: AuthRoute.self) { route in
-                if route == .preferenceSelection || route == .mainLogin {
+                if route == .mainLogin {
                     Text("레거시 화면: \(String(describing: route))")
                 } else {
                     builder?.make(route)
@@ -74,6 +83,10 @@ struct ExampleRoot: View {
         builder = AuthBuilder(
             dependencies: AuthDependencies(
                 authClient: MockAuthClient(emailLoginResult: .success(result)),
+                exploreClient: MockExploreClient(
+                    .success(OnboardingPage(animes: (1...10).map { .sample($0) }, lastId: nil))),
+                reviewClient: MockReviewClient(),
+                metadataClient: MockMetadataClient(),
                 navigator: navigator,
                 analytics: RecordingTracker(),
                 onLoginCompleted: {

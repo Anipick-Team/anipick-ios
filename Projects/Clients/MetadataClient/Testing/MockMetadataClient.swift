@@ -22,4 +22,6 @@ public struct MockMetadataClient: MetadataClient {
     public func cachedSeasonYears() -> [Int] {
         return seasonYears
     }
+
+    public func refresh() async {}
 }

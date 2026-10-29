@@ -27,6 +27,20 @@ public struct LiveReviewClient: ReviewClient {
         )
     }
 
+    public func storeInitialRatings(_ ratings: [InitialRating]) async throws(TransportError) {
+        let _: ServerResponse<EmptyResult> = try await client.send(Self.bulkEndpoint(ratings))
+    }
+
+    /// 레거시 `AnimeAPI.storedPreference`: JSON 배열 [{animeId, rating}]
+    static func bulkEndpoint(_ ratings: [InitialRating]) -> Endpoint<EmptyResult> {
+        return Endpoint(
+            method: .post,
+            path: "api/reviews/bulk",
+            body: .json(ratings.map { RatingBody(animeId: $0.animeId, rating: $0.rating) }),
+            requiresAuth: true
+        )
+    }
+
     public func deleteReview(id: Int) async throws(TransportError) {
         let _: ServerResponse<EmptyResult> = try await client.send(
             Self.deleteReviewEndpoint(id: id))
@@ -57,4 +71,9 @@ struct WriteReviewBody: Encodable, Sendable {
     let rating: Double
     let isSpoiler: Bool
     let content: String
+}
+
+struct RatingBody: Encodable, Sendable {
+    let animeId: Int
+    let rating: Double
 }

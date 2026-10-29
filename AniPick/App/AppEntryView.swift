@@ -69,10 +69,8 @@ struct AppEntryView: View {
             }
             .navigationDestination(for: AuthRoute.self) { route in
                 Group {
-                    // 아직 레거시인 취향 선택·메인 로그인은 App이 가로챈다 (Auth 이관 중)
+                    // 아직 레거시인 메인 로그인은 App이 가로챈다 (Auth 이관 중)
                     switch route {
-                    case .preferenceSelection:
-                        AppDIContainer.makePreferenceSelectionView()
                     case .mainLogin:
                         AppDIContainer.makeLoginView()
                     default:
@@ -154,7 +152,7 @@ struct AppEntryView: View {
                     case .inquiry:
                         InquiryView()
                     case .preferenceSelection:
-                        AppDIContainer.makePreferenceSelectionView()
+                        AppDIContainer.authBuilder.make(.preferenceSelection)
                     case .comingSoonDetail:
                         AppDIContainer.makeComingSoonView()
                     case .weekdayNewAnime(let day):

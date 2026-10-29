@@ -1,8 +1,9 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-// 앱 시작 때 받아 둔 장르·연도 목록 (레거시 UserDefaultsManager 메타데이터). 받아 오기는 아직 레거시 AppEntryViewModel
+// 장르·연도·분기·유형 목록 (레거시 UserDefaultsManager 메타데이터). 앱 시작 때 받는 곳은 아직 레거시 AppEntryViewModel
 let project = Project.client(
     "Metadata",
-    liveModules: [.core("Storage")]
+    modules: [.core("ClientCore")],
+    liveModules: [.core("Storage"), .core("Networking")]
 )

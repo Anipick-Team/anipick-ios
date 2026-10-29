@@ -9,6 +9,7 @@ import SwiftUI
 import AuthClientLive
 import AuthFeature
 import AuthInterface
+import ExploreClientLive
 import MetadataClientLive
 import MyInfoClientLive
 import MyInfoFeature
@@ -48,6 +49,9 @@ struct AppDIContainer {
     static let authBuilder: any AuthBuilding = AuthBuilder(
         dependencies: AuthDependencies(
             authClient: liveAuthClient,
+            exploreClient: LiveExploreClient(client: AppSession.httpClient),
+            reviewClient: LiveReviewClient(client: AppSession.httpClient),
+            metadataClient: LiveMetadataClient(client: AppSession.httpClient),
             navigator: navigator,
             analytics: AppAnalytics.tracker,
             onLoginCompleted: { navigationManager.completeLogin() },

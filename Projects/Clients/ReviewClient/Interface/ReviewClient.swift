@@ -11,4 +11,17 @@ public protocol ReviewClient: Sendable {
 
     /// 내 리뷰 삭제 (`DELETE api/reviews/{id}`). 레거시처럼 응답 본문을 읽으면 성공이다(`code`를 보지 않음)
     func deleteReview(id: Int) async throws(TransportError)
+    /// 가입 직후 취향 선택에서 매긴 별점을 한 번에 저장한다 (`POST api/reviews/bulk`). 응답 code는 보지 않는다
+    func storeInitialRatings(_ ratings: [InitialRating]) async throws(TransportError)
+}
+
+/// 취향 선택의 별점 하나
+public struct InitialRating: Equatable, Sendable {
+    public let animeId: Int
+    public let rating: Double
+
+    public init(animeId: Int, rating: Double) {
+        self.animeId = animeId
+        self.rating = rating
+    }
 }

@@ -29,4 +29,24 @@ struct LiveMetadataClientTests {
         #expect(client.cachedGenres().isEmpty)
         #expect(client.cachedSeasonYears().isEmpty)
     }
+
+    @Test("PS2. refresh: api/animes/meta-data-group을 받아 레거시 키·형식으로 저장한다")
+    func refreshes() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"seasonYear":[2026],"season":[{"id":1,"name":"1분기"}],"genres":[{"id":3,"name":"SF"}],"type":["TV"]}}"#
+            ))
+        let client = LiveMetadataClient(
+            preferences: Preferences(defaults: defaults), client: stub.client)
+
+        await client.refresh()
+
+        #expect(stub.requests.first?.url?.path() == "/api/animes/meta-data-group")
+        #expect(client.cachedSeasonYears() == [2026])
+        #expect(client.cachedGenres() == [Genre(id: 3, name: "SF")])
+        #expect(defaults.stringArray(forKey: "animeType") == ["TV"])
+        let seasons = try JSONDecoder().decode(
+            [Genre].self, from: try #require(defaults.data(forKey: "seasonQuater")))
+        #expect(seasons == [Genre(id: 1, name: "1분기")])
+    }
 }

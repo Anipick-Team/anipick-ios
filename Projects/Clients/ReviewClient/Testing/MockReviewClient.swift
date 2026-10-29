@@ -23,6 +23,7 @@ public final class MockReviewClient: ReviewClient {
         var delay: Duration
         var written: [WrittenReview] = []
         var deletedIds: [Int] = []
+        var initialRatings: [[InitialRating]] = []
     }
 
     private let state: OSAllocatedUnfairLock<State>
@@ -33,6 +34,18 @@ public final class MockReviewClient: ReviewClient {
 
     public var written: [WrittenReview] {
         return state.withLock { $0.written }
+    }
+
+    public var initialRatings: [[InitialRating]] {
+        return state.withLock { $0.initialRatings }
+    }
+
+    public func storeInitialRatings(_ ratings: [InitialRating]) async throws(TransportError) {
+        try state.withLock {
+            $0.initialRatings.append(ratings)
+            return $0.result
+        }
+        .get()
     }
 
     public var deletedIds: [Int] {
