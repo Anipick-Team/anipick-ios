@@ -6,6 +6,10 @@
 //
 import SwiftUI
 import AuthClientLive
+import MetadataClientLive
+import RankingClientLive
+import RankingFeature
+import RankingInterface
 import ReviewClientLive
 import ReviewFeature
 import ReviewInterface
@@ -40,6 +44,14 @@ struct AppDIContainer {
             navigator: navigator,
             openURL: { UIApplication.shared.open($0) },
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        )
+    )
+
+    static let rankingBuilder: any RankingBuilding = RankingBuilder(
+        dependencies: RankingDependencies(
+            rankingClient: LiveRankingClient(client: AppSession.httpClient),
+            metadataClient: LiveMetadataClient(),
+            navigator: navigator
         )
     )
 

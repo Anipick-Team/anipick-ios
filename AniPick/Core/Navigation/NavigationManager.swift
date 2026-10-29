@@ -5,6 +5,8 @@
 //  Created by cho on 6/22/25.
 //
 
+import DetailInterface
+import HomeInterface
 import ReviewInterface
 import SettingInterface
 import SwiftUI
@@ -212,6 +214,25 @@ extension ReviewRoute {
     var screenName: String {
         switch self {
         case .write: return "review_write"
+        }
+    }
+}
+
+extension DetailRoute {
+    /// 레거시 `AppRoute.animeDetail`의 화면 이름 (R14)
+    var screenName: String {
+        switch self {
+        case .anime: return "anime_detail"
+        case .voiceActor: return "voice_actor_detail"
+        }
+    }
+}
+
+extension HomeRoute {
+    /// 레거시 `AppRoute.homeSearch`의 화면 이름 (R14)
+    var screenName: String {
+        switch self {
+        case .search: return "home_search"
         }
     }
 }

@@ -29,7 +29,7 @@ struct ContentView: View {
                 .foregroundStyle(viewModel.activeTab == .home ? Color.primaryColor: Color.textGrayColor)
                 .tag(Tab.home)
             
-            AppDIContainer.makeRakingView()
+            AppDIContainer.rankingBuilder.make(.main)
                 .tabItem {
                     Image(viewModel.activeTab == .ranking ? .rankingFilled : .rankingUnfilled)
                     Text("랭킹")

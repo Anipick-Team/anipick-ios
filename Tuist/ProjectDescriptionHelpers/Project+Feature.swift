@@ -93,10 +93,12 @@ extension Project {
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             infoPlist: .extendingDefault(with: ["UILaunchScreen": [:]]),
             sources: ["Example/Sources/**"],
+            // Example도 의존 Feature·Client의 Interface를 import한다 (가짜 빌더의 Route 등)
             dependencies: [
                 .target(name: feature.name), .target(name: testing.name),
                 .target(name: interface.name),
             ]
+                + dependencies.map(\.interface)
                 + dependencies.map(\.testing)
                 + modules.filter { !$0.isExternal }.map(\.target)
                 + testModules.map(\.target),

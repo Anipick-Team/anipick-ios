@@ -5,6 +5,8 @@
 //  Created by cho on 6/22/25.
 //
 
+import DetailInterface
+import HomeInterface
 import ReviewInterface
 import SwiftUI
 import SettingInterface
@@ -35,6 +37,24 @@ struct AppEntryView: View {
             .navigationDestination(for: SettingRoute.self) { route in
                 AppDIContainer.settingBuilder.make(route)
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
+            }
+            // 아직 레거시인 화면: 이관한 Feature가 push한 Route를 레거시 화면에 연결한다
+            .navigationDestination(for: DetailRoute.self) { route in
+                switch route {
+                case .anime(let id):
+                    AppDIContainer.makeAnimeDetailView(animeId: id)
+                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                case .voiceActor(let id):
+                    AppDIContainer.makeVoiceActorDetailView(animeId: id)
+                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                }
+            }
+            .navigationDestination(for: HomeRoute.self) { route in
+                switch route {
+                case .search:
+                    AppDIContainer.makeHomeSearchView()
+                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                }
             }
             .navigationDestination(for: ReviewRoute.self) { route in
                 AppDIContainer.reviewBuilder.make(route)
@@ -80,7 +100,7 @@ struct AppEntryView: View {
                     case .myContent:
                         MyContentView()
                     case .ranking:
-                        AppDIContainer.makeRakingView()
+                        AppDIContainer.rankingBuilder.make(.main)
                     case .research:
                         AppDIContainer.makeResearchView()
                     case .review(let starRating, let animeId, let reviewContent):

@@ -5,6 +5,8 @@
 //  이관한 화면의 Route가 레거시 AppRoute와 같은 화면 조회 이름을 쓰는지 (R14)
 //
 
+import DetailInterface
+import HomeInterface
 import ReviewInterface
 import SettingInterface
 import Testing
@@ -31,5 +33,11 @@ struct RouteScreenNameTests {
         let legacy = AppRoute.review(starRating: 3, animeId: 1, reviewContent: "")
 
         #expect(route.screenName == legacy.screenName)
+    }
+
+    @Test("아직 레거시인 상세·검색 Route")
+    func legacyBacked() {
+        #expect(DetailRoute.anime(id: 1).screenName == AppRoute.animeDetail(animeId: 1).screenName)
+        #expect(HomeRoute.search.screenName == AppRoute.homeSearch.screenName)
     }
 }
