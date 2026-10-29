@@ -41,6 +41,10 @@ public struct LiveMetadataClient: MetadataClient {
         return preferences.codableValue(for: Self.genresKey)
     }
 
+    public func cachedTypes() -> [String] {
+        return preferences.value(for: Self.typesKey)
+    }
+
     public func cachedSeasonYears() -> [Int] {
         return preferences.value(for: Self.seasonYearsKey)
     }

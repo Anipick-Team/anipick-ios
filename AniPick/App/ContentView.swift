@@ -36,7 +36,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.ranking)
             
-            AppDIContainer.makeExploreView()
+            AppDIContainer.exploreBuilder.make(.main)
                 .tabItem {
                     Image(viewModel.activeTab == .research ? .reseachFilled : .researchUnfilled)
                     Text("탐색")

@@ -45,6 +45,7 @@ struct LiveMetadataClientTests {
         #expect(client.cachedSeasonYears() == [2026])
         #expect(client.cachedGenres() == [Genre(id: 3, name: "SF")])
         #expect(defaults.stringArray(forKey: "animeType") == ["TV"])
+        #expect(client.cachedTypes() == ["TV"])
         let seasons = try JSONDecoder().decode(
             [Genre].self, from: try #require(defaults.data(forKey: "seasonQuater")))
         #expect(seasons == [Genre(id: 1, name: "1분기")])

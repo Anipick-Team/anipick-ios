@@ -260,6 +260,7 @@ extension ExploreRoute {
     /// 레거시 `AppRoute.communityDetail`의 화면 이름 (R14)
     var screenName: String {
         switch self {
+        case .main: return "explore"
         case .communityPost: return "community_detail"
         case .communityBoard: return "community"
         // 탐색 화면 안에 들어가는 하위 탭이라 push되지 않는다. 탭 전환은 ContentView가 기록한다

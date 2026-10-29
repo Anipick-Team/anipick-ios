@@ -3,6 +3,7 @@ import MetadataClientInterface
 public struct MockMetadataClient: MetadataClient {
     public var genres: [Genre]
     public var seasonYears: [Int]
+    public var types: [String] = ["TV", "OVA", "MOVIE"]
 
     public init(
         genres: [Genre] = [
@@ -21,6 +22,10 @@ public struct MockMetadataClient: MetadataClient {
 
     public func cachedSeasonYears() -> [Int] {
         return seasonYears
+    }
+
+    public func cachedTypes() -> [String] {
+        return types
     }
 
     public func refresh() async {}

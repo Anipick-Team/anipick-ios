@@ -138,8 +138,9 @@ struct AppEntryView: View {
                         AppDIContainer.reviewBuilder.make(
                             .write(animeId: animeId, rating: starRating, content: reviewContent)
                         )
-                    case .explore(let season, let seaseonYear):
-                        AppDIContainer.makeExploreView(season: season, year: seaseonYear)
+                    case .explore:
+                        // 레거시도 연도·분기 인자를 쓰지 않는다
+                        AppDIContainer.exploreBuilder.make(.main)
                     case .animeDetail(let animeId):
                         AppDIContainer.makeAnimeDetailView(animeId: animeId)
                     case .resetPassword:

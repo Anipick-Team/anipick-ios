@@ -48,4 +48,35 @@ struct LiveExploreClientTests {
         #expect(page == nil)
         #expect(query(try #require(stub.requests.first)).isEmpty)
     }
+
+    @Test("EX1. 작품 탐색: GET api/explore/animes, 장르는 genres[] 반복, size=18, lastValue 없음")
+    func exploreAnimes() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"count":2,"cursor":{"sort":"popularity","lastId":9,"lastValue":null},"animes":[{"animeId":9,"title":"A","coverImageUrl":null,"releaseDate":null}]}}"#
+            ))
+
+        let page = try await LiveExploreClient(client: stub.client).exploreAnimes(
+            ExploreQuery(
+                sort: "rating", year: 2025, season: nil, genreIds: [3, 5], type: "TV", lastId: 4,
+                genreOp: "AND"))
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/explore/animes")
+        let items =
+            URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        #expect(items.filter { $0.name == "genres[]" }.map(\.value) == ["3", "5"])
+        #expect(
+            Dictionary(items.filter { $0.name != "genres[]" }.map { ($0.name, $0.value ?? "") }) {
+                a, _ in a
+            }
+                == [
+                    "sort": "rating", "year": "2025", "type": "TV", "lastId": "4", "size": "18",
+                    "genreOp": "AND",
+                ])
+        #expect(
+            page
+                == ExplorePage(
+                    animes: [ExploreAnime(animeId: 9, title: "A", coverImageUrl: nil)], lastId: 9))
+    }
 }

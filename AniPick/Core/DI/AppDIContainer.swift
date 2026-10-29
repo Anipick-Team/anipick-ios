@@ -4,6 +4,7 @@
 //
 //  Created by cho on 6/8/25.
 //
+import Combine
 import DesignSystem
 import SwiftUI
 import AuthClientLive
@@ -81,7 +82,21 @@ struct AppDIContainer {
     static let exploreBuilder: any ExploreBuilding = ExploreBuilder(
         dependencies: ExploreDependencies(
             communityClient: LiveCommunityClient(client: AppSession.httpClient),
-            navigator: navigator
+            exploreClient: LiveExploreClient(client: AppSession.httpClient),
+            metadataClient: LiveMetadataClient(client: AppSession.httpClient),
+            navigator: navigator,
+            // 홈 "곧 방영"이 넘긴 연도·분기 (레거시 AppState)
+            consumePendingFilter: {
+                appState.consumeExploreFilter().map { PendingExploreFilter(year: $0.year, season: $0.season) }
+            },
+            pendingFilterUpdates: {
+                AsyncStream { continuation in
+                    let cancellable = appState.$pendingExploreFilter.dropFirst().sink { _ in
+                        continuation.yield()
+                    }
+                    continuation.onTermination = { _ in cancellable.cancel() }
+                }
+            }
         )
     )
 

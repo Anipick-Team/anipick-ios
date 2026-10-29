@@ -1,6 +1,9 @@
 import CommunityClientInterface
 import CommunityClientTesting
+import ExploreClientInterface
+import ExploreClientTesting
 import ExploreFeature
+import MetadataClientTesting
 import ExploreInterface
 import FeatureTestSupport
 import SwiftUI
@@ -30,10 +33,15 @@ struct ExampleRoot: View {
                                     lastValue: nil))
                         ],
                         delay: .milliseconds(400)),
+                    exploreClient: MockExploreClient(
+                        explorePages: [
+                            .success(ExplorePage(animes: (1...30).map { .sample($0) }, lastId: nil))
+                        ]),
+                    metadataClient: MockMetadataClient(),
                     navigator: navigator
                 )
             )
-            .make(.communityBoards)
+            .make(.main)
             .navigationDestination(for: ExploreRoute.self) { route in
                 Text("레거시 화면: \(String(describing: route))")
             }
