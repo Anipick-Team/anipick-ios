@@ -188,6 +188,18 @@ public struct LiveCommunityClient: CommunityClient {
         return Endpoint(method: method, path: path, body: body, requiresAuth: true)
     }
 
+    public func board(animeId: Int) async throws(TransportError) -> AnimeBoard? {
+        let response = try await client.send(
+            Endpoint<BoardResult>(
+                method: .get, path: "api/community/boards/by-anime/\(animeId)", requiresAuth: true))
+        return response.result.map {
+            AnimeBoard(
+                seriesId: $0.seriesId, hasBoard: $0.hasBoard, title: $0.title,
+                coverImageUrl: $0.coverImageUrl,
+                genres: $0.genres?.compactMap(\.name))
+        }
+    }
+
     public func imageURL(id: Int) -> URL {
         return imageBaseURL.appending(path: "api/image/\(id)")
     }
@@ -402,4 +414,17 @@ struct ReportBody: Encodable, Sendable {
     let targetType: String
     let targetId: Int
     let reportCategory: String
+}
+
+/// 레거시 `CommunityBoardByAnime`
+struct BoardResult: Decodable, Sendable {
+    struct Genre: Decodable, Sendable {
+        let name: String?
+    }
+
+    let seriesId: Int?
+    let hasBoard: Bool?
+    let title: String?
+    let coverImageUrl: String?
+    let genres: [Genre]?
 }

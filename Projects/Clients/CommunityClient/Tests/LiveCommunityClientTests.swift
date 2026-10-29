@@ -313,6 +313,27 @@ struct LiveCommunityClientTests {
 
         #expect(client.imageURL(id: 5).absoluteString == "https://img.test/api/image/5")
     }
+
+    @Test("AB1. 애니 게시판: GET api/community/boards/by-anime/{id}, 장르 이름만. 결과가 없으면 nil")
+    func animeBoard() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"seriesId":4,"hasBoard":true,"title":"T","coverImageUrl":"c","genres":[{"id":1,"name":"액션"},{"id":2}]}}"#
+            ))
+
+        let board = try await LiveCommunityClient(client: stub.client, imageBaseURL: Self.imageBase)
+            .board(animeId: 9)
+
+        #expect(try #require(stub.requests.first).url?.path() == "/api/community/boards/by-anime/9")
+        #expect(
+            board
+                == AnimeBoard(
+                    seriesId: 4, hasBoard: true, title: "T", coverImageUrl: "c", genres: ["액션"]))
+        let none = ClientStub(.json(#"{"code":200,"value":"OK","result":null}"#))
+        #expect(
+            try await LiveCommunityClient(client: none.client, imageBaseURL: Self.imageBase).board(
+                animeId: 9) == nil)
+    }
 }
 
 extension Endpoint {

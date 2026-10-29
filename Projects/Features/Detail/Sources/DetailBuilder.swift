@@ -1,15 +1,38 @@
+import Analytics
+import CommunityClientInterface
 import DetailClientInterface
+import Foundation
 import DetailInterface
 import Navigation
 import SwiftUI
 
 public struct DetailDependencies {
     public let detailClient: any DetailClient
+    public let communityClient: any CommunityClient
     public let navigator: any Navigator
+    public let analytics: any AnalyticsTracking
+    /// 마지막으로 본 애니 저장 (App: 레거시 `UserDefaultsManager.setLastVisitedAnimeId`)
+    public let setLastVisitedAnimeId: @MainActor (Int) -> Void
+    /// 공유 시트 (App: 문구 + Universal Link — 딥링크 경로는 App이 안다)
+    public let shareAnime: @MainActor (_ animeId: Int, _ title: String) -> Void
+    public let openURL: @MainActor (URL) -> Void
 
-    public init(detailClient: any DetailClient, navigator: any Navigator) {
+    public init(
+        detailClient: any DetailClient,
+        communityClient: any CommunityClient,
+        navigator: any Navigator,
+        analytics: any AnalyticsTracking,
+        setLastVisitedAnimeId: @escaping @MainActor (Int) -> Void = { _ in },
+        shareAnime: @escaping @MainActor (_ animeId: Int, _ title: String) -> Void = { _, _ in },
+        openURL: @escaping @MainActor (URL) -> Void = { _ in }
+    ) {
         self.detailClient = detailClient
+        self.communityClient = communityClient
         self.navigator = navigator
+        self.analytics = analytics
+        self.setLastVisitedAnimeId = setLastVisitedAnimeId
+        self.shareAnime = shareAnime
+        self.openURL = openURL
     }
 }
 
@@ -47,10 +70,22 @@ public struct DetailBuilder: DetailBuilding {
                     reducer: VoiceActorReducer(
                         detailClient: dependencies.detailClient, navigator: dependencies.navigator))
             )
-        case .anime:
-            // 아직 레거시 화면 — App이 가로챈다
-            assertionFailure("레거시 화면 Route가 Detail 빌더로 왔다: \(route)")
-            return AnyView(EmptyView())
+        case .anime(let id):
+            // 리뷰 탭은 Detail-5에서 옮긴다. 그때까지 App이 이 Route를 레거시 화면으로 가로챈다
+            let reducer = AnimeDetailReducer(
+                detailClient: dependencies.detailClient,
+                communityClient: dependencies.communityClient,
+                navigator: dependencies.navigator,
+                analytics: dependencies.analytics,
+                setLastVisitedAnimeId: dependencies.setLastVisitedAnimeId,
+                shareAnime: dependencies.shareAnime,
+                openURL: dependencies.openURL
+            )
+            return AnyView(
+                AnimeDetailView(state: AnimeDetailReducer.State(animeId: id), reducer: reducer) {
+                    _ in
+                    EmptyView()
+                })
         }
     }
 

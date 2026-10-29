@@ -90,6 +90,73 @@ public struct LiveDetailClient: DetailClient {
         )
     }
 
+    public func animeInfo(id: Int) async throws(TransportError) -> AnimeInfo {
+        let dto = try await client.send(
+            Self.query("api/animes/\(id)/detail/info", [:]) as Endpoint<InfoResult>
+        )
+        .requireResult()
+        return AnimeInfo(
+            animeId: dto.animeId, title: dto.title, coverImageUrl: dto.coverImageUrl,
+            bannerImageUrl: dto.bannerImageUrl,
+            description: dto.description, averageRating: dto.averageRating, isLiked: dto.isLiked,
+            watchStatus: dto.watchStatus, type: dto.type, reviewCount: dto.reviewCount,
+            genres: dto.genres?.map(\.name),
+            episode: dto.episode, airDate: dto.airDate, status: dto.status, age: dto.age,
+            studios: dto.studios?.map { AnimeInfo.Studio(studioId: $0.studioId, name: $0.name) })
+    }
+
+    public func detailCast(animeId: Int) async throws(TransportError) -> [CastMember] {
+        return try await client.send(
+            Self.query("api/animes/\(animeId)/detail/actor", [:])
+                as Endpoint<[CharactersResult.Pair]>
+        )
+        .requireResult()
+        .map { CastMember(character: $0.character?.person, voiceActor: $0.voiceActor?.person) }
+    }
+
+    public func detailSeries(animeId: Int) async throws(TransportError) -> [DetailAnime] {
+        return try await client.send(
+            Self.query("api/animes/\(animeId)/detail/series", [:]) as Endpoint<[AnimeDTO]>
+        )
+        .requireResult().map(\.anime)
+    }
+
+    public func detailRecommendations(animeId: Int) async throws(TransportError) -> [DetailAnime] {
+        return try await client.send(
+            Self.query("api/animes/\(animeId)/detail/recommendation", [:]) as Endpoint<[AnimeDTO]>
+        )
+        .requireResult().map(\.anime)
+    }
+
+    public func setAnimeLike(id: Int, liked: Bool) async throws(TransportError) {
+        _ = try await readCode(
+            Endpoint(
+                method: liked ? .post : .delete, path: "api/animes/\(id)/like",
+                body: liked ? .json(LikeBody(animeId: id)) : .none, requiresAuth: true))
+    }
+
+    public func setWatchStatus(animeId: Int, status: String) async throws(TransportError) -> Int {
+        return try await readCode(
+            Endpoint(
+                method: .post, path: "api/users/\(animeId)/status",
+                body: .json(StatusBody(status: status)),
+                requiresAuth: true))
+    }
+
+    public func deleteWatchStatus(animeId: Int) async throws(TransportError) {
+        _ = try await readCode(
+            Endpoint(method: .delete, path: "api/users/\(animeId)/status", requiresAuth: true))
+    }
+
+    /// 레거시는 `.validate()` 없이 `BaseResponse`로 읽는다. HTTP 상태와 무관하게 {code, value}를 읽으면 성공이다
+    private func readCode(_ endpoint: Endpoint<EmptyResult>) async throws(TransportError) -> Int {
+        let data = try await client.sendRaw(endpoint)
+        guard let envelope = try? JSONDecoder().decode(CodeEnvelope.self, from: data) else {
+            throw .decoding
+        }
+        return envelope.code
+    }
+
     static func query<Result>(_ path: String, _ parameters: [String: String?]) -> Endpoint<Result> {
         return Endpoint(
             method: .get,
@@ -201,4 +268,47 @@ struct PersonResult: Decodable, Sendable {
     let count: Int
     let cursor: Cursor
     let works: [Work]
+}
+
+struct LikeBody: Encodable, Sendable {
+    let animeId: Int
+}
+
+struct StatusBody: Encodable, Sendable {
+    let status: String
+}
+
+/// 레거시 `BaseResponse`의 필수 키
+struct CodeEnvelope: Decodable {
+    let code: Int
+    let value: String
+}
+
+/// 레거시 `AnimeDetail`
+struct InfoResult: Decodable, Sendable {
+    struct Genre: Decodable, Sendable {
+        let name: String
+    }
+
+    struct Studio: Decodable, Sendable {
+        let studioId: Int?
+        let name: String?
+    }
+
+    let animeId: Int
+    let title: String?
+    let coverImageUrl: String?
+    let bannerImageUrl: String?
+    let description: String?
+    let averageRating: String?
+    let isLiked: Bool?
+    let watchStatus: String?
+    let type: String?
+    let reviewCount: Int?
+    let genres: [Genre]?
+    let episode: Int?
+    let airDate: String?
+    let status: String?
+    let age: String?
+    let studios: [Studio]?
 }

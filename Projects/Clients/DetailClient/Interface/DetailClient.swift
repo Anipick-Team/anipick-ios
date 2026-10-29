@@ -137,6 +137,63 @@ public struct PersonPage: Equatable, Sendable {
     }
 }
 
+/// 애니 상세 정보 (레거시 `AnimeDetail`). animeId 말고는 모두 선택값이다
+public struct AnimeInfo: Equatable, Sendable {
+    public struct Studio: Hashable, Sendable {
+        public let studioId: Int?
+        public let name: String?
+
+        public init(studioId: Int?, name: String?) {
+            self.studioId = studioId
+            self.name = name
+        }
+    }
+
+    public let animeId: Int
+    public let title: String?
+    public let coverImageUrl: String?
+    public let bannerImageUrl: String?
+    public let description: String?
+    public let averageRating: String?
+    public let isLiked: Bool?
+    /// WATCHLIST·WATCHING·FINISHED 또는 nil
+    public let watchStatus: String?
+    public let type: String?
+    public let reviewCount: Int?
+    public let genres: [String]?
+    public let episode: Int?
+    public let airDate: String?
+    public let status: String?
+    public let age: String?
+    public let studios: [Studio]?
+
+    public init(
+        animeId: Int, title: String?, coverImageUrl: String?, bannerImageUrl: String?,
+        description: String?,
+        averageRating: String?, isLiked: Bool?, watchStatus: String?, type: String?,
+        reviewCount: Int?,
+        genres: [String]?, episode: Int?, airDate: String?, status: String?, age: String?,
+        studios: [Studio]?
+    ) {
+        self.animeId = animeId
+        self.title = title
+        self.coverImageUrl = coverImageUrl
+        self.bannerImageUrl = bannerImageUrl
+        self.description = description
+        self.averageRating = averageRating
+        self.isLiked = isLiked
+        self.watchStatus = watchStatus
+        self.type = type
+        self.reviewCount = reviewCount
+        self.genres = genres
+        self.episode = episode
+        self.airDate = airDate
+        self.status = status
+        self.age = age
+        self.studios = studios
+    }
+}
+
 public protocol DetailClient: Sendable {
     /// 관련 작품 (`GET api/animes/{id}/series`, size=10). 결과가 없으면 nil
     func series(animeId: Int, lastId: Int?) async throws(TransportError) -> SeriesPage?
@@ -152,4 +209,19 @@ public protocol DetailClient: Sendable {
     func person(id: Int, lastId: Int?) async throws(TransportError) -> PersonPage
     /// 인물 좋아요 (`POST`·`DELETE api/persons/{id}/like`). 응답은 보지 않는다
     func setPersonLike(id: Int, liked: Bool) async throws(TransportError)
+    /// 애니 상세 (`GET api/animes/{id}/detail/info`). 결과가 없으면 `.decoding`
+    func animeInfo(id: Int) async throws(TransportError) -> AnimeInfo
+    /// 상세의 캐스트 (`GET api/animes/{id}/detail/actor`)
+    func detailCast(animeId: Int) async throws(TransportError) -> [CastMember]
+    /// 상세의 관련 작품 (`GET api/animes/{id}/detail/series`)
+    func detailSeries(animeId: Int) async throws(TransportError) -> [DetailAnime]
+    /// 상세의 함께 볼만한 작품 (`GET api/animes/{id}/detail/recommendation`)
+    func detailRecommendations(animeId: Int) async throws(TransportError) -> [DetailAnime]
+    /// 애니 좋아요 (`POST api/animes/{id}/like` JSON {animeId}) / 취소 (`DELETE`).
+    /// 레거시처럼 HTTP 상태를 보지 않고 본문을 읽으면 성공이다
+    func setAnimeLike(id: Int, liked: Bool) async throws(TransportError)
+    /// 볼 애니·보는 중·다 본 애니 (`POST api/users/{id}/status` JSON {status}). 본문 code를 돌려준다 (128: 이미 상태가 있음)
+    func setWatchStatus(animeId: Int, status: String) async throws(TransportError) -> Int
+    /// 시청 상태 지우기 (`DELETE api/users/{id}/status`)
+    func deleteWatchStatus(animeId: Int) async throws(TransportError)
 }

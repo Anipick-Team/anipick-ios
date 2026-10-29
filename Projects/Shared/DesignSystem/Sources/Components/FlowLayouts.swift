@@ -80,12 +80,16 @@ public struct FlowTagLayout: Layout {
     }
 }
 
-/// 칩을 왼쪽부터 줄 바꿈하며 배치한다. 레거시 `FlowCellLayout`(왼쪽 정렬)과 같은 배치다.
+/// 칩을 줄 바꿈하며 배치한다. 레거시 `FlowCellLayout`과 같은 배치다.
+///
+/// - Parameter alignTrailing: 줄을 오른쪽에 붙인다. 레거시처럼 줄 너비에 마지막 간격까지 넣어 계산한다
 public struct FlowChipLayout: Layout {
     public var spacing: CGFloat
+    public var alignTrailing: Bool
 
-    public init(spacing: CGFloat = 4) {
+    public init(spacing: CGFloat = 4, alignTrailing: Bool = false) {
         self.spacing = spacing
+        self.alignTrailing = alignTrailing
     }
 
     private struct Row {
@@ -110,7 +114,7 @@ public struct FlowChipLayout: Layout {
     ) {
         var y = bounds.minY
         for row in rows(subviews, maxWidth: bounds.width) {
-            var x = bounds.minX
+            var x = alignTrailing ? bounds.maxX - row.width : bounds.minX
             for subview in row.subviews {
                 let size = subview.sizeThatFits(.unspecified)
                 subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))

@@ -192,6 +192,25 @@ public enum ReportCategory: String, CaseIterable, Hashable, Sendable {
     }
 }
 
+/// 애니가 속한 커뮤니티 게시판 (레거시 `CommunityBoardByAnime`). 게시판이 없으면 hasBoard가 false다
+public struct AnimeBoard: Equatable, Sendable {
+    public let seriesId: Int?
+    public let hasBoard: Bool?
+    public let title: String?
+    public let coverImageUrl: String?
+    public let genres: [String]?
+
+    public init(
+        seriesId: Int?, hasBoard: Bool?, title: String?, coverImageUrl: String?, genres: [String]?
+    ) {
+        self.seriesId = seriesId
+        self.hasBoard = hasBoard
+        self.title = title
+        self.coverImageUrl = coverImageUrl
+        self.genres = genres
+    }
+}
+
 /// 글 작성·수정 내용 (레거시 `CommunityPostRequest`·`CommunityPostUpdateRequest`)
 public struct PostDraft: Equatable, Sendable {
     public let title: String
@@ -253,4 +272,6 @@ public protocol CommunityClient: Sendable {
     /// 신고 (`POST api/community/reports`)
     func report(target: ReportTarget, targetId: Int, category: ReportCategory)
         async throws(TransportError)
+    /// 애니의 게시판 (`GET api/community/boards/by-anime/{id}`). 결과가 없으면 nil
+    func board(animeId: Int) async throws(TransportError) -> AnimeBoard?
 }

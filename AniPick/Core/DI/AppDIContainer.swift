@@ -141,7 +141,17 @@ struct AppDIContainer {
     static let detailBuilder: any DetailBuilding = DetailBuilder(
         dependencies: DetailDependencies(
             detailClient: LiveDetailClient(client: AppSession.httpClient),
-            navigator: navigator
+            communityClient: LiveCommunityClient(
+                client: AppSession.httpClient, imageBaseURL: URL(string: NetworkManager.baseUrl)!),
+            navigator: navigator,
+            analytics: AppAnalytics.tracker,
+            setLastVisitedAnimeId: { UserDefaultsManager.shared.setLastVisitedAnimeId(animeId: $0) },
+            // 레거시 AnimationInfoViewModel.makeShareItems와 같은 문구·링크
+            shareAnime: { animeId, title in
+                let text = "애니픽에서 '\(title)'을 확인해보세요!"
+                ShareSheet.present(items: DeepLink.anime(id: animeId).universalLink.map { [text, $0] } ?? [text])
+            },
+            openURL: { UIApplication.shared.open($0) }
         )
     )
 

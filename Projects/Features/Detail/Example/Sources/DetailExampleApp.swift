@@ -1,3 +1,4 @@
+import CommunityClientTesting
 import DetailClientInterface
 import DetailClientTesting
 import DetailFeature
@@ -25,7 +26,10 @@ struct ExampleRoot: View {
         ])
         NavigationStack(path: $navigator.path) {
             DetailBuilder(
-                dependencies: DetailDependencies(detailClient: client, navigator: navigator)
+                dependencies: DetailDependencies(
+                    detailClient: client, communityClient: MockCommunityClient(),
+                    navigator: navigator,
+                    analytics: RecordingTracker())
             )
             .make(.series(animeId: 1, animeTitle: "원피스"))
             .navigationDestination(for: DetailRoute.self) { route in

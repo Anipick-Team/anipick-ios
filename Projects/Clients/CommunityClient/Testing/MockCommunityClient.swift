@@ -65,6 +65,8 @@ public final class MockCommunityClient: CommunityClient {
         var comments: [Result<CommunityCommentPage, TransportError>] = []
         var actionFailure: TransportError?
         var detailRequests: [DetailRequest] = []
+        var board: Result<AnimeBoard?, TransportError> = .success(nil)
+        var boardRequests: [Int] = []
     }
 
     private let state: OSAllocatedUnfairLock<State>
@@ -100,6 +102,23 @@ public final class MockCommunityClient: CommunityClient {
         await pause()
         return try (result ?? .success(CommunityPostPage(posts: [], lastId: nil, lastValue: nil)))
             .get()
+    }
+
+    public var animeBoardRequests: [Int] {
+        return state.withLock { $0.boardRequests }
+    }
+
+    public func stubBoard(_ result: Result<AnimeBoard?, TransportError>) {
+        state.withLock { $0.board = result }
+    }
+
+    public func board(animeId: Int) async throws(TransportError) -> AnimeBoard? {
+        let result = state.withLock { state in
+            state.boardRequests.append(animeId)
+            return state.board
+        }
+        await pause()
+        return try result.get()
     }
 
     public var detailRequests: [DetailRequest] {
