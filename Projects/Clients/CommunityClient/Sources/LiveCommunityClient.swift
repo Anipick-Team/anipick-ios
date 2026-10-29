@@ -5,10 +5,65 @@ import Networking
 
 public struct LiveCommunityClient: CommunityClient {
     private let client: HTTPClient
+    private let imageBaseURL: URL
 
-    /// - Parameter client: 인증 클라이언트
-    public init(client: HTTPClient) {
+    /// - Parameters:
+    ///   - client: 인증 클라이언트
+    ///   - imageBaseURL: 이미지 id를 주소로 바꿀 때 쓰는 서버 주소 (`{주소}api/image/{id}`)
+    public init(client: HTTPClient, imageBaseURL: URL) {
         self.client = client
+        self.imageBaseURL = imageBaseURL
+    }
+
+    public func imageURL(id: Int) -> URL {
+        return imageBaseURL.appending(path: "api/image/\(id)")
+    }
+
+    public func uploadPostImage(jpeg: Data, fileName: String) async throws(TransportError) -> Int? {
+        let response = try await client.send(Self.uploadEndpoint(jpeg: jpeg, fileName: fileName))
+        return response.result?.imageId
+    }
+
+    /// 레거시 `CommunityAPIService.uploadPostImage`
+    static func uploadEndpoint(jpeg: Data, fileName: String) -> Endpoint<UploadResult> {
+        var form = MultipartForm()
+        form.addFile(name: "postImageFile", fileName: fileName, mimeType: "image/jpeg", data: jpeg)
+        return Endpoint(
+            method: .post, path: "api/image/community-post-image", body: .multipart(form),
+            requiresAuth: true)
+    }
+
+    public func createPost(seriesId: Int, _ draft: PostDraft) async throws(TransportError)
+        -> PostSaveOutcome
+    {
+        return Self.outcome(try await client.send(Self.createEndpoint(seriesId: seriesId, draft)))
+    }
+
+    public func updatePost(id: Int, _ draft: PostDraft) async throws(TransportError)
+        -> PostSaveOutcome
+    {
+        return Self.outcome(try await client.send(Self.updateEndpoint(id: id, draft)))
+    }
+
+    static func createEndpoint(seriesId: Int, _ draft: PostDraft) -> Endpoint<EmptyResult> {
+        let body = CreateBody(
+            seriesId: seriesId, title: draft.title, content: draft.content,
+            isSpoiler: draft.isSpoiler, imageIds: draft.imageIds.isEmpty ? nil : draft.imageIds)
+        return Endpoint(
+            method: .post, path: "api/community/posts", body: .json(body), requiresAuth: true)
+    }
+
+    static func updateEndpoint(id: Int, _ draft: PostDraft) -> Endpoint<EmptyResult> {
+        let body = UpdateBody(
+            title: draft.title, content: draft.content, isSpoiler: draft.isSpoiler,
+            imageIds: draft.imageIds)
+        return Endpoint(
+            method: .patch, path: "api/community/posts/\(id)", body: .json(body), requiresAuth: true
+        )
+    }
+
+    private static func outcome(_ response: ServerResponse<EmptyResult>) -> PostSaveOutcome {
+        return response.code == 200 ? .saved : .rejected(message: response.errorValue)
     }
 
     public func exploreBoards(
@@ -73,4 +128,25 @@ struct BoardsResult: Decodable, Sendable {
 
     let cursor: Cursor?
     let boards: [Board]?
+}
+
+struct UploadResult: Decodable, Sendable {
+    let imageId: Int?
+}
+
+/// 레거시 `CommunityPostRequest`. imageIds가 nil이면 키를 빼고 보낸다
+struct CreateBody: Encodable, Sendable {
+    let seriesId: Int
+    let title: String
+    let content: String
+    let isSpoiler: Bool
+    let imageIds: [Int]?
+}
+
+/// 레거시 `CommunityPostUpdateRequest`
+struct UpdateBody: Encodable, Sendable {
+    let title: String
+    let content: String
+    let isSpoiler: Bool
+    let imageIds: [Int]
 }

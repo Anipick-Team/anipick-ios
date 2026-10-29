@@ -14,6 +14,12 @@ public enum ExploreRoute: Hashable, Sendable {
         seriesId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
     /// 커뮤니티 게시글 상세 (레거시 `AppRoute.communityDetail`)
     case communityPost(id: Int)
+    /// 커뮤니티 글 작성 (레거시 `AppRoute.communityWrite`)
+    case communityWrite(seriesId: Int, animeTitle: String)
+    /// 커뮤니티 글 수정 (레거시 `AppRoute.communityEdit`). 기존 내용·첨부 사진 id로 채운다
+    case communityEdit(
+        postId: Int, seriesId: Int, animeTitle: String, title: String, content: String,
+        isSpoiler: Bool, imageIds: [Int])
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).

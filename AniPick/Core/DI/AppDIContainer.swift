@@ -81,7 +81,8 @@ struct AppDIContainer {
 
     static let exploreBuilder: any ExploreBuilding = ExploreBuilder(
         dependencies: ExploreDependencies(
-            communityClient: LiveCommunityClient(client: AppSession.httpClient),
+            communityClient: LiveCommunityClient(
+                client: AppSession.httpClient, imageBaseURL: URL(string: NetworkManager.baseUrl)!),
             exploreClient: LiveExploreClient(client: AppSession.httpClient),
             metadataClient: LiveMetadataClient(client: AppSession.httpClient),
             navigator: navigator,
@@ -96,6 +97,10 @@ struct AppDIContainer {
                     }
                     continuation.onTermination = { _ in cancellable.cancel() }
                 }
+            },
+            // 레거시 커뮤니티 상세가 듣는 알림 (상세 이관 전까지)
+            postUpdated: { postId in
+                NotificationCenter.default.post(name: .communityPostUpdated, object: nil, userInfo: ["postId": postId])
             }
         )
     )

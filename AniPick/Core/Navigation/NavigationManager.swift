@@ -263,6 +263,8 @@ extension ExploreRoute {
         case .main: return "explore"
         case .communityPost: return "community_detail"
         case .communityBoard: return "community"
+        case .communityWrite: return "community_write"
+        case .communityEdit: return "community_edit"
         // 탐색 화면 안에 들어가는 하위 탭이라 push되지 않는다. 탭 전환은 ContentView가 기록한다
         case .communityBoards: return "explore"
         }

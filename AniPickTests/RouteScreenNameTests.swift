@@ -70,6 +70,16 @@ struct RouteScreenNameTests {
         #expect(
             ExploreRoute.communityBoard(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []).screenName
                 == AppRoute.community(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []).screenName)
+        #expect(
+            ExploreRoute.communityWrite(seriesId: 1, animeTitle: "").screenName
+                == AppRoute.communityWrite(seriesId: 1, animeTitle: "").screenName)
+        #expect(
+            ExploreRoute.communityEdit(
+                postId: 1, seriesId: 1, animeTitle: "", title: "", content: "", isSpoiler: false, imageIds: []
+            ).screenName
+                == AppRoute.communityEdit(
+                    postId: 1, seriesId: 1, animeTitle: "", title: "", content: "", isSpoiler: false, imageIds: []
+                ).screenName)
     }
 
     @Test(

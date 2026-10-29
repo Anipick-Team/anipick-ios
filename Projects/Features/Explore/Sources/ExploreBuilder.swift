@@ -1,4 +1,5 @@
 import CommunityClientInterface
+import Foundation
 import ExploreClientInterface
 import ExploreInterface
 import MetadataClientInterface
@@ -14,6 +15,8 @@ public struct ExploreDependencies {
     public let consumePendingFilter: @MainActor @Sendable () -> PendingExploreFilter?
     /// 넘겨 둔 값이 바뀔 때마다 알린다 (탐색 탭이 이미 보이는 중일 때)
     public let pendingFilterUpdates: @MainActor () -> AsyncStream<Void>
+    /// 글을 수정해 저장하면 알린다 (App: 레거시 상세가 듣는 `.communityPostUpdated` 알림)
+    public let postUpdated: @MainActor (Int) -> Void
 
     public init(
         communityClient: any CommunityClient,
@@ -23,7 +26,8 @@ public struct ExploreDependencies {
         consumePendingFilter: @escaping @MainActor @Sendable () -> PendingExploreFilter? = { nil },
         pendingFilterUpdates: @escaping @MainActor () -> AsyncStream<Void> = {
             AsyncStream { $0.finish() }
-        }
+        },
+        postUpdated: @escaping @MainActor (Int) -> Void = { _ in }
     ) {
         self.communityClient = communityClient
         self.exploreClient = exploreClient
@@ -31,6 +35,7 @@ public struct ExploreDependencies {
         self.navigator = navigator
         self.consumePendingFilter = consumePendingFilter
         self.pendingFilterUpdates = pendingFilterUpdates
+        self.postUpdated = postUpdated
     }
 }
 
@@ -73,10 +78,30 @@ public struct ExploreBuilder: ExploreBuilding {
             )
             return AnyView(
                 CommunityBoardsView(state: CommunityBoardsReducer.State(), reducer: reducer))
+        case .communityWrite(let seriesId, _):
+            return makeWrite(CommunityWriteReducer.State(seriesId: seriesId))
+        case .communityEdit(
+            let postId, let seriesId, _, let title, let content, let isSpoiler, let imageIds):
+            return makeWrite(
+                CommunityWriteReducer.State(
+                    seriesId: seriesId, postId: postId, title: title, content: content,
+                    isSpoiler: isSpoiler, imageIds: imageIds))
         case .communityBoard, .communityPost:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Explore 빌더로 왔다: \(route)")
             return AnyView(EmptyView())
         }
+    }
+
+    private func makeWrite(_ state: CommunityWriteReducer.State) -> AnyView {
+        let client = dependencies.communityClient
+        let reducer = CommunityWriteReducer(
+            communityClient: client,
+            navigator: dependencies.navigator,
+            loadPhoto: { try? await $0.loadTransferable(type: Data.self) },
+            postUpdated: dependencies.postUpdated
+        )
+        return AnyView(
+            CommunityWriteView(state: state, reducer: reducer, imageURL: client.imageURL(id:)))
     }
 }
