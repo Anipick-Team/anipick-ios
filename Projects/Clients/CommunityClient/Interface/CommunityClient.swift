@@ -77,6 +77,121 @@ public struct CommunityPostPage: Equatable, Sendable {
     }
 }
 
+/// 게시글 상세 (레거시 `CommunityDetailPost`)
+public struct CommunityPostDetail: Equatable, Sendable {
+    public let postId: Int
+    /// 없으면 0 (수정으로 가지 못한다)
+    public let seriesId: Int
+    /// 없으면 "애니메이션"
+    public let animeTitle: String
+    public let authorName: String
+    public let authorImageURL: URL?
+    public let date: String
+    public let isSpoiler: Bool
+    public let imageIds: [Int]
+    public let imageURLs: [URL]
+    public let title: String
+    public let body: String
+    public let viewCount: Int
+    public var likeCount: Int
+    public let commentCount: Int
+    public var isLiked: Bool
+    public let isMine: Bool
+
+    public init(
+        postId: Int, seriesId: Int, animeTitle: String, authorName: String, authorImageURL: URL?,
+        date: String, isSpoiler: Bool, imageIds: [Int], imageURLs: [URL], title: String,
+        body: String,
+        viewCount: Int, likeCount: Int, commentCount: Int, isLiked: Bool, isMine: Bool
+    ) {
+        self.postId = postId
+        self.seriesId = seriesId
+        self.animeTitle = animeTitle
+        self.authorName = authorName
+        self.authorImageURL = authorImageURL
+        self.date = date
+        self.isSpoiler = isSpoiler
+        self.imageIds = imageIds
+        self.imageURLs = imageURLs
+        self.title = title
+        self.body = body
+        self.viewCount = viewCount
+        self.likeCount = likeCount
+        self.commentCount = commentCount
+        self.isLiked = isLiked
+        self.isMine = isMine
+    }
+}
+
+/// 댓글 (레거시 `CommunityComment`·`CommunityReply`). 답글은 replies가 비어 있다
+public struct CommunityComment: Identifiable, Equatable, Sendable {
+    public let id: Int
+    public let authorName: String
+    public let authorImageURL: URL?
+    public let date: String
+    /// 지운 댓글은 "삭제된 댓글입니다."
+    public let content: String
+    public var likeCount: Int
+    public var isLiked: Bool
+    public let isMine: Bool
+    public var replies: [CommunityComment]
+
+    public init(
+        id: Int, authorName: String, authorImageURL: URL?, date: String, content: String,
+        likeCount: Int, isLiked: Bool, isMine: Bool, replies: [CommunityComment]
+    ) {
+        self.id = id
+        self.authorName = authorName
+        self.authorImageURL = authorImageURL
+        self.date = date
+        self.content = content
+        self.likeCount = likeCount
+        self.isLiked = isLiked
+        self.isMine = isMine
+        self.replies = replies
+    }
+}
+
+public struct CommunityCommentPage: Equatable, Sendable {
+    public let comments: [CommunityComment]
+    public let lastId: Int?
+
+    public init(comments: [CommunityComment], lastId: Int?) {
+        self.comments = comments
+        self.lastId = lastId
+    }
+}
+
+/// 신고 대상 (레거시 `CommunityReportTarget`)
+public enum ReportTarget: String, Hashable, Sendable {
+    case post = "POST"
+    case comment = "COMMENT"
+}
+
+/// 신고 유형 (레거시 `CommunityReportCategory`)
+public enum ReportCategory: String, CaseIterable, Hashable, Sendable {
+    case abuse = "ABUSE"
+    case privacy = "PRIVACY"
+    case spam = "SPAM"
+    case illegal = "ILLEGAL"
+    case etc = "ETC"
+
+    public var displayName: String {
+        switch self {
+        case .abuse:
+            return "욕설/비하/혐오 표현"
+        case .privacy:
+            return "개인정보 노출"
+        case .spam:
+            return "도배/스팸/광고성 내용"
+        case .illegal:
+            return "불법/유해/부적절한 내용"
+        case .etc:
+            return "기타 운영정책 위반"
+        }
+    }
+}
+
 /// 글 작성·수정 내용 (레거시 `CommunityPostRequest`·`CommunityPostUpdateRequest`)
 public struct PostDraft: Equatable, Sendable {
     public let title: String
@@ -118,4 +233,24 @@ public protocol CommunityClient: Sendable {
     /// 커뮤니티 게시판 탐색 (`GET api/community/explore/boards`, 20개씩). sort는 "popular"·"latest"
     func exploreBoards(sort: String, keyword: String?, lastValue: String?, lastId: Int?)
         async throws(TransportError) -> CommunityBoardPage
+    /// 게시글 상세 (`GET api/community/posts/{id}`). 결과가 없으면 `.decoding`
+    func postDetail(id: Int) async throws(TransportError) -> CommunityPostDetail
+    /// 댓글 (`GET api/community/posts/{id}/comments`, 20개씩)
+    func comments(postId: Int, lastId: Int?) async throws(TransportError) -> CommunityCommentPage
+    /// 게시글 좋아요 (`POST`·`DELETE api/community/posts/{id}/like`)
+    func setPostLike(id: Int, liked: Bool) async throws(TransportError)
+    /// 댓글·답글 좋아요 (`POST`·`DELETE api/community/comments/{id}/like`)
+    func setCommentLike(id: Int, liked: Bool) async throws(TransportError)
+    /// 댓글 작성 (`POST api/community/posts/{id}/comments`). parentCommentId가 있으면 답글
+    func createComment(postId: Int, content: String, parentCommentId: Int?)
+        async throws(TransportError)
+    /// 댓글 수정 (`PATCH api/community/comments/{id}`)
+    func updateComment(id: Int, content: String) async throws(TransportError)
+    /// 게시글 삭제 (`DELETE api/community/posts/{id}`)
+    func deletePost(id: Int) async throws(TransportError)
+    /// 댓글 삭제 (`DELETE api/community/comments/{id}`)
+    func deleteComment(id: Int) async throws(TransportError)
+    /// 신고 (`POST api/community/reports`)
+    func report(target: ReportTarget, targetId: Int, category: ReportCategory)
+        async throws(TransportError)
 }

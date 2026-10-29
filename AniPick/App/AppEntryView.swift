@@ -54,16 +54,8 @@ struct AppEntryView: View {
                 }
             }
             .navigationDestination(for: ExploreRoute.self) { route in
-                Group {
-                    // 아직 레거시인 커뮤니티 게시글은 App이 가로챈다 (Explore 이관 중)
-                    switch route {
-                    case .communityPost(let id):
-                        CommunityDetailView(postId: id)
-                    default:
-                        AppDIContainer.exploreBuilder.make(route)
-                    }
-                }
-                .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                AppDIContainer.exploreBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
@@ -167,7 +159,7 @@ struct AppEntryView: View {
                                 seriesId: seriesId, animeTitle: animeTitle, coverImageUrl: coverImageUrl,
                                 genreNames: genreNames))
                     case let .communityDetail(postId):
-                        CommunityDetailView(postId: postId)
+                        AppDIContainer.exploreBuilder.make(.communityPost(id: postId))
                     case let .communityWrite(seriesId, animeTitle):
                         AppDIContainer.exploreBuilder.make(.communityWrite(seriesId: seriesId, animeTitle: animeTitle))
                     case let .communityEdit(postId, seriesId, animeTitle, title, content, isSpoiler, imageIds):

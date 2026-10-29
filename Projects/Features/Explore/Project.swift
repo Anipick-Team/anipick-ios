@@ -8,6 +8,6 @@ let project = Project.feature(
         .client("Community"), .client("Explore"), .client("Metadata"), .feature("Detail"),
         .feature("Home"),
     ],
-    modules: [.core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
+    modules: [.core("ClientCore"), .core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
     testModules: [.shared("FeatureTestSupport"), .core("ClientCore")]
 )

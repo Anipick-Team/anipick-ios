@@ -98,9 +98,9 @@ struct AppDIContainer {
                     continuation.onTermination = { _ in cancellable.cancel() }
                 }
             },
-            // 레거시 커뮤니티 상세가 듣는 알림 (상세 이관 전까지)
-            postUpdated: { postId in
-                NotificationCenter.default.post(name: .communityPostUpdated, object: nil, userInfo: ["postId": postId])
+            // 레거시 CommunityDetailViewModel.makeShareItems와 같은 링크
+            sharePost: { postId in
+                ShareSheet.present(items: DeepLink.communityPost(id: postId).universalLink.map { [$0] } ?? [])
             }
         )
     )

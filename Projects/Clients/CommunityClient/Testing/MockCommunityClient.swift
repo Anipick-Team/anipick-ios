@@ -33,6 +33,19 @@ public final class MockCommunityClient: CommunityClient {
         }
     }
 
+    /// 게시글 상세 화면의 요청 기록
+    public enum DetailRequest: Hashable, Sendable {
+        case detail(Int)
+        case comments(postId: Int, lastId: Int?)
+        case postLike(id: Int, liked: Bool)
+        case commentLike(id: Int, liked: Bool)
+        case createComment(postId: Int, content: String, parentCommentId: Int?)
+        case updateComment(id: Int, content: String)
+        case deletePost(Int)
+        case deleteComment(Int)
+        case report(ReportTarget, targetId: Int, ReportCategory)
+    }
+
     /// 글 저장 요청 기록
     public enum SaveRequest: Equatable, Sendable {
         case upload(fileName: String, bytes: Int)
@@ -48,6 +61,10 @@ public final class MockCommunityClient: CommunityClient {
         var saveRequests: [SaveRequest] = []
         var posts: [Result<CommunityPostPage, TransportError>] = []
         var postsRequests: [PostsRequest] = []
+        var details: [Result<CommunityPostDetail, TransportError>] = []
+        var comments: [Result<CommunityCommentPage, TransportError>] = []
+        var actionFailure: TransportError?
+        var detailRequests: [DetailRequest] = []
     }
 
     private let state: OSAllocatedUnfairLock<State>
@@ -83,6 +100,87 @@ public final class MockCommunityClient: CommunityClient {
         await pause()
         return try (result ?? .success(CommunityPostPage(posts: [], lastId: nil, lastValue: nil)))
             .get()
+    }
+
+    public var detailRequests: [DetailRequest] {
+        return state.withLock { $0.detailRequests }
+    }
+
+    /// 상세·댓글 결과를 차례로 (다 쓰면 마지막 것을 반복). actionFailure가 있으면 좋아요·댓글·삭제·신고가 실패한다
+    public func stubDetail(
+        _ details: [Result<CommunityPostDetail, TransportError>] = [],
+        comments: [Result<CommunityCommentPage, TransportError>] = [],
+        actionFailure: TransportError? = nil
+    ) {
+        state.withLock {
+            $0.details = details
+            $0.comments = comments
+            $0.actionFailure = actionFailure
+        }
+    }
+
+    public func postDetail(id: Int) async throws(TransportError) -> CommunityPostDetail {
+        let result = state.withLock { state -> Result<CommunityPostDetail, TransportError>? in
+            state.detailRequests.append(.detail(id))
+            return state.details.count > 1 ? state.details.removeFirst() : state.details.first
+        }
+        await pause()
+        return try (result ?? .failure(.decoding)).get()
+    }
+
+    public func comments(postId: Int, lastId: Int?) async throws(TransportError)
+        -> CommunityCommentPage
+    {
+        let result = state.withLock { state -> Result<CommunityCommentPage, TransportError>? in
+            state.detailRequests.append(.comments(postId: postId, lastId: lastId))
+            return state.comments.count > 1 ? state.comments.removeFirst() : state.comments.first
+        }
+        await pause()
+        return try (result ?? .success(CommunityCommentPage(comments: [], lastId: nil))).get()
+    }
+
+    public func setPostLike(id: Int, liked: Bool) async throws(TransportError) {
+        try await act(.postLike(id: id, liked: liked))
+    }
+
+    public func setCommentLike(id: Int, liked: Bool) async throws(TransportError) {
+        try await act(.commentLike(id: id, liked: liked))
+    }
+
+    public func createComment(postId: Int, content: String, parentCommentId: Int?)
+        async throws(TransportError)
+    {
+        try await act(
+            .createComment(postId: postId, content: content, parentCommentId: parentCommentId))
+    }
+
+    public func updateComment(id: Int, content: String) async throws(TransportError) {
+        try await act(.updateComment(id: id, content: content))
+    }
+
+    public func deletePost(id: Int) async throws(TransportError) {
+        try await act(.deletePost(id))
+    }
+
+    public func deleteComment(id: Int) async throws(TransportError) {
+        try await act(.deleteComment(id))
+    }
+
+    public func report(target: ReportTarget, targetId: Int, category: ReportCategory)
+        async throws(TransportError)
+    {
+        try await act(.report(target, targetId: targetId, category))
+    }
+
+    private func act(_ request: DetailRequest) async throws(TransportError) {
+        let failure = state.withLock { state in
+            state.detailRequests.append(request)
+            return state.actionFailure
+        }
+        await pause()
+        if let failure {
+            throw failure
+        }
     }
 
     public var saveRequests: [SaveRequest] {
@@ -176,5 +274,36 @@ extension CommunityPost {
             title: "글 \(id)", content: "내용 \(id)",
             thumbnailURL: imageCount > 0 ? URL(string: "https://image.test/api/image/\(id)") : nil,
             imageCount: imageCount, likeCount: id, commentCount: 2, isSpoiler: isSpoiler)
+    }
+}
+
+extension CommunityPostDetail {
+    /// 테스트·Example용
+    public static func sample(
+        _ id: Int, seriesId: Int = 7, isMine: Bool = false, isLiked: Bool = false,
+        likeCount: Int = 3,
+        imageIds: [Int] = []
+    ) -> CommunityPostDetail {
+        return CommunityPostDetail(
+            postId: id, seriesId: seriesId, animeTitle: "애니", authorName: "작성자",
+            authorImageURL: nil,
+            date: "2026.10.30", isSpoiler: false, imageIds: imageIds,
+            imageURLs: imageIds.map { URL(string: "https://image.test/api/image/\($0)")! },
+            title: "제목 \(id)", body: "본문 \(id)", viewCount: 10, likeCount: likeCount,
+            commentCount: 2,
+            isLiked: isLiked, isMine: isMine)
+    }
+}
+
+extension CommunityComment {
+    /// 테스트·Example용
+    public static func sample(
+        _ id: Int, isMine: Bool = false, isLiked: Bool = false, likeCount: Int = 1,
+        replies: [CommunityComment] = []
+    ) -> CommunityComment {
+        return CommunityComment(
+            id: id, authorName: "댓글러 \(id)", authorImageURL: nil, date: "10.30",
+            content: "댓글 \(id)",
+            likeCount: likeCount, isLiked: isLiked, isMine: isMine, replies: replies)
     }
 }

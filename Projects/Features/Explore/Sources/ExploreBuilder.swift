@@ -1,3 +1,4 @@
+import Combine
 import CommunityClientInterface
 import Foundation
 import ExploreClientInterface
@@ -15,8 +16,8 @@ public struct ExploreDependencies {
     public let consumePendingFilter: @MainActor @Sendable () -> PendingExploreFilter?
     /// 넘겨 둔 값이 바뀔 때마다 알린다 (탐색 탭이 이미 보이는 중일 때)
     public let pendingFilterUpdates: @MainActor () -> AsyncStream<Void>
-    /// 글을 수정해 저장하면 알린다 (App: 레거시 상세가 듣는 `.communityPostUpdated` 알림)
-    public let postUpdated: @MainActor (Int) -> Void
+    /// 게시글 공유 시트를 띄운다 (App: 게시글 Universal Link — 딥링크 경로는 App이 안다)
+    public let sharePost: @MainActor (Int) -> Void
 
     public init(
         communityClient: any CommunityClient,
@@ -27,7 +28,7 @@ public struct ExploreDependencies {
         pendingFilterUpdates: @escaping @MainActor () -> AsyncStream<Void> = {
             AsyncStream { $0.finish() }
         },
-        postUpdated: @escaping @MainActor (Int) -> Void = { _ in }
+        sharePost: @escaping @MainActor (Int) -> Void = { _ in }
     ) {
         self.communityClient = communityClient
         self.exploreClient = exploreClient
@@ -35,12 +36,14 @@ public struct ExploreDependencies {
         self.navigator = navigator
         self.consumePendingFilter = consumePendingFilter
         self.pendingFilterUpdates = pendingFilterUpdates
-        self.postUpdated = postUpdated
+        self.sharePost = sharePost
     }
 }
 
 public struct ExploreBuilder: ExploreBuilding {
     private let dependencies: ExploreDependencies
+    /// 글 수정을 저장하면 상세 화면에 알린다 (레거시 `.communityPostUpdated` 알림 대신)
+    private let postUpdates = PassthroughSubject<Int, Never>()
 
     public init(dependencies: ExploreDependencies) {
         self.dependencies = dependencies
@@ -95,10 +98,16 @@ public struct ExploreBuilder: ExploreBuilding {
                         seriesId: seriesId, animeTitle: animeTitle, coverImageUrl: coverImageUrl,
                         genreNames: genreNames),
                     reducer: reducer))
-        case .communityPost:
-            // 아직 레거시 화면 — App이 가로챈다
-            assertionFailure("레거시 화면 Route가 Explore 빌더로 왔다: \(route)")
-            return AnyView(EmptyView())
+        case .communityPost(let id):
+            let reducer = CommunityPostReducer(
+                communityClient: dependencies.communityClient,
+                navigator: dependencies.navigator,
+                share: dependencies.sharePost
+            )
+            return AnyView(
+                CommunityPostView(
+                    state: CommunityPostReducer.State(postId: id), reducer: reducer,
+                    postUpdates: postUpdates.eraseToAnyPublisher()))
         }
     }
 
@@ -108,7 +117,7 @@ public struct ExploreBuilder: ExploreBuilding {
             communityClient: client,
             navigator: dependencies.navigator,
             loadPhoto: { try? await $0.loadTransferable(type: Data.self) },
-            postUpdated: dependencies.postUpdated
+            postUpdated: { [postUpdates] in postUpdates.send($0) }
         )
         return AnyView(
             CommunityWriteView(state: state, reducer: reducer, imageURL: client.imageURL(id:)))

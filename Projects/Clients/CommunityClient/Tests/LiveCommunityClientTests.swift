@@ -191,6 +191,121 @@ struct LiveCommunityClientTests {
         #expect(query(try #require(stub.requests.first)) == ["sort": "latest", "size": "20"])
     }
 
+    @Test("CD1. 게시글 상세: GET api/community/posts/{id}. 빈 값은 레거시 기본값, 사진 id는 주소로도")
+    func postDetail() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"postId":3,"seriesId":7,"animeTitle":"A","title":"T","content":"B","imageIds":[4,5],"isSpoiler":true,"viewCount":9,"likeCount":2,"commentCount":1,"createdAt":"d","nickname":"n","profileImageUrl":"/api/image/6","isMine":true,"likedByCurrentUser":true}}"#
+            ))
+        let client = LiveCommunityClient(client: stub.client, imageBaseURL: Self.imageBase)
+
+        let detail = try await client.postDetail(id: 3)
+
+        #expect(try #require(stub.requests.first).url?.path() == "/api/community/posts/3")
+        #expect(
+            detail
+                == CommunityPostDetail(
+                    postId: 3, seriesId: 7, animeTitle: "A", authorName: "n",
+                    authorImageURL: URL(string: "https://img.test/api/image/6"), date: "d",
+                    isSpoiler: true,
+                    imageIds: [4, 5],
+                    imageURLs: [
+                        URL(string: "https://img.test/api/image/4")!,
+                        URL(string: "https://img.test/api/image/5")!,
+                    ],
+                    title: "T", body: "B", viewCount: 9, likeCount: 2, commentCount: 1,
+                    isLiked: true, isMine: true))
+
+        let empty = ClientStub(.json(#"{"code":200,"value":"SUCCESS","result":{"postId":3}}"#))
+        let fallback = try await LiveCommunityClient(
+            client: empty.client, imageBaseURL: Self.imageBase
+        )
+        .postDetail(id: 3)
+        #expect(fallback.seriesId == 0)
+        #expect(fallback.animeTitle == "애니메이션")
+        #expect(fallback.authorName == "익명")
+
+        let none = ClientStub(.json(#"{"code":200,"value":"SUCCESS","result":null}"#))
+        await #expect(throws: TransportError.decoding) {
+            try await LiveCommunityClient(client: none.client, imageBaseURL: Self.imageBase)
+                .postDetail(id: 3)
+        }
+    }
+
+    @Test("CD2. 댓글: GET api/community/posts/{id}/comments, lastId·size=20. 지운 댓글은 문구로, 답글도 같은 규칙")
+    func comments() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"cursor":{"lastId":11},"comments":[{"commentId":10,"content":"원래","isDeleted":true,"likeCount":1,"replies":[{"commentId":12,"content":"답","nickname":"r","isMine":true,"likedByCurrentUser":true}]}]}}"#
+            ))
+        let client = LiveCommunityClient(client: stub.client, imageBaseURL: Self.imageBase)
+
+        let page = try await client.comments(postId: 3, lastId: 9)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/community/posts/3/comments")
+        #expect(query(request) == ["lastId": "9", "size": "20"])
+        #expect(page.lastId == 11)
+        #expect(
+            page.comments
+                == [
+                    CommunityComment(
+                        id: 10, authorName: "익명", authorImageURL: nil, date: "",
+                        content: "삭제된 댓글입니다.",
+                        likeCount: 1, isLiked: false, isMine: false,
+                        replies: [
+                            CommunityComment(
+                                id: 12, authorName: "r", authorImageURL: nil, date: "",
+                                content: "답", likeCount: 0,
+                                isLiked: true, isMine: true, replies: [])
+                        ])
+                ])
+    }
+
+    @Test("CD3. 좋아요·댓글·삭제·신고의 경로와 메서드, JSON 본문")
+    func actions() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS"}"#))
+        let client = LiveCommunityClient(client: stub.client, imageBaseURL: Self.imageBase)
+
+        try await client.setPostLike(id: 1, liked: true)
+        try await client.setPostLike(id: 1, liked: false)
+        try await client.setCommentLike(id: 2, liked: true)
+        try await client.setCommentLike(id: 2, liked: false)
+        try await client.createComment(postId: 3, content: "c", parentCommentId: nil)
+        try await client.updateComment(id: 4, content: "u")
+        try await client.deletePost(id: 5)
+        try await client.deleteComment(id: 6)
+        try await client.report(target: .comment, targetId: 7, category: .spam)
+
+        #expect(
+            stub.requests.map { "\($0.httpMethod ?? "") \($0.url?.path() ?? "")" }
+                == [
+                    "POST /api/community/posts/1/like", "DELETE /api/community/posts/1/like",
+                    "POST /api/community/comments/2/like", "DELETE /api/community/comments/2/like",
+                    "POST /api/community/posts/3/comments", "PATCH /api/community/comments/4",
+                    "DELETE /api/community/posts/5", "DELETE /api/community/comments/6",
+                    "POST /api/community/reports",
+                ])
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .sortedKeys
+        #expect(
+            String(
+                decoding: try encoder.encode(CommentBody(content: "c", parentCommentId: nil)),
+                as: UTF8.self)
+                == #"{"content":"c"}"#)
+        #expect(
+            String(
+                decoding: try encoder.encode(CommentBody(content: "c", parentCommentId: 8)),
+                as: UTF8.self)
+                == #"{"content":"c","parentCommentId":8}"#)
+        #expect(
+            String(
+                decoding: try encoder.encode(
+                    ReportBody(targetType: "COMMENT", targetId: 7, reportCategory: "SPAM")),
+                as: UTF8.self)
+                == #"{"reportCategory":"SPAM","targetId":7,"targetType":"COMMENT"}"#)
+    }
+
     @Test("CW5. 첨부 사진 주소는 {서버}api/image/{id}")
     func imageURL() {
         let client = LiveCommunityClient(
