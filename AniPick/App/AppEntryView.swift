@@ -54,11 +54,23 @@ struct AppEntryView: View {
                 }
             }
             .navigationDestination(for: ExploreRoute.self) { route in
-                switch route {
-                case .communityPost(let id):
-                    CommunityDetailView(postId: id)
-                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                Group {
+                    // 아직 레거시인 커뮤니티 게시판·게시글은 App이 가로챈다 (Explore 이관 중)
+                    switch route {
+                    case let .communityBoard(seriesId, animeTitle, coverImageUrl, genreNames):
+                        CommunityView(
+                            seriesId: seriesId,
+                            animeTitle: animeTitle,
+                            coverImageUrl: coverImageUrl,
+                            genreNames: genreNames
+                        )
+                    case .communityPost(let id):
+                        CommunityDetailView(postId: id)
+                    default:
+                        AppDIContainer.exploreBuilder.make(route)
+                    }
                 }
+                .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {

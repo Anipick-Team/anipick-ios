@@ -1,7 +1,15 @@
 import SwiftUI
 
-/// 탐색 Feature(커뮤니티 포함)의 화면 (이관 전: App이 레거시 화면에 연결한다)
+/// 탐색 Feature(커뮤니티 포함)의 화면.
+///
+/// 아직 레거시인 화면(`communityBoard`·`communityPost`)도 미리 둔다. 이관하기 전까지는 App이 이 Route를 가로채
+/// 레거시 화면을 보여 준다 (같은 Feature 안의 Strangler).
 public enum ExploreRoute: Hashable, Sendable {
+    /// 탐색 탭의 "커뮤니티" 하위 탭 내용 (탐색 화면 안에 들어간다)
+    case communityBoards
+    /// 애니 커뮤니티 게시판 (레거시 `AppRoute.community`)
+    case communityBoard(
+        seriesId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
     /// 커뮤니티 게시글 상세 (레거시 `AppRoute.communityDetail`)
     case communityPost(id: Int)
 }

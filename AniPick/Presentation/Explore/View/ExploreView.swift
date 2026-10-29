@@ -169,7 +169,8 @@ struct ExploreView: View {
                 .coordinateSpace(name: "explore")
                 .padding(.horizontal, 20)
                 } else {
-                    ExploreCommunityView()
+                    // 커뮤니티 하위 탭은 이관한 Explore Feature 화면 (Strangler)
+                    AppDIContainer.exploreBuilder.make(.communityBoards)
                 }
             }
             .onChange(of: selectedTab) { newValue in

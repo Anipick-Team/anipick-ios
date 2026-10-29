@@ -9,6 +9,9 @@ import SwiftUI
 import AuthClientLive
 import AuthFeature
 import AuthInterface
+import CommunityClientLive
+import ExploreFeature
+import ExploreInterface
 import ExploreClientLive
 import MetadataClientLive
 import MyInfoClientLive
@@ -73,6 +76,13 @@ struct AppDIContainer {
         },
         // TODO: 보안처리 필요 (레거시 AppDelegate와 같은 키)
         kakaoAppKey: "0342f72c46d8653e8a501fe5704a540c"
+    )
+
+    static let exploreBuilder: any ExploreBuilding = ExploreBuilder(
+        dependencies: ExploreDependencies(
+            communityClient: LiveCommunityClient(client: AppSession.httpClient),
+            navigator: navigator
+        )
     )
 
     static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(

@@ -1,5 +1,10 @@
 import ProjectDescription
 import ProjectDescriptionHelpers
 
-// 아직 레거시 화면이다. App이 Route를 레거시 화면에 연결한다 (이관 때 .feature로 바꾼다). 커뮤니티도 이 모듈에 둔다 (이관 Q6)
-let project = Project.featureInterface("Explore")
+// 탐색 탭과 커뮤니티 (이관 Q6: 커뮤니티는 이 모듈에 둔다)
+let project = Project.feature(
+    "Explore",
+    dependencies: [.client("Community")],
+    modules: [.core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
+    testModules: [.shared("FeatureTestSupport"), .core("ClientCore")]
+)

@@ -67,6 +67,9 @@ struct RouteScreenNameTests {
         #expect(
             ExploreRoute.communityPost(id: 1).screenName
                 == AppRoute.communityDetail(postId: 1).screenName)
+        #expect(
+            ExploreRoute.communityBoard(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []).screenName
+                == AppRoute.community(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []).screenName)
     }
 
     @Test(
