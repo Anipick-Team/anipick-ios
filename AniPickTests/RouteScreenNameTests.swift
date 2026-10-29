@@ -46,7 +46,7 @@ struct RouteScreenNameTests {
     @Test(
         "마이페이지 목록 Route",
         arguments: [
-            (MyInfoRoute.watchList, AppRoute.myInfoInToWatchList), (.watching, .myInfoWatchingList),
+            (MyInfoRoute.main, AppRoute.myInfo), (.watchList, .myInfoInToWatchList), (.watching, .myInfoWatchingList),
             (.finished, .finishedWatchList), (.likedAnimes, .likeAnimeList), (.likedPersons, .likePersonList),
             (.ratedReviews, .ratedAnimeList), (.myContent, .myContent),
         ]

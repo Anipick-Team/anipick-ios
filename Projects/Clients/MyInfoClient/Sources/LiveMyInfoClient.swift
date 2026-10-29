@@ -2,17 +2,59 @@ import ClientCore
 import Foundation
 import MyInfoClientInterface
 import Networking
+import Storage
 
 public struct LiveMyInfoClient: MyInfoClient {
+    /// 레거시 `UserDefaultKey.imageId`
+    static let imageIdKey = PreferenceKey("imageId", defaultValue: 0)
+
     private let client: HTTPClient
     private let imageBaseURL: URL
+    private let preferences: Preferences
 
     /// - Parameters:
     ///   - client: 인증 클라이언트
     ///   - imageBaseURL: 이미지 id를 주소로 바꿀 때 쓰는 서버 주소 (`{주소}api/image/{id}`)
-    public init(client: HTTPClient, imageBaseURL: URL) {
+    public init(client: HTTPClient, imageBaseURL: URL, preferences: Preferences = Preferences()) {
         self.client = client
         self.imageBaseURL = imageBaseURL
+        self.preferences = preferences
+    }
+
+    public func profile() async throws(TransportError) -> MyProfile {
+        let result = try await client.send(
+            Endpoint<ProfileResult>(method: .get, path: "api/mypage", requiresAuth: true)
+        )
+        .requireResult()
+        return MyProfile(
+            profileImageUrl: result.profileImageUrl,
+            watchCounts: result.watchCounts.map {
+                MyProfile.WatchCounts(
+                    watchList: $0.watchList, watching: $0.watching, finished: $0.finished)
+            },
+            likedAnimes: result.likedAnimes?.map(\.anime)
+        )
+    }
+
+    public func profileImage(id: Int) async throws(TransportError) -> Data {
+        return try await client.sendRaw(
+            Endpoint(method: .get, path: "api/image/\(id)", requiresAuth: true))
+    }
+
+    /// 레거시는 `http://anipick.p-e.kr:8080`(HTTP, 다른 포트)으로 올렸다. 다른 요청과 같은 HTTPS 기본 주소를 쓴다 (이관 발견 버그 2026-10-18)
+    public func uploadProfileImage(jpeg: Data) async throws(TransportError) -> Int {
+        let result = try await client.send(Self.uploadEndpoint(jpeg: jpeg)).requireResult()
+        preferences.set(result.imageId, for: Self.imageIdKey)
+        return result.imageId
+    }
+
+    static func uploadEndpoint(jpeg: Data) -> Endpoint<UploadResult> {
+        var form = MultipartForm()
+        form.addFile(
+            name: "profileImageFile", fileName: "profile.jpg", mimeType: "image/jpeg", data: jpeg)
+        return Endpoint(
+            method: .post, path: "api/image/profile-image", body: .multipart(form),
+            requiresAuth: true)
     }
 
     public func myPosts(lastId: Int?) async throws(TransportError) -> ContentPage<MyPost> {
@@ -304,4 +346,22 @@ struct CommentsResult: Decodable, Sendable {
     let count: Int?
     let cursor: Cursor?
     let comments: [Comment]?
+}
+
+/// 레거시 `UserProfile`
+struct ProfileResult: Decodable, Sendable {
+    struct Counts: Decodable, Sendable {
+        let watchList: Int?
+        let watching: Int?
+        let finished: Int?
+    }
+
+    let profileImageUrl: String?
+    let watchCounts: Counts?
+    let likedAnimes: [AnimeDTO]?
+}
+
+/// 레거시 `ProfileImageID`
+struct UploadResult: Decodable, Sendable {
+    let imageId: Int
 }

@@ -12,6 +12,9 @@ public final class MockMyInfoClient: MyInfoClient {
         case ratedReviews(sort: RatedSort, lastId: Int?, lastLikeCount: Int?, lastRating: Double?)
         case myPosts(lastId: Int?)
         case myComments(lastId: Int?)
+        case profile
+        case profileImage(id: Int)
+        case upload(bytes: Int)
     }
 
     public struct Scenario: Sendable {
@@ -23,6 +26,9 @@ public final class MockMyInfoClient: MyInfoClient {
         public var commentPage: Result<ContentPage<MyComment>, TransportError>
         /// 내 콘텐츠 응답을 늦춘다 (받는 중 상태 시험)
         public var contentDelay: Duration
+        public var profile: Result<MyProfile, TransportError>
+        public var profileImage: Result<Data, TransportError>
+        public var upload: Result<Int, TransportError>
 
         public init(
             animePage: Result<MyPage<MyAnime>, TransportError> = .success(
@@ -34,7 +40,11 @@ public final class MockMyInfoClient: MyInfoClient {
                 ContentPage(count: 0, lastId: nil, items: [])),
             commentPage: Result<ContentPage<MyComment>, TransportError> = .success(
                 ContentPage(count: 0, lastId: nil, items: [])),
-            contentDelay: Duration = .zero
+            contentDelay: Duration = .zero,
+            profile: Result<MyProfile, TransportError> = .success(
+                MyProfile(profileImageUrl: nil, watchCounts: nil, likedAnimes: nil)),
+            profileImage: Result<Data, TransportError> = .success(Data()),
+            upload: Result<Int, TransportError> = .success(1)
         ) {
             self.animePage = animePage
             self.personPage = personPage
@@ -42,6 +52,9 @@ public final class MockMyInfoClient: MyInfoClient {
             self.postPage = postPage
             self.commentPage = commentPage
             self.contentDelay = contentDelay
+            self.profile = profile
+            self.profileImage = profileImage
+            self.upload = upload
         }
     }
 
@@ -129,6 +142,32 @@ extension MockMyInfoClient {
             try? await Task.sleep(for: delay)
         }
         return try result.get()
+    }
+}
+
+extension MockMyInfoClient {
+    public func profile() async throws(TransportError) -> MyProfile {
+        return try state.withLock {
+            $0.requests.append(.profile)
+            return $0.scenario.profile
+        }
+        .get()
+    }
+
+    public func profileImage(id: Int) async throws(TransportError) -> Data {
+        return try state.withLock {
+            $0.requests.append(.profileImage(id: id))
+            return $0.scenario.profileImage
+        }
+        .get()
+    }
+
+    public func uploadProfileImage(jpeg: Data) async throws(TransportError) -> Int {
+        return try state.withLock {
+            $0.requests.append(.upload(bytes: jpeg.count))
+            return $0.scenario.upload
+        }
+        .get()
     }
 }
 

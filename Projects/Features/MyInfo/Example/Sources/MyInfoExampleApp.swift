@@ -7,6 +7,7 @@ import MyInfoClientInterface
 import MyInfoClientTesting
 import MyInfoFeature
 import MyInfoInterface
+import SettingInterface
 import ReviewClientTesting
 import ReviewInterface
 import SwiftUI
@@ -46,7 +47,11 @@ struct ExampleRoot: View {
             ContentPage(
                 count: 1200, lastId: nil, items: (1...6).map { .sample($0, spoiler: $0 % 2 == 0) })),
         commentPage: .success(
-            ContentPage(count: 4, lastId: nil, items: (1...4).map { .sample($0) }))
+            ContentPage(count: 4, lastId: nil, items: (1...4).map { .sample($0) })),
+        profile: .success(
+            MyProfile(
+                profileImageUrl: nil, watchCounts: .init(watchList: 3, watching: 12, finished: 140),
+                likedAnimes: (1...5).map { .sample($0) }))
     )
 
     var body: some View {
@@ -66,6 +71,9 @@ struct ExampleRoot: View {
             .navigationDestination(for: DetailRoute.self) { route in
                 FakeDetailBuilder().make(route)
             }
+            .navigationDestination(for: SettingRoute.self) { route in
+                Text("Setting: \(String(describing: route))")
+            }
             .navigationDestination(for: ExploreRoute.self) { route in
                 FakeExploreBuilder().make(route)
             }
@@ -79,7 +87,8 @@ struct ExampleRoot: View {
     private func routes(_ scenario: MockMyInfoClient.Scenario) -> some View {
         ForEach(
             [
-                ("볼 애니", MyInfoRoute.watchList), ("보는 중", .watching), ("다 본 애니", .finished),
+                ("마이페이지", MyInfoRoute.main), ("볼 애니", .watchList), ("보는 중", .watching),
+                ("다 본 애니", .finished),
                 ("좋아요한 작품", .likedAnimes), ("좋아요한 인물", .likedPersons),
                 ("평가한 작품", .ratedReviews), ("내 콘텐츠", .myContent),
             ],

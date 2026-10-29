@@ -64,7 +64,8 @@ struct AppDIContainer {
             openTab: { tab in
                 navigationManager.popToRoot()
                 navigationManager.push(route: .content(activeTab: Tab(tab)))
-            }
+            },
+            openURL: { UIApplication.shared.open($0) }
         )
     )
 

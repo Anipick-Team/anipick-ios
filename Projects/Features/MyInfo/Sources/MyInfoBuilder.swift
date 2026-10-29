@@ -13,19 +13,23 @@ public struct MyInfoDependencies {
     public let ratedReviewsReloadNotification: Notification.Name?
     /// 내 콘텐츠 아래 탭 바를 누르면 그 탭으로 보낸다 (App이 구현)
     public let openTab: @MainActor @Sendable (MainTab) -> Void
+    /// 피드백 설문 등 외부 링크
+    public let openURL: @MainActor @Sendable (URL) -> Void
 
     public init(
         myInfoClient: any MyInfoClient,
         reviewClient: any ReviewClient,
         navigator: any Navigator,
         ratedReviewsReloadNotification: Notification.Name? = nil,
-        openTab: @escaping @MainActor @Sendable (MainTab) -> Void = { _ in }
+        openTab: @escaping @MainActor @Sendable (MainTab) -> Void = { _ in },
+        openURL: @escaping @MainActor @Sendable (URL) -> Void = { _ in }
     ) {
         self.myInfoClient = myInfoClient
         self.reviewClient = reviewClient
         self.navigator = navigator
         self.ratedReviewsReloadNotification = ratedReviewsReloadNotification
         self.openTab = openTab
+        self.openURL = openURL
     }
 }
 
@@ -38,6 +42,13 @@ public struct MyInfoBuilder: MyInfoBuilding {
 
     public func make(_ route: MyInfoRoute) -> AnyView {
         switch route {
+        case .main:
+            let reducer = MyInfoMainReducer(
+                myInfoClient: dependencies.myInfoClient,
+                navigator: dependencies.navigator,
+                openURL: dependencies.openURL
+            )
+            return AnyView(MyInfoMainView(state: MyInfoMainReducer.State(), reducer: reducer))
         case .watchList:
             return watchList(.watchList)
         case .watching:

@@ -100,7 +100,7 @@ struct AppEntryView: View {
                     case .myInfoInToWatchList:
                         AppDIContainer.myInfoBuilder.make(.watchList)
                     case .myInfo:
-                        AppDIContainer.makeMyInfoView()
+                        AppDIContainer.myInfoBuilder.make(.main)
                     case .myInfoWatchingList:
                         AppDIContainer.myInfoBuilder.make(.watching)
                     case .finishedWatchList:

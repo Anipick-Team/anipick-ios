@@ -243,6 +243,7 @@ extension MyInfoRoute {
     /// 레거시 `AppRoute`의 화면 이름 (R14)
     var screenName: String {
         switch self {
+        case .main: return "my_info"
         case .watchList: return "my_to_watch_list"
         case .watching: return "my_watching_list"
         case .finished: return "my_finished_list"

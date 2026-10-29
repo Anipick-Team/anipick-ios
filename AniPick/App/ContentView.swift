@@ -43,7 +43,7 @@ struct ContentView: View {
                 }
                 .tag(Tab.research)
             
-            AppDIContainer.makeMyInfoView()
+            AppDIContainer.myInfoBuilder.make(.main)
                 .tabItem {
                     Image(viewModel.activeTab == .myInfo ? .myInfoFilled : .myInfoUnfilled)
                     Text("마이")

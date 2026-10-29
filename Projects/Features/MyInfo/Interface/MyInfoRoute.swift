@@ -2,6 +2,8 @@ import SwiftUI
 
 /// 마이페이지 Feature의 화면. 이관하는 대로 case를 늘린다.
 public enum MyInfoRoute: Hashable, Sendable {
+    /// 하단 "마이" 탭
+    case main
     /// 볼 애니
     case watchList
     /// 보는 중

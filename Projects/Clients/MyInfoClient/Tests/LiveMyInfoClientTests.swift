@@ -2,6 +2,7 @@ import ClientCore
 import Foundation
 import MyInfoClientInterface
 import Networking
+import Storage
 import Testing
 
 @testable import MyInfoClientLive
@@ -183,5 +184,73 @@ struct LiveMyInfoClientTests {
                             genre: nil, postTitle: nil, content: nil, likeCount: nil, createdAt: nil
                         )
                     ]))
+    }
+
+    @Test("MM1. 마이페이지: GET api/mypage, 개수·좋아요한 작품·프로필 주소")
+    func profile() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"nickname":"n","profileImageUrl":"https://x/api/image/12","watchCounts":{"watchList":1,"watching":2,"finished":3},"likedAnimes":[{"animeId":5,"animeLikeId":1,"title":"B","coverImageUrl":null}],"likedPersons":[]}}"#
+            ))
+
+        let profile = try await LiveMyInfoClient(client: stub.client, imageBaseURL: Self.imageBase)
+            .profile()
+
+        #expect(stub.requests.first?.url?.path() == "/api/mypage")
+        #expect(
+            profile
+                == MyProfile(
+                    profileImageUrl: "https://x/api/image/12",
+                    watchCounts: .init(watchList: 1, watching: 2, finished: 3),
+                    likedAnimes: [MyAnime(animeId: 5, title: "B", coverImageUrl: nil)]))
+    }
+
+    @Test("MM2. 프로필 이미지: GET api/image/{id}, 토큰, 본문 그대로")
+    func profileImage() async throws {
+        let stub = ClientStub(.json("IMAGEBYTES"))
+
+        let data = try await LiveMyInfoClient(client: stub.client, imageBaseURL: Self.imageBase)
+            .profileImage(id: 12)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/image/12")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer T")
+        #expect(String(decoding: data, as: UTF8.self) == "IMAGEBYTES")
+    }
+
+    @Test(
+        "MM5. 업로드: POST api/image/profile-image(HTTPS 기본 주소) multipart profileImageFile, 받은 id를 imageId에 저장"
+    )
+    func upload() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","result":{"imageId":77}}"#))
+        let defaults = UserDefaults(suiteName: "myinfo-\(UUID().uuidString)")!
+        let client = LiveMyInfoClient(
+            client: stub.client, imageBaseURL: Self.imageBase,
+            preferences: Preferences(defaults: defaults))
+
+        let id = try await client.uploadProfileImage(jpeg: Data([1, 2, 3]))
+
+        let request = try #require(stub.requests.first)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.scheme == "https")
+        #expect(request.url?.path() == "/api/image/profile-image")
+        #expect(
+            request.value(forHTTPHeaderField: "Content-Type")?.hasPrefix("multipart/form-data")
+                == true)
+        #expect(id == 77)
+        #expect(defaults.integer(forKey: "imageId") == 77)
+        let body = String(
+            decoding: LiveMyInfoClient.uploadEndpoint(jpeg: Data([1])).multipartBody, as: UTF8.self)
+        #expect(body.contains(#"name="profileImageFile"; filename="profile.jpg""#))
+        #expect(body.contains("Content-Type: image/jpeg"))
+    }
+}
+
+extension Endpoint {
+    fileprivate var multipartBody: Data {
+        guard case .multipart(let form) = body else {
+            return Data()
+        }
+        return form.encoded()
     }
 }

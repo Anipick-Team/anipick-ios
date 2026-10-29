@@ -145,6 +145,16 @@ struct HTTPClientResponseTests {
         }
     }
 
+    @Test("sendRaw는 HTTP 상태와 무관하게 본문을 그대로 돌려준다")
+    func returnsRawBody() async throws {
+        server.reply(.json(status: 404, body: "not json"))
+
+        let data = try await client.sendRaw(
+            Endpoint<EmptyResult>(method: .get, path: "api/image/3", requiresAuth: false))
+
+        #expect(String(decoding: data, as: UTF8.self) == "not json")
+    }
+
     @Test("응답 형식이 다르면 decoding 에러")
     func throwsDecodingError() async {
         server.reply(.json(status: 200, body: #"{"unexpected":true}"#))

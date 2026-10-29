@@ -58,6 +58,26 @@ public struct HTTPClient: Sendable {
         return try Self.decode(retryData, retryResponse)
     }
 
+    /// 본문을 그대로 돌려준다 (이미지 바이트 등). HTTP 상태는 보지 않는다 — 레거시 Alamofire `.response`(validate 없음)와 같다.
+    /// 인증 요청의 토큰 만료(본문 code 119)는 `send`처럼 갱신 후 한 번 다시 보낸다.
+    @concurrent
+    public func sendRaw(_ endpoint: Endpoint<EmptyResult>) async throws(TransportError) -> Data {
+        let (data, _) = try await perform(endpoint)
+        guard endpoint.requiresAuth, Self.isTokenExpired(data) else {
+            return data
+        }
+        guard let tokenProvider else {
+            throw .sessionExpired
+        }
+        try await tokenProvider.refreshAccessToken()
+
+        let (retryData, _) = try await perform(endpoint)
+        if Self.isTokenExpired(retryData) {
+            throw .sessionExpired
+        }
+        return retryData
+    }
+
     // MARK: - Private
 
     private func perform<Result>(

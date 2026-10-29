@@ -182,6 +182,32 @@ public struct ContentPage<Item: Hashable & Sendable>: Equatable, Sendable {
     }
 }
 
+/// 마이페이지 메인 정보 (레거시 `UserProfile`)
+public struct MyProfile: Equatable, Sendable {
+    public struct WatchCounts: Equatable, Sendable {
+        public let watchList: Int?
+        public let watching: Int?
+        public let finished: Int?
+
+        public init(watchList: Int?, watching: Int?, finished: Int?) {
+            self.watchList = watchList
+            self.watching = watching
+            self.finished = finished
+        }
+    }
+
+    public let profileImageUrl: String?
+    public let watchCounts: WatchCounts?
+    /// 최대 10개
+    public let likedAnimes: [MyAnime]?
+
+    public init(profileImageUrl: String?, watchCounts: WatchCounts?, likedAnimes: [MyAnime]?) {
+        self.profileImageUrl = profileImageUrl
+        self.watchCounts = watchCounts
+        self.likedAnimes = likedAnimes
+    }
+}
+
 /// 마이페이지 목록 (레거시 `MyInfoAPI`)
 public protocol MyInfoClient: Sendable {
     /// 20개씩
@@ -200,4 +226,11 @@ public protocol MyInfoClient: Sendable {
     func myPosts(lastId: Int?) async throws(TransportError) -> ContentPage<MyPost>
     /// 내 댓글 20개씩 (`api/mypage/community/comments`)
     func myComments(lastId: Int?) async throws(TransportError) -> ContentPage<MyComment>
+
+    /// 마이페이지 메인 (`GET api/mypage`)
+    func profile() async throws(TransportError) -> MyProfile
+    /// 프로필 이미지 바이트 (`GET api/image/{id}`). HTTP 상태를 보지 않고 본문을 그대로 준다 (레거시)
+    func profileImage(id: Int) async throws(TransportError) -> Data
+    /// 프로필 이미지 올리기 (multipart `profileImageFile`). 받은 이미지 id를 이 기기에 저장하고 돌려준다
+    func uploadProfileImage(jpeg: Data) async throws(TransportError) -> Int
 }

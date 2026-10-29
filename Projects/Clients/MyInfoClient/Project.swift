@@ -5,5 +5,5 @@ import ProjectDescriptionHelpers
 let project = Project.client(
     "MyInfo",
     modules: [.core("ClientCore")],
-    liveModules: [.core("Networking")]
+    liveModules: [.core("Networking"), .core("Storage")]
 )
