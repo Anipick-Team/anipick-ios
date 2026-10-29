@@ -7,6 +7,7 @@
 
 import DetailInterface
 import HomeInterface
+import MyInfoInterface
 import ReviewInterface
 import SettingInterface
 import SwiftUI
@@ -233,6 +234,19 @@ extension HomeRoute {
     var screenName: String {
         switch self {
         case .search: return "home_search"
+        }
+    }
+}
+
+extension MyInfoRoute {
+    /// 레거시 `AppRoute`의 화면 이름 (R14)
+    var screenName: String {
+        switch self {
+        case .watchList: return "my_to_watch_list"
+        case .watching: return "my_watching_list"
+        case .finished: return "my_finished_list"
+        case .likedAnimes: return "my_liked_anime"
+        case .likedPersons: return "my_liked_person"
         }
     }
 }

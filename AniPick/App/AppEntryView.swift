@@ -7,6 +7,7 @@
 
 import DetailInterface
 import HomeInterface
+import MyInfoInterface
 import ReviewInterface
 import SwiftUI
 import SettingInterface
@@ -56,6 +57,10 @@ struct AppEntryView: View {
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 }
             }
+            .navigationDestination(for: MyInfoRoute.self) { route in
+                AppDIContainer.myInfoBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
+            }
             .navigationDestination(for: ReviewRoute.self) { route in
                 AppDIContainer.reviewBuilder.make(route)
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
@@ -84,17 +89,17 @@ struct AppEntryView: View {
                     case .deleteAccount:
                         AppDIContainer.settingBuilder.make(.withdrawal)
                     case .myInfoInToWatchList:
-                        AppDIContainer.makeMyInfoInToWatchView()
+                        AppDIContainer.myInfoBuilder.make(.watchList)
                     case .myInfo:
                         AppDIContainer.makeMyInfoView()
                     case .myInfoWatchingList:
-                        AppDIContainer.makeMyInfoInWatchingListView()
+                        AppDIContainer.myInfoBuilder.make(.watching)
                     case .finishedWatchList:
-                        AppDIContainer.makeMyInfoFinishedWatchingView()
+                        AppDIContainer.myInfoBuilder.make(.finished)
                     case .likeAnimeList:
-                        AppDIContainer.makeMyInfoLikeAnimeView()
+                        AppDIContainer.myInfoBuilder.make(.likedAnimes)
                     case .likePersonList:
-                        AppDIContainer.makeMyInfoLikePersonView()
+                        AppDIContainer.myInfoBuilder.make(.likedPersons)
                     case .ratedAnimeList:
                         AppDIContainer.makeMyInfoRatedAnimeView()
                     case .myContent:

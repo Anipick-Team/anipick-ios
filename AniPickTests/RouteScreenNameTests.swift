@@ -7,6 +7,7 @@
 
 import DetailInterface
 import HomeInterface
+import MyInfoInterface
 import ReviewInterface
 import SettingInterface
 import Testing
@@ -39,5 +40,22 @@ struct RouteScreenNameTests {
     func legacyBacked() {
         #expect(DetailRoute.anime(id: 1).screenName == AppRoute.animeDetail(animeId: 1).screenName)
         #expect(HomeRoute.search.screenName == AppRoute.homeSearch.screenName)
+    }
+
+    @Test(
+        "마이페이지 목록 Route",
+        arguments: [
+            (MyInfoRoute.watchList, AppRoute.myInfoInToWatchList), (.watching, .myInfoWatchingList),
+            (.finished, .finishedWatchList), (.likedAnimes, .likeAnimeList), (.likedPersons, .likePersonList),
+        ]
+    )
+    func myInfo(route: MyInfoRoute, legacy: AppRoute) {
+        #expect(route.screenName == legacy.screenName)
+    }
+
+    @Test("성우 상세 Route")
+    func voiceActor() {
+        #expect(
+            DetailRoute.voiceActor(id: 1).screenName == AppRoute.voiceActorDetail(animeId: 1).screenName)
     }
 }

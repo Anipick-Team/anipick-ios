@@ -7,6 +7,9 @@
 import SwiftUI
 import AuthClientLive
 import MetadataClientLive
+import MyInfoClientLive
+import MyInfoFeature
+import MyInfoInterface
 import RankingClientLive
 import RankingFeature
 import RankingInterface
@@ -44,6 +47,13 @@ struct AppDIContainer {
             navigator: navigator,
             openURL: { UIApplication.shared.open($0) },
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        )
+    )
+
+    static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(
+        dependencies: MyInfoDependencies(
+            myInfoClient: LiveMyInfoClient(client: AppSession.httpClient),
+            navigator: navigator
         )
     )
 
