@@ -232,10 +232,11 @@ extension DetailRoute {
 }
 
 extension HomeRoute {
-    /// 레거시 `AppRoute.homeSearch`의 화면 이름 (R14)
+    /// 레거시 `AppRoute`의 화면 이름 (R14)
     var screenName: String {
         switch self {
         case .search: return "home_search"
+        case .recommendations, .similarRecommendations: return "recommend"
         }
     }
 }

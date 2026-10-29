@@ -42,6 +42,12 @@ struct RouteScreenNameTests {
     func legacyBacked() {
         #expect(DetailRoute.anime(id: 1).screenName == AppRoute.animeDetail(animeId: 1).screenName)
         #expect(HomeRoute.search.screenName == AppRoute.homeSearch.screenName)
+        #expect(
+            HomeRoute.recommendations(animeId: 1, animeTitle: nil).screenName
+                == AppRoute.recommend2(animeId: 1, animeTitle: nil).screenName)
+        #expect(
+            HomeRoute.similarRecommendations(animeId: 1).screenName
+                == AppRoute.recommendView(animeId: 1).screenName)
     }
 
     @Test(

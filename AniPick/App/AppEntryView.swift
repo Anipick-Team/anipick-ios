@@ -58,11 +58,16 @@ struct AppEntryView: View {
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: HomeRoute.self) { route in
-                switch route {
-                case .search:
-                    AppDIContainer.makeHomeSearchView()
-                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                Group {
+                    // 아직 레거시인 검색은 App이 가로챈다 (Home 이관 중)
+                    switch route {
+                    case .search:
+                        AppDIContainer.makeHomeSearchView()
+                    default:
+                        AppDIContainer.homeBuilder.make(route)
+                    }
                 }
+                .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: AuthRoute.self) { route in
                 AppDIContainer.authBuilder.make(route)
@@ -152,7 +157,7 @@ struct AppEntryView: View {
                     case .recentReview:
                         AppDIContainer.makeRecentReviewView()
                     case .recommendView(let animeId):
-                        AppDIContainer.makeRecommendationView(animeId: animeId)
+                        AppDIContainer.homeBuilder.make(.similarRecommendations(animeId: animeId))
                     case let .community(seriesId, animeTitle, coverImageUrl, genreNames):
                         AppDIContainer.exploreBuilder.make(
                             .communityBoard(
@@ -179,7 +184,7 @@ struct AppEntryView: View {
                     case let .recommend(animeId, animeTitle):
                         AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
                     case let .recommend2(animeId, animeTitle):
-                        AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
+                        AppDIContainer.homeBuilder.make(.recommendations(animeId: animeId, animeTitle: animeTitle))
                     default:
                         Text("asdfasdf")
                     }

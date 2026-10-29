@@ -6,6 +6,9 @@
 //
 import Combine
 import DesignSystem
+import HomeFeature
+import HomeClientLive
+import HomeInterface
 import SwiftUI
 import AuthClientLive
 import AuthFeature
@@ -131,6 +134,14 @@ struct AppDIContainer {
         }
         return request
     }
+
+    static let homeBuilder: any HomeBuilding = HomeBuilder(
+        dependencies: HomeDependencies(
+            homeClient: LiveHomeClient(client: AppSession.httpClient),
+            navigator: navigator,
+            cachedNickname: { UserDefaultsManager.shared.getNickname() }
+        )
+    )
 
     static let rankingBuilder: any RankingBuilding = RankingBuilder(
         dependencies: RankingDependencies(
