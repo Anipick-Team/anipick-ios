@@ -5,7 +5,10 @@ import os
 nonisolated final class ImageStubServer: Sendable {
     let host = "image-\(UUID().uuidString.lowercased()).test"
     private let state = OSAllocatedUnfairLock(
-        uncheckedState: (status: 200, body: Data(), delay: Duration.zero, requestCount: 0)
+        uncheckedState: (
+            status: 200, body: Data(), delay: Duration.zero, requestCount: 0,
+            authorizations: [String?]()
+        )
     )
 
     init() {
@@ -34,9 +37,15 @@ nonisolated final class ImageStubServer: Sendable {
         return state.withLockUnchecked { $0.requestCount }
     }
 
-    fileprivate func handle() -> (status: Int, body: Data, delay: Duration) {
+    /// 받은 요청의 Authorization 헤더 (순서대로)
+    var authorizations: [String?] {
+        return state.withLockUnchecked { $0.authorizations }
+    }
+
+    fileprivate func handle(_ request: URLRequest) -> (status: Int, body: Data, delay: Duration) {
         return state.withLockUnchecked {
             $0.requestCount += 1
+            $0.authorizations.append(request.value(forHTTPHeaderField: "Authorization"))
             return ($0.status, $0.body, $0.delay)
         }
     }
@@ -64,7 +73,7 @@ nonisolated final class ImageStubProtocol: URLProtocol, @unchecked Sendable {
             client?.urlProtocol(self, didFailWithError: URLError(.unsupportedURL))
             return
         }
-        let reply = server.handle()
+        let reply = server.handle(request)
         let delay = reply.delay.components
         let seconds = Double(delay.seconds) + Double(delay.attoseconds) / 1e18
         DispatchQueue.global().asyncAfter(deadline: .now() + seconds) { [self] in

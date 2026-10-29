@@ -4,6 +4,7 @@
 //
 //  Created by cho on 6/8/25.
 //
+import DesignSystem
 import SwiftUI
 import AuthClientLive
 import MetadataClientLive
@@ -52,12 +53,29 @@ struct AppDIContainer {
 
     static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(
         dependencies: MyInfoDependencies(
-            myInfoClient: LiveMyInfoClient(client: AppSession.httpClient),
+            myInfoClient: LiveMyInfoClient(
+                client: AppSession.httpClient,
+                imageBaseURL: URL(string: NetworkManager.baseUrl)!
+            ),
             reviewClient: LiveReviewClient(client: AppSession.httpClient),
             navigator: navigator,
-            ratedReviewsReloadNotification: .reloadRatedAnime
+            ratedReviewsReloadNotification: .reloadRatedAnime,
+            // 레거시 MyContentView: 루트로 돌아간 뒤 그 탭의 ContentView를 push한다
+            openTab: { tab in
+                navigationManager.popToRoot()
+                navigationManager.push(route: .content(activeTab: Tab(tab)))
+            }
         )
     )
+
+    /// 인증이 필요한 이미지(커뮤니티 첨부)에 토큰을 붙여 받는다 (레거시 CommunityRemoteImage)
+    static let protectedImageLoader = RemoteImageLoader { request in
+        var request = request
+        if let token = await AppSession.shared.accessToken(), !token.isEmpty {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        return request
+    }
 
     static let rankingBuilder: any RankingBuilding = RankingBuilder(
         dependencies: RankingDependencies(
@@ -356,3 +374,17 @@ extension AppDIContainer {
     }
 }
 
+extension Tab {
+    init(_ tab: MainTab) {
+        switch tab {
+        case .home:
+            self = .home
+        case .ranking:
+            self = .ranking
+        case .explore:
+            self = .research
+        case .myInfo:
+            self = .myInfo
+        }
+    }
+}

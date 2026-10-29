@@ -5,7 +5,9 @@
 //  Created by cho on 6/22/25.
 //
 
+import DesignSystem
 import DetailInterface
+import ExploreInterface
 import HomeInterface
 import MyInfoInterface
 import ReviewInterface
@@ -47,6 +49,13 @@ struct AppEntryView: View {
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 case .voiceActor(let id):
                     AppDIContainer.makeVoiceActorDetailView(animeId: id)
+                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                }
+            }
+            .navigationDestination(for: ExploreRoute.self) { route in
+                switch route {
+                case .communityPost(let id):
+                    CommunityDetailView(postId: id)
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 }
             }
@@ -103,7 +112,7 @@ struct AppEntryView: View {
                     case .ratedAnimeList:
                         AppDIContainer.myInfoBuilder.make(.ratedReviews)
                     case .myContent:
-                        MyContentView()
+                        AppDIContainer.myInfoBuilder.make(.myContent)
                     case .ranking:
                         AppDIContainer.rankingBuilder.make(.main)
                     case .research:
@@ -187,6 +196,7 @@ struct AppEntryView: View {
             }
         }
         .background(Color.white)
+        .environment(\.protectedImageLoader, AppDIContainer.protectedImageLoader)
         .sheet(item: $navigationManager.presentedRoute) { presented in
             modalDestination(presented.route)
         }

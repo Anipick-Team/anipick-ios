@@ -6,6 +6,7 @@
 //
 
 import DetailInterface
+import ExploreInterface
 import HomeInterface
 import MyInfoInterface
 import ReviewInterface
@@ -47,7 +48,7 @@ struct RouteScreenNameTests {
         arguments: [
             (MyInfoRoute.watchList, AppRoute.myInfoInToWatchList), (.watching, .myInfoWatchingList),
             (.finished, .finishedWatchList), (.likedAnimes, .likeAnimeList), (.likedPersons, .likePersonList),
-            (.ratedReviews, .ratedAnimeList),
+            (.ratedReviews, .ratedAnimeList), (.myContent, .myContent),
         ]
     )
     func myInfo(route: MyInfoRoute, legacy: AppRoute) {
@@ -58,5 +59,12 @@ struct RouteScreenNameTests {
     func voiceActor() {
         #expect(
             DetailRoute.voiceActor(id: 1).screenName == AppRoute.voiceActorDetail(animeId: 1).screenName)
+    }
+
+    @Test("커뮤니티 게시글 Route")
+    func communityPost() {
+        #expect(
+            ExploreRoute.communityPost(id: 1).screenName
+                == AppRoute.communityDetail(postId: 1).screenName)
     }
 }

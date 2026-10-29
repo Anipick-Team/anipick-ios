@@ -99,4 +99,20 @@ struct RemoteImageLoaderTests {
         #expect(server.requestCount == 2)
         #expect(image.cgImage?.width == 100)
     }
+
+    @Test("prepare로 요청을 고친다 (인증이 필요한 이미지의 토큰). 없으면 그대로 보낸다")
+    func preparesRequest() async throws {
+        server.respond(body: pngData(width: 10, height: 10))
+        let plain = RemoteImageLoader(session: server.session)
+        let protected = RemoteImageLoader(session: server.session) { request in
+            var request = request
+            request.setValue("Bearer T", forHTTPHeaderField: "Authorization")
+            return request
+        }
+
+        _ = try await plain.image(for: server.url("a.png"), maxPixelSize: 10)
+        _ = try await protected.image(for: server.url("b.png"), maxPixelSize: 10)
+
+        #expect(server.authorizations == [nil, "Bearer T"])
+    }
 }

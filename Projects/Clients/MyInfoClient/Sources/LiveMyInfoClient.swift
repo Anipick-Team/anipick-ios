@@ -5,10 +5,42 @@ import Networking
 
 public struct LiveMyInfoClient: MyInfoClient {
     private let client: HTTPClient
+    private let imageBaseURL: URL
 
-    /// - Parameter client: 인증 클라이언트
-    public init(client: HTTPClient) {
+    /// - Parameters:
+    ///   - client: 인증 클라이언트
+    ///   - imageBaseURL: 이미지 id를 주소로 바꿀 때 쓰는 서버 주소 (`{주소}api/image/{id}`)
+    public init(client: HTTPClient, imageBaseURL: URL) {
         self.client = client
+        self.imageBaseURL = imageBaseURL
+    }
+
+    public func myPosts(lastId: Int?) async throws(TransportError) -> ContentPage<MyPost> {
+        let result = try await client.send(
+            Self.endpoint(
+                "api/mypage/community/posts", ["lastId": lastId.map(String.init), "size": "20"])
+                as Endpoint<PostsResult>
+        )
+        .requireResult()
+        return ContentPage(
+            count: result.count,
+            lastId: result.cursor?.lastId,
+            items: (result.posts ?? []).map { $0.post(imageBaseURL: imageBaseURL) }
+        )
+    }
+
+    public func myComments(lastId: Int?) async throws(TransportError) -> ContentPage<MyComment> {
+        let result = try await client.send(
+            Self.endpoint(
+                "api/mypage/community/comments", ["lastId": lastId.map(String.init), "size": "20"])
+                as Endpoint<CommentsResult>
+        )
+        .requireResult()
+        return ContentPage(
+            count: result.count,
+            lastId: result.cursor?.lastId,
+            items: (result.comments ?? []).map(\.comment)
+        )
     }
 
     public func watchList(
@@ -200,4 +232,76 @@ struct RatedResult: Decodable, Sendable {
     let count: Int?
     let cursor: Cursor?
     let reviews: [Review]?
+}
+
+struct GenreDTO: Decodable, Sendable {
+    let name: String?
+}
+
+/// 레거시 `MyCommunityPostPage`
+struct PostsResult: Decodable, Sendable {
+    struct Cursor: Decodable, Sendable {
+        let lastId: Int?
+    }
+
+    struct Post: Decodable, Sendable {
+        let postId: Int
+        let animeTitle: String?
+        let animeCoverImageUrl: String?
+        let genres: [GenreDTO]?
+        let title: String?
+        let content: String?
+        let thumbnailImageId: Int?
+        let isSpoiler: Bool?
+        let viewCount: Int?
+        let likeCount: Int?
+        let commentCount: Int?
+        let createdAt: String?
+
+        /// 레거시 `MyContentViewModel.imageURL(for:)`: `{서버 주소}api/image/{id}`
+        func post(imageBaseURL: URL) -> MyPost {
+            return MyPost(
+                postId: postId, animeTitle: animeTitle, animeCoverImageUrl: animeCoverImageUrl,
+                genre: genres?.first?.name, title: title, content: content,
+                thumbnailURL: thumbnailImageId.map {
+                    imageBaseURL.appending(path: "api/image/\($0)")
+                },
+                isSpoiler: isSpoiler, viewCount: viewCount, likeCount: likeCount,
+                commentCount: commentCount, createdAt: createdAt)
+        }
+    }
+
+    let count: Int?
+    let cursor: Cursor?
+    let posts: [Post]?
+}
+
+/// 레거시 `MyCommunityCommentPage`
+struct CommentsResult: Decodable, Sendable {
+    struct Cursor: Decodable, Sendable {
+        let lastId: Int?
+    }
+
+    struct Comment: Decodable, Sendable {
+        let commentId: Int
+        let postId: Int?
+        let animeTitle: String?
+        let animeCoverImageUrl: String?
+        let genres: [GenreDTO]?
+        let postTitle: String?
+        let content: String?
+        let likeCount: Int?
+        let createdAt: String?
+
+        var comment: MyComment {
+            return MyComment(
+                commentId: commentId, postId: postId, animeTitle: animeTitle,
+                animeCoverImageUrl: animeCoverImageUrl, genre: genres?.first?.name,
+                postTitle: postTitle, content: content, likeCount: likeCount, createdAt: createdAt)
+        }
+    }
+
+    let count: Int?
+    let cursor: Cursor?
+    let comments: [Comment]?
 }

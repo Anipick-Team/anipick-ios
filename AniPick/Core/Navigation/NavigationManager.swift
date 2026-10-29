@@ -6,6 +6,7 @@
 //
 
 import DetailInterface
+import ExploreInterface
 import HomeInterface
 import MyInfoInterface
 import ReviewInterface
@@ -248,6 +249,16 @@ extension MyInfoRoute {
         case .likedAnimes: return "my_liked_anime"
         case .likedPersons: return "my_liked_person"
         case .ratedReviews: return "my_rated_anime"
+        case .myContent: return "my_content"
+        }
+    }
+}
+
+extension ExploreRoute {
+    /// 레거시 `AppRoute.communityDetail`의 화면 이름 (R14)
+    var screenName: String {
+        switch self {
+        case .communityPost: return "community_detail"
         }
     }
 }

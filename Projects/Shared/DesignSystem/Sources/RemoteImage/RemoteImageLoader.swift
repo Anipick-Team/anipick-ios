@@ -35,11 +35,18 @@ public actor RemoteImageLoader: ImageLoading {
     }
 
     private let session: URLSession
+    private let prepare: (@Sendable (URLRequest) async -> URLRequest)?
     private let memory = NSCache<NSString, UIImage>()
     private var inFlight: [CacheKey: Task<UIImage, any Error>] = [:]
 
-    public init(session: URLSession = .imageSession, memoryCountLimit: Int = 200) {
+    /// - Parameter prepare: 요청을 보내기 전에 고친다 (인증이 필요한 이미지에 토큰 헤더 붙이기 등)
+    public init(
+        session: URLSession = .imageSession,
+        memoryCountLimit: Int = 200,
+        prepare: (@Sendable (URLRequest) async -> URLRequest)? = nil
+    ) {
         self.session = session
+        self.prepare = prepare
         memory.countLimit = memoryCountLimit
     }
 
@@ -52,8 +59,12 @@ public actor RemoteImageLoader: ImageLoading {
             return try await running.value
         }
 
-        let task = Task { [session] in
-            return try await Self.fetch(url, maxPixelSize: maxPixelSize, session: session)
+        let task = Task { [session, prepare] in
+            var request = URLRequest(url: url)
+            if let prepare {
+                request = await prepare(request)
+            }
+            return try await Self.fetch(request, maxPixelSize: maxPixelSize, session: session)
         }
         inFlight[key] = task
         defer { inFlight[key] = nil }
@@ -65,11 +76,11 @@ public actor RemoteImageLoader: ImageLoading {
 
     @concurrent
     private static func fetch(
-        _ url: URL,
+        _ request: URLRequest,
         maxPixelSize: Int,
         session: URLSession
     ) async throws -> UIImage {
-        let (data, response) = try await session.data(from: url)
+        let (data, response) = try await session.data(for: request)
         if let http = response as? HTTPURLResponse, !(200..<300).contains(http.statusCode) {
             throw RemoteImageError.http(status: http.statusCode)
         }

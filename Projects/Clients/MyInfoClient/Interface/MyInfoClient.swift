@@ -1,4 +1,5 @@
 import ClientCore
+import Foundation
 
 /// 볼·보는 중·다 본 애니 (서버 `status` 값)
 public enum WatchStatus: String, CaseIterable, Sendable {
@@ -103,6 +104,84 @@ public struct RatedPage: Equatable, Sendable {
     }
 }
 
+/// 내 커뮤니티 게시글 (레거시 `MyCommunityPost`)
+public struct MyPost: Hashable, Sendable {
+    public let postId: Int
+    public let animeTitle: String?
+    public let animeCoverImageUrl: String?
+    /// 첫 번째 장르 이름
+    public let genre: String?
+    public let title: String?
+    public let content: String?
+    /// 첨부 대표 이미지 주소 (인증 필요)
+    public let thumbnailURL: URL?
+    public let isSpoiler: Bool?
+    public let viewCount: Int?
+    public let likeCount: Int?
+    public let commentCount: Int?
+    public let createdAt: String?
+
+    public init(
+        postId: Int, animeTitle: String?, animeCoverImageUrl: String?, genre: String?,
+        title: String?, content: String?, thumbnailURL: URL?, isSpoiler: Bool?,
+        viewCount: Int?, likeCount: Int?, commentCount: Int?, createdAt: String?
+    ) {
+        self.postId = postId
+        self.animeTitle = animeTitle
+        self.animeCoverImageUrl = animeCoverImageUrl
+        self.genre = genre
+        self.title = title
+        self.content = content
+        self.thumbnailURL = thumbnailURL
+        self.isSpoiler = isSpoiler
+        self.viewCount = viewCount
+        self.likeCount = likeCount
+        self.commentCount = commentCount
+        self.createdAt = createdAt
+    }
+}
+
+/// 내 커뮤니티 댓글 (레거시 `MyCommunityComment`)
+public struct MyComment: Hashable, Sendable {
+    public let commentId: Int
+    public let postId: Int?
+    public let animeTitle: String?
+    public let animeCoverImageUrl: String?
+    public let genre: String?
+    public let postTitle: String?
+    public let content: String?
+    public let likeCount: Int?
+    public let createdAt: String?
+
+    public init(
+        commentId: Int, postId: Int?, animeTitle: String?, animeCoverImageUrl: String?,
+        genre: String?, postTitle: String?, content: String?, likeCount: Int?, createdAt: String?
+    ) {
+        self.commentId = commentId
+        self.postId = postId
+        self.animeTitle = animeTitle
+        self.animeCoverImageUrl = animeCoverImageUrl
+        self.genre = genre
+        self.postTitle = postTitle
+        self.content = content
+        self.likeCount = likeCount
+        self.createdAt = createdAt
+    }
+}
+
+/// 내 콘텐츠 한 페이지. 개수·커서는 서버가 비워 보낼 수 있다
+public struct ContentPage<Item: Hashable & Sendable>: Equatable, Sendable {
+    public let count: Int?
+    public let lastId: Int?
+    public let items: [Item]
+
+    public init(count: Int?, lastId: Int?, items: [Item]) {
+        self.count = count
+        self.lastId = lastId
+        self.items = items
+    }
+}
+
 /// 마이페이지 목록 (레거시 `MyInfoAPI`)
 public protocol MyInfoClient: Sendable {
     /// 20개씩
@@ -116,4 +195,9 @@ public protocol MyInfoClient: Sendable {
     /// 평가한 작품 20개씩. `reviewOnly`는 레거시처럼 항상 false로 보낸다 (리뷰만 보기는 화면에서 거른다)
     func ratedReviews(sort: RatedSort, lastId: Int?, lastLikeCount: Int?, lastRating: Double?)
         async throws(TransportError) -> RatedPage
+
+    /// 내 게시글 20개씩 (`api/mypage/community/posts`)
+    func myPosts(lastId: Int?) async throws(TransportError) -> ContentPage<MyPost>
+    /// 내 댓글 20개씩 (`api/mypage/community/comments`)
+    func myComments(lastId: Int?) async throws(TransportError) -> ContentPage<MyComment>
 }
