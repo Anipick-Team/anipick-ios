@@ -56,7 +56,19 @@ public struct AuthBuilder: AuthBuilding {
             return AnyView(EmailSignupView(state: EmailSignupReducer.State(), reducer: reducer))
         case .loginProblem:
             return AnyView(LoginProblemView())
-        case .findPassword, .preferenceSelection:
+        case .findPassword:
+            let reducer = FindPasswordReducer(
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator
+            )
+            return AnyView(FindPasswordView(state: FindPasswordReducer.State(), reducer: reducer))
+        case .resetPassword:
+            let reducer = ResetPasswordReducer(
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator
+            )
+            return AnyView(ResetPasswordView(state: ResetPasswordReducer.State(), reducer: reducer))
+        case .preferenceSelection, .mainLogin:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Auth 빌더로 왔다: \(route)")
             return AnyView(EmptyView())

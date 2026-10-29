@@ -202,4 +202,42 @@ struct LiveAuthClientTests {
         }
         #expect(stored.withLock { $0 } == 0)
     }
+
+    @Test(
+        "FP13. 비밀번호 찾기: 인증번호 보내기·확인은 POST, 재설정은 PATCH, 모두 토큰 없이. 확인에 성공하면 이메일을 저장한다 (재설정 본문은 그 값을 읽는다 — 본문은 스트림이라 확인하지 못함)")
+    func findPassword() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","errorValue":null}"#))
+        let defaults = UserDefaults(suiteName: "auth-\(UUID().uuidString)")!
+        let client = LiveAuthClient(
+            client: stub.client, onLoggedOut: {}, preferences: Preferences(defaults: defaults))
+
+        #expect(try await client.sendVerificationCode(email: "a@b.co") == .sent)
+        #expect(try await client.verifyCode(email: "a@b.co", code: "1234") == .verified)
+        #expect(try await client.resetPassword(newPassword: "n", confirmation: "c"))
+
+        #expect(stub.requests.map(\.httpMethod) == ["POST", "POST", "PATCH"])
+        #expect(
+            stub.requests.map { $0.url?.path() }
+                == ["/api/auth/email/send", "/api/auth/email/verify", "/api/auth/password/reset"])
+        #expect(stub.requests.allSatisfy { $0.value(forHTTPHeaderField: "Authorization") == nil })
+        #expect(defaults.string(forKey: "email") == "a@b.co")
+    }
+
+    @Test("FP13. 응답 코드를 결과로 바꾼다")
+    func findPasswordCodes() async throws {
+        for (code, send, verify) in [
+            (112, SendCodeResult.accountNotFound, VerifyCodeResult.unexpected(code: 112)),
+            (103, .invalidEmail, .unexpected(code: 103)),
+            (102, .emptyEmail, .unexpected(code: 102)),
+            (113, .unexpected(code: 113), .emptyCode), (114, .unexpected(code: 114), .wrongCode),
+            (115, .unexpected(code: 115), .expired),
+        ] {
+            let stub = ClientStub(.json(#"{"code":\#(code),"value":"FAIL","errorValue":null}"#))
+            let client = LiveAuthClient(client: stub.client, onLoggedOut: {})
+
+            #expect(try await client.sendVerificationCode(email: "a") == send)
+            #expect(try await client.verifyCode(email: "a", code: "b") == verify)
+            #expect(try await client.resetPassword(newPassword: "n", confirmation: "c") == false)
+        }
+    }
 }

@@ -47,11 +47,43 @@ public enum EmailSignupResult: Equatable, Sendable {
     case unexpected(code: Int)
 }
 
+/// 인증번호 보내기 결과 (`api/auth/email/send`)
+public enum SendCodeResult: Equatable, Sendable {
+    case sent
+    /// 112
+    case accountNotFound
+    /// 103
+    case invalidEmail
+    /// 102
+    case emptyEmail
+    /// 그 밖의 코드 (레거시는 버튼을 "전송중..."으로 둔 채 아무것도 하지 않는다)
+    case unexpected(code: Int)
+}
+
+/// 인증번호 확인 결과 (`api/auth/email/verify`)
+public enum VerifyCodeResult: Equatable, Sendable {
+    /// 200. 이메일을 이 기기에 저장했다 (재설정이 읽는다)
+    case verified
+    /// 113
+    case emptyCode
+    /// 114
+    case wrongCode
+    /// 115
+    case expired
+    case unexpected(code: Int)
+}
+
 /// 로그인·로그아웃.
 public protocol AuthClient: Sendable {
     /// `POST api/users/login`. 성공하면 토큰과 사용자 정보(닉네임·이메일·sns 없음·userId)를 이 기기에 저장한다
     func loginWithEmail(email: String, password: String) async throws(TransportError)
         -> EmailLoginResult
+    /// 비밀번호 찾기: 인증번호를 이메일로 보낸다
+    func sendVerificationCode(email: String) async throws(TransportError) -> SendCodeResult
+    func verifyCode(email: String, code: String) async throws(TransportError) -> VerifyCodeResult
+    /// 인증을 마친 이메일(이 기기에 저장된 값)의 비밀번호를 바꾼다. 성공이면 true
+    func resetPassword(newPassword: String, confirmation: String) async throws(TransportError)
+        -> Bool
     /// `POST api/users/signup`. 성공하면 토큰과 사용자 정보(닉네임·이메일·sns 없음·userId 없음)를 저장한다
     func signupWithEmail(email: String, password: String, agreedToTerms: Bool)
         async throws(TransportError) -> EmailSignupResult

@@ -107,6 +107,62 @@ public struct LiveAuthClient: AuthClient {
         }
     }
 
+    public func sendVerificationCode(email: String) async throws(TransportError) -> SendCodeResult {
+        let response = try await client.send(
+            Endpoint<EmptyResult>(
+                method: .post, path: "api/auth/email/send", body: .json(["email": email]),
+                requiresAuth: false))
+        switch response.code {
+        case 200:
+            return .sent
+        case 112:
+            return .accountNotFound
+        case 103:
+            return .invalidEmail
+        case 102:
+            return .emptyEmail
+        default:
+            return .unexpected(code: response.code)
+        }
+    }
+
+    public func verifyCode(email: String, code: String) async throws(TransportError)
+        -> VerifyCodeResult
+    {
+        let response = try await client.send(
+            Endpoint<EmptyResult>(
+                method: .post, path: "api/auth/email/verify",
+                body: .json(["email": email, "code": code]), requiresAuth: false))
+        switch response.code {
+        case 200:
+            preferences.set(email, for: Self.emailKey)
+            return .verified
+        case 113:
+            return .emptyCode
+        case 114:
+            return .wrongCode
+        case 115:
+            return .expired
+        default:
+            return .unexpected(code: response.code)
+        }
+    }
+
+    public func resetPassword(newPassword: String, confirmation: String)
+        async throws(TransportError)
+        -> Bool
+    {
+        let response = try await client.send(
+            Endpoint<EmptyResult>(
+                method: .patch, path: "api/auth/password/reset",
+                body: .json([
+                    "email": preferences.value(for: Self.emailKey), "newPassword": newPassword,
+                    "checkNewPassword": confirmation,
+                ]),
+                requiresAuth: false))
+        return response.code == 200
+    }
+
     /// 레거시는 인증 세션으로 보내 빈(또는 이전) 토큰이 붙었다. 가입에는 토큰이 필요 없어 붙이지 않는다
     static func signupEndpoint(email: String, password: String, agreedToTerms: Bool) -> Endpoint<
         LoginResult

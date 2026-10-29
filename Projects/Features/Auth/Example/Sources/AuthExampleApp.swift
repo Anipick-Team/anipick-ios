@@ -48,6 +48,11 @@ struct ExampleRoot: View {
                         open(.emailSignup, result: .missingResult)
                     }
                 }
+                Section("비밀번호 찾기") {
+                    Button("인증번호 → 새 비밀번호 → 메인 로그인(가짜)") {
+                        open(.findPassword, result: .missingResult)
+                    }
+                }
                 Section("기타") {
                     Button("로그인 문제") {
                         open(.loginProblem, result: .missingResult)
@@ -56,7 +61,7 @@ struct ExampleRoot: View {
             }
             .navigationTitle(loggedIn ? "로그인 완료" : "로그인 시나리오")
             .navigationDestination(for: AuthRoute.self) { route in
-                if route == .preferenceSelection || route == .findPassword {
+                if route == .preferenceSelection || route == .mainLogin {
                     Text("레거시 화면: \(String(describing: route))")
                 } else {
                     builder?.make(route)

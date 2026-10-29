@@ -5,21 +5,26 @@ import SwiftUI
 struct PasswordInputField: View {
     @Binding var text: String
     let isVisible: Bool
+    var placeholder = "비밀번호를 입력해주세요"
+    /// 비밀번호 재설정 화면만 자동 대문자를 끈다 (레거시 그대로)
+    var disablesAutocapitalization = false
     let onVisibilityTapped: () -> Void
 
     var body: some View {
-        let prompt = Text("비밀번호를 입력해주세요")
+        let prompt = Text(placeholder)
             .font(.system(size: 16, weight: .medium))
             .foregroundColor(.textGray)
         ZStack {
             if isVisible {
                 TextField("", text: $text, prompt: prompt)
+                    .textInputAutocapitalization(disablesAutocapitalization ? .never : nil)
                     .foregroundColor(.anipickBlack)
                     .padding(16)
                     .background(.textFieldBackground)
                     .cornerRadius(8)
             } else {
                 SecureField("", text: $text, prompt: prompt)
+                    .textInputAutocapitalization(disablesAutocapitalization ? .never : nil)
                     .foregroundColor(.anipickBlack)
                     .padding(16)
                     .background(.textFieldBackground)

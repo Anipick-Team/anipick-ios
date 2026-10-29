@@ -69,12 +69,12 @@ struct AppEntryView: View {
             }
             .navigationDestination(for: AuthRoute.self) { route in
                 Group {
-                    // 아직 레거시인 비밀번호 찾기·취향 선택은 App이 가로챈다 (Auth 이관 중)
+                    // 아직 레거시인 취향 선택·메인 로그인은 App이 가로챈다 (Auth 이관 중)
                     switch route {
                     case .preferenceSelection:
                         AppDIContainer.makePreferenceSelectionView()
-                    case .findPassword:
-                        AppDIContainer.makeFindPasswordView()
+                    case .mainLogin:
+                        AppDIContainer.makeLoginView()
                     default:
                         AppDIContainer.authBuilder.make(route)
                     }
@@ -99,7 +99,7 @@ struct AppEntryView: View {
                     case .LoginProblem:
                         AppDIContainer.authBuilder.make(.loginProblem)
                     case .findPassword:
-                        AppDIContainer.makeFindPasswordView()
+                        AppDIContainer.authBuilder.make(.findPassword)
                     case .homeSearch:
                         AppDIContainer.makeHomeSearchView()
                     case .homeView:
@@ -141,7 +141,7 @@ struct AppEntryView: View {
                     case .animeDetail(let animeId):
                         AppDIContainer.makeAnimeDetailView(animeId: animeId)
                     case .resetPassword:
-                        AppDIContainer.makeResetPassword()
+                        AppDIContainer.authBuilder.make(.resetPassword)
                     case .content(let activeTab):
                         AppDIContainer.makeContentView(activeTab: activeTab)
                     case .adultSetting:

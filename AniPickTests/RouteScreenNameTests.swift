@@ -74,7 +74,8 @@ struct RouteScreenNameTests {
         arguments: [
             (AuthRoute.emailLogin, AppRoute.emailLogin), (.emailSignup, .emailSignup),
             (.findPassword, .findPassword), (.loginProblem, .LoginProblem),
-            (.preferenceSelection, .preferenceSelection),
+            (.preferenceSelection, .preferenceSelection), (.resetPassword, .resetPassword),
+            (.mainLogin, .mainLoginView),
         ]
     )
     func auth(route: AuthRoute, legacy: AppRoute) {

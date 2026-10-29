@@ -274,6 +274,8 @@ extension AuthRoute {
         case .findPassword: return "find_password"
         case .loginProblem: return "login_problem"
         case .preferenceSelection: return "preference_selection"
+        case .resetPassword: return "reset_password"
+        case .mainLogin: return "login"
         }
     }
 }
