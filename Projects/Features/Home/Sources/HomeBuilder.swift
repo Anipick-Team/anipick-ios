@@ -1,3 +1,4 @@
+import Foundation
 import HomeClientInterface
 import HomeInterface
 import Navigation
@@ -33,6 +34,19 @@ public struct HomeBuilder: HomeBuilding {
             return makeRecommendations(.forYou(animeTitle: animeTitle))
         case .similarRecommendations(let animeId):
             return makeRecommendations(.similar(animeId: animeId))
+        case .comingSoon:
+            return AnyView(
+                ComingSoonView(
+                    state: ComingSoonReducer.State(),
+                    reducer: ComingSoonReducer(
+                        homeClient: dependencies.homeClient, navigator: dependencies.navigator)))
+        case .weekdayNewAnime(let day):
+            return AnyView(
+                WeekdayNewAnimeView(
+                    state: WeekdayNewAnimeReducer.State(
+                        day: WeekdayNewAnimeDay(rawValue: day) ?? .of(Date())),
+                    reducer: WeekdayNewAnimeReducer(
+                        homeClient: dependencies.homeClient, navigator: dependencies.navigator)))
         case .search:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Home 빌더로 왔다: \(route)")

@@ -149,9 +149,9 @@ struct AppEntryView: View {
                     case .preferenceSelection:
                         AppDIContainer.authBuilder.make(.preferenceSelection)
                     case .comingSoonDetail:
-                        AppDIContainer.makeComingSoonView()
+                        AppDIContainer.homeBuilder.make(.comingSoon)
                     case .weekdayNewAnime(let day):
-                        AppDIContainer.makeWeekdayNewAnimeView(day: day)
+                        AppDIContainer.homeBuilder.make(.weekdayNewAnime(day: day))
                     case .mainLoginView:
                         AppDIContainer.authBuilder.make(.mainLogin)
                     case .recentReview:

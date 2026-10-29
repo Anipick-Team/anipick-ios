@@ -237,6 +237,8 @@ extension HomeRoute {
         switch self {
         case .search: return "home_search"
         case .recommendations, .similarRecommendations: return "recommend"
+        case .comingSoon: return "coming_soon"
+        case .weekdayNewAnime: return "weekday_new_anime"
         }
     }
 }

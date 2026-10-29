@@ -8,6 +8,10 @@ public enum HomeRoute: Hashable, Sendable {
     case recommendations(animeId: Int, animeTitle: String?)
     /// 최근 본 작품과 비슷한 작품 목록 (레거시 `AppRoute.recommendView`)
     case similarRecommendations(animeId: Int?)
+    /// 공개 예정 목록 (레거시 `AppRoute.comingSoonDetail`)
+    case comingSoon
+    /// 요일별 신작 (레거시 `AppRoute.weekdayNewAnime`). day는 월=1 … 일=7, 범위 밖이면 오늘
+    case weekdayNewAnime(day: Int)
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).
