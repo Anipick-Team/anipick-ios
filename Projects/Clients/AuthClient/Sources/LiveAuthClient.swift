@@ -16,6 +16,7 @@ public struct LiveAuthClient: AuthClient {
     private let onLoggedOut: @Sendable () async -> Void
     private let storeTokens: @Sendable (_ access: String, _ refresh: String) async -> Void
     private let preferences: Preferences
+    let kakaoAppKey: String
 
     /// - Parameters:
     ///   - client: 인증 클라이언트 (`tokenProvider`가 있는 것)
@@ -29,13 +30,65 @@ public struct LiveAuthClient: AuthClient {
         storeTokens: @escaping @Sendable (_ access: String, _ refresh: String) async -> Void = {
             _, _ in
         },
-        preferences: Preferences = Preferences()
+        preferences: Preferences = Preferences(),
+        kakaoAppKey: String = ""
     ) {
         self.client = client
         self.accessToken = accessToken
         self.onLoggedOut = onLoggedOut
         self.storeTokens = storeTokens
         self.preferences = preferences
+        self.kakaoAppKey = kakaoAppKey
+    }
+
+    public func socialLogin(
+        _ provider: SocialProvider,
+        code: String
+    ) async throws(TransportError) -> SocialLoginResult {
+        let response = try await client.send(Self.socialLoginEndpoint(provider, code: code))
+        switch response.code {
+        case 200:
+            // 레거시: result가 없어도 빈 토큰·빈 닉네임을 저장한다
+            let result = response.result
+            let accessToken = result?.token?.accessToken ?? ""
+            preferences.set(provider.rawValue, for: Self.snsKey)
+            await storeTokens(accessToken, result?.token?.refreshToken ?? "")
+            preferences.set(result?.nickname ?? "", for: Self.nicknameKey)
+            if let userId = result?.userId {
+                preferences.set(userId, for: Self.userIdKey)
+            } else {
+                preferences.removeValue(for: Self.userIdKey)
+            }
+            return .success(
+                LoggedInUser(
+                    userId: result?.userId, nickname: result?.nickname,
+                    hasAccessToken: !accessToken.isEmpty, reviewCompleted: result?.reviewCompletedYn
+                ))
+        case 132:
+            return .withdrawn
+        case 133:
+            return .existingAccount(.email)
+        case 134:
+            return .existingAccount(.kakao)
+        case 135:
+            return .existingAccount(.google)
+        case 136:
+            return .existingAccount(.apple)
+        default:
+            return .unexpected(code: response.code)
+        }
+    }
+
+    /// 레거시 `AuthAPI.socialLogin`: `/oauth` 경로는 토큰 없는 세션으로 보낸다
+    static func socialLoginEndpoint(_ provider: SocialProvider, code: String) -> Endpoint<
+        LoginResult
+    > {
+        return Endpoint(
+            method: .post,
+            path: "api/oauth/\(provider.rawValue)/callback",
+            body: .json(["platform": "ios", "code": code]),
+            requiresAuth: false
+        )
     }
 
     public func loginWithEmail(

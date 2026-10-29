@@ -240,4 +240,61 @@ struct LiveAuthClientTests {
             #expect(try await client.resetPassword(newPassword: "n", confirmation: "c") == false)
         }
     }
+
+    @Test(
+        "ML13. 소셜 로그인: 토큰 없이 POST api/oauth/{수단}/callback {platform: ios, code}. 성공하면 sns·토큰·닉네임·userId 저장"
+    )
+    func socialLogin() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"reviewCompletedYn":false,"userId":3,"nickname":null,"token":{"accessToken":"A","refreshToken":"R"}}}"#
+            ))
+        let defaults = UserDefaults(suiteName: "auth-\(UUID().uuidString)")!
+        let stored = OSAllocatedUnfairLock(initialState: [String]())
+        let client = LiveAuthClient(
+            client: stub.client, onLoggedOut: {},
+            storeTokens: { access, refresh in stored.withLock { $0 = [access, refresh] } },
+            preferences: Preferences(defaults: defaults))
+
+        let result = try await client.socialLogin(.google, code: "ID")
+
+        let request = try #require(stub.requests.first)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.path() == "/api/oauth/google/callback")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+        #expect(
+            result
+                == .success(
+                    LoggedInUser(
+                        userId: 3, nickname: nil, hasAccessToken: true, reviewCompleted: false)))
+        #expect(stored.withLock { $0 } == ["A", "R"])
+        #expect(defaults.string(forKey: "sns") == "google")
+        #expect(defaults.string(forKey: "nickname") == "")
+        #expect(defaults.integer(forKey: "userId") == 3)
+        guard case .json(let body) = LiveAuthClient.socialLoginEndpoint(.kakao, code: "C").body
+        else {
+            Issue.record("JSON 본문이 아니다")
+            return
+        }
+        let json =
+            try JSONSerialization.jsonObject(with: try JSONEncoder().encode(body))
+            as? [String: String]
+        #expect(json == ["platform": "ios", "code": "C"])
+    }
+
+    @Test("ML13. 132는 탈퇴, 133~136은 가입된 수단, 그 밖은 unexpected")
+    func socialLoginCodes() async throws {
+        for (code, expected) in [
+            (132, SocialLoginResult.withdrawn), (133, .existingAccount(.email)),
+            (134, .existingAccount(.kakao)),
+            (135, .existingAccount(.google)), (136, .existingAccount(.apple)),
+            (500, .unexpected(code: 500)),
+        ] {
+            let stub = ClientStub(.json(#"{"code":\#(code),"value":"FAIL","errorValue":null}"#))
+
+            #expect(
+                try await LiveAuthClient(client: stub.client, onLoggedOut: {}).socialLogin(
+                    .apple, code: "c") == expected)
+        }
+    }
 }

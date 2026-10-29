@@ -94,9 +94,14 @@ public struct AuthBuilder: AuthBuilding {
             )
             return AnyView(PreferenceView(state: state, reducer: reducer))
         case .mainLogin:
-            // 아직 레거시 화면 — App이 가로챈다
-            assertionFailure("레거시 화면 Route가 Auth 빌더로 왔다: \(route)")
-            return AnyView(EmptyView())
+            let reducer = MainLoginReducer(
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator,
+                analytics: dependencies.analytics,
+                onLoginCompleted: dependencies.onLoginCompleted,
+                openURL: dependencies.openURL
+            )
+            return AnyView(MainLoginView(state: MainLoginReducer.State(), reducer: reducer))
         }
     }
 }

@@ -70,7 +70,9 @@ struct AppDIContainer {
         },
         storeTokens: { access, refresh in
             await AppSession.shared.store(TokenPair(accessToken: access, refreshToken: refresh))
-        }
+        },
+        // TODO: 보안처리 필요 (레거시 AppDelegate와 같은 키)
+        kakaoAppKey: "0342f72c46d8653e8a501fe5704a540c"
     )
 
     static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(

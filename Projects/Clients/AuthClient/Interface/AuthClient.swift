@@ -1,4 +1,39 @@
 import ClientCore
+import Foundation
+
+/// 소셜 로그인 수단. 원시값은 서버 경로·저장하는 sns 값·분석 이벤트에 그대로 쓴다
+public enum SocialProvider: String, CaseIterable, Sendable {
+    case kakao
+    case google
+    case apple
+}
+
+/// 이미 다른 수단으로 가입된 계정 (서버 133~136)
+public enum ExistingAccount: Equatable, Sendable {
+    case email
+    case kakao
+    case google
+    case apple
+}
+
+/// 소셜 로그인 결과 (`POST api/oauth/{provider}/callback`)
+public enum SocialLoginResult: Equatable, Sendable {
+    /// 200. 토큰·sns·닉네임·userId는 Client가 저장했다
+    case success(LoggedInUser)
+    /// 132
+    case withdrawn
+    /// 133~136
+    case existingAccount(ExistingAccount)
+    case unexpected(code: Int)
+}
+
+/// SDK에서 토큰을 얻지 못함
+public enum SocialSignInFailure: Error, Sendable {
+    /// 오류 객체 없는 실패 — 로그인 이슈로 남긴다 (사유)
+    case issue(String)
+    /// SDK 오류 — 비치명 오류로 남긴다
+    case sdk(NSError)
+}
 
 /// 로그인에 성공한 사용자 (토큰은 Client가 이미 저장했다)
 public struct LoggedInUser: Equatable, Sendable {
@@ -78,6 +113,19 @@ public protocol AuthClient: Sendable {
     /// `POST api/users/login`. 성공하면 토큰과 사용자 정보(닉네임·이메일·sns 없음·userId)를 이 기기에 저장한다
     func loginWithEmail(email: String, password: String) async throws(TransportError)
         -> EmailLoginResult
+    /// 소셜 SDK가 준 토큰으로 서버에 로그인한다. 토큰 없이 보낸다
+    func socialLogin(_ provider: SocialProvider, code: String) async throws(TransportError)
+        -> SocialLoginResult
+    /// 카카오톡(설치돼 있으면) 또는 카카오 계정으로 로그인해 access token을 받는다
+    @MainActor func kakaoAccessToken() async throws(SocialSignInFailure) -> String
+    /// 맨 위 화면에서 구글 로그인을 띄워 id token을 받는다
+    @MainActor func googleIDToken() async throws(SocialSignInFailure) -> String
+    /// 앱 시작 때 1회 (카카오 SDK 초기화)
+    @MainActor func configureSDKs()
+    /// 로그인 앱에서 돌아온 URL. 카카오, 구글 순서로 처리했으면 true
+    @MainActor func handleOpenURL(_ url: URL) -> Bool
+    /// 카카오톡 로그인 URL만 처리한다 (SwiftUI onOpenURL — 레거시 그대로)
+    @MainActor func handleKakaoURL(_ url: URL) -> Bool
     /// 비밀번호 찾기: 인증번호를 이메일로 보낸다
     func sendVerificationCode(email: String) async throws(TransportError) -> SendCodeResult
     func verifyCode(email: String, code: String) async throws(TransportError) -> VerifyCodeResult

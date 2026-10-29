@@ -25,7 +25,7 @@ struct AppEntryView: View {
                 if navigationManager.isLoggedIn {
                     AppDIContainer.makeContentView(activeTab: .home)
                 } else {
-                    AppDIContainer.makeLoginView()
+                    AppDIContainer.authBuilder.make(.mainLogin)
                         .onAppear { AnalyticsManager.logScreen("login") }
                 }
             }
@@ -68,16 +68,8 @@ struct AppEntryView: View {
                 }
             }
             .navigationDestination(for: AuthRoute.self) { route in
-                Group {
-                    // 아직 레거시인 메인 로그인은 App이 가로챈다 (Auth 이관 중)
-                    switch route {
-                    case .mainLogin:
-                        AppDIContainer.makeLoginView()
-                    default:
-                        AppDIContainer.authBuilder.make(route)
-                    }
-                }
-                .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                AppDIContainer.authBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: MyInfoRoute.self) { route in
                 AppDIContainer.myInfoBuilder.make(route)
@@ -158,7 +150,7 @@ struct AppEntryView: View {
                     case .weekdayNewAnime(let day):
                         AppDIContainer.makeWeekdayNewAnimeView(day: day)
                     case .mainLoginView:
-                        AppDIContainer.makeLoginView()
+                        AppDIContainer.authBuilder.make(.mainLogin)
                     case .recentReview:
                         AppDIContainer.makeRecentReviewView()
                     case .recommendView(let animeId):

@@ -15,10 +15,13 @@ extension Project {
     /// - Parameters:
     ///   - modules: Interface가 쓰는 Core 모듈 (대개 `.core("ClientCore")`)
     ///   - liveModules: Live가 추가로 쓰는 모듈 (`.core("Networking")`, 외부 SDK 등)
+    ///   - liveProduct: 외부 SDK(정적 라이브러리)를 App도 함께 링크하면 `.staticFramework`로 둔다.
+    ///     동적 framework면 SDK가 App과 Live에 한 벌씩 들어가 싱글턴이 둘이 된다 (AnalyticsLive와 같은 이유)
     public static func client(
         _ name: String,
         modules: [ModuleDependency] = [],
         liveModules: [ModuleDependency] = [],
+        liveProduct: Product = moduleProduct,
         hasFixtures: Bool = false
     ) -> Project {
         let moduleName = "\(name)Client"
@@ -37,7 +40,7 @@ extension Project {
         let live = Target.target(
             name: "\(moduleName)Live",
             destinations: ProjectEnvironment.destinations,
-            product: moduleProduct,
+            product: liveProduct,
             bundleId: "\(ProjectEnvironment.bundleIDPrefix).\(moduleName)Live",
             deploymentTargets: ProjectEnvironment.deploymentTargets,
             sources: ["Sources/**"],

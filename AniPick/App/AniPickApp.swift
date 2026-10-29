@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import KakaoSDKAuth
 import DesignSystem
 import Utils
 
@@ -47,9 +46,7 @@ struct AniPickApp: App {
                 .environmentObject(AppDIContainer.navigationManager)
                 // .environmentObject(appState)
                 .onOpenURL { url in
-                    if AuthApi.isKakaoTalkLoginUrl(url) {
-                        _ = AuthController.handleOpenUrl(url: url)
-                    }
+                    _ = AppDIContainer.liveAuthClient.handleKakaoURL(url)
                     self.handleDeepLink(url)
                 }
                 .onContinueUserActivity(NSUserActivityTypeBrowsingWeb) { activity in

@@ -1,5 +1,6 @@
 import AuthClientInterface
 import ClientCore
+import Foundation
 import os
 
 /// 로그인 결과를 정해 두고 호출을 기록한다 (Store 테스트·Example 앱).
@@ -105,6 +106,82 @@ public final class MockAuthClient: AuthClient {
             return $0.scenario.reset
         }
         .get()
+    }
+
+    /// 소셜 로그인 결과·SDK 토큰 (테스트가 바꾼다)
+    public struct Social: Sendable {
+        public var login: Result<SocialLoginResult, TransportError>
+        public var kakaoToken: Result<String, SocialSignInFailure>
+        public var googleToken: Result<String, SocialSignInFailure>
+
+        public init(
+            login: Result<SocialLoginResult, TransportError> = .success(
+                .success(
+                    LoggedInUser(
+                        userId: 1, nickname: "n", hasAccessToken: true, reviewCompleted: true))),
+            kakaoToken: Result<String, SocialSignInFailure> = .success("KAKAO"),
+            googleToken: Result<String, SocialSignInFailure> = .success("GOOGLE")
+        ) {
+            self.login = login
+            self.kakaoToken = kakaoToken
+            self.googleToken = googleToken
+        }
+    }
+
+    public struct SocialLogin: Equatable, Sendable {
+        public let provider: SocialProvider
+        public let code: String
+
+        public init(provider: SocialProvider, code: String) {
+            self.provider = provider
+            self.code = code
+        }
+    }
+
+    private let socialState = OSAllocatedUnfairLock(
+        initialState: (scenario: Social(), logins: [SocialLogin]()))
+
+    public var socialScenario: Social {
+        get { socialState.withLock { $0.scenario } }
+        set { socialState.withLock { $0.scenario = newValue } }
+    }
+
+    public var socialLogins: [SocialLogin] {
+        return socialState.withLock { $0.logins }
+    }
+
+    public func socialLogin(
+        _ provider: SocialProvider,
+        code: String
+    ) async throws(TransportError) -> SocialLoginResult {
+        return try socialState.withLock {
+            $0.logins.append(SocialLogin(provider: provider, code: code))
+            return $0.scenario.login
+        }
+        .get()
+    }
+
+    @MainActor
+    public func kakaoAccessToken() async throws(SocialSignInFailure) -> String {
+        return try socialState.withLock { $0.scenario.kakaoToken }.get()
+    }
+
+    @MainActor
+    public func googleIDToken() async throws(SocialSignInFailure) -> String {
+        return try socialState.withLock { $0.scenario.googleToken }.get()
+    }
+
+    @MainActor
+    public func configureSDKs() {}
+
+    @MainActor
+    public func handleOpenURL(_ url: URL) -> Bool {
+        return false
+    }
+
+    @MainActor
+    public func handleKakaoURL(_ url: URL) -> Bool {
+        return false
     }
 
     public var emailSignups: [Signup] {
