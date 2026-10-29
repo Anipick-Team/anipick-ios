@@ -250,10 +250,12 @@ struct CommunityView: View {
                             .fixedSize(horizontal: false, vertical: true)
                     }
 
-                    Text(post.content)
-                        .customFontStyle(size: 14, color: .gray4)
-                        .lineLimit(3)
-                        .fixedSize(horizontal: false, vertical: true)
+                    if !post.content.isEmpty {
+                        Text(post.content)
+                            .customFontStyle(size: 14, color: .gray4)
+                            .lineLimit(3)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
