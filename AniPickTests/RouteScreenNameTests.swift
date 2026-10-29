@@ -5,6 +5,7 @@
 //  이관한 화면의 Route가 레거시 AppRoute와 같은 화면 조회 이름을 쓰는지 (R14)
 //
 
+import AuthInterface
 import DetailInterface
 import ExploreInterface
 import HomeInterface
@@ -66,5 +67,16 @@ struct RouteScreenNameTests {
         #expect(
             ExploreRoute.communityPost(id: 1).screenName
                 == AppRoute.communityDetail(postId: 1).screenName)
+    }
+
+    @Test(
+        "로그인 Route",
+        arguments: [
+            (AuthRoute.emailLogin, AppRoute.emailLogin), (.emailSignup, .emailSignup),
+            (.findPassword, .findPassword), (.loginProblem, .LoginProblem),
+        ]
+    )
+    func auth(route: AuthRoute, legacy: AppRoute) {
+        #expect(route.screenName == legacy.screenName)
     }
 }

@@ -7,6 +7,8 @@
 import DesignSystem
 import SwiftUI
 import AuthClientLive
+import AuthFeature
+import AuthInterface
 import MetadataClientLive
 import MyInfoClientLive
 import MyInfoFeature
@@ -36,19 +38,34 @@ struct AppDIContainer {
                 client: AppSession.httpClient,
                 onWithdrawn: { await AppSession.shared.signOut(.withdrawal) }
             ),
-            authClient: LiveAuthClient(
-                client: AppSession.httpClient,
-                accessToken: { await AppSession.shared.accessToken() },
-                // 레거시 순서: 사용자 정보 정리 → 로그아웃 (EditEmailViewModel.swift:58-62)
-                onLoggedOut: {
-                    UserDefaultsManager.shared.logoutAllClearInfo()
-                    await AppSession.shared.signOut(.userLogout)
-                }
-            ),
+            authClient: liveAuthClient,
             navigator: navigator,
             openURL: { UIApplication.shared.open($0) },
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
         )
+    )
+
+    static let authBuilder: any AuthBuilding = AuthBuilder(
+        dependencies: AuthDependencies(
+            authClient: liveAuthClient,
+            navigator: navigator,
+            analytics: AppAnalytics.tracker,
+            onLoginCompleted: { navigationManager.completeLogin() }
+        )
+    )
+
+    /// 로그인·로그아웃. 로그인 토큰은 AuthSession에 저장한다
+    static let liveAuthClient = LiveAuthClient(
+        client: AppSession.httpClient,
+        accessToken: { await AppSession.shared.accessToken() },
+        // 레거시 순서: 사용자 정보 정리 → 로그아웃 (EditEmailViewModel.swift:58-62)
+        onLoggedOut: {
+            UserDefaultsManager.shared.logoutAllClearInfo()
+            await AppSession.shared.signOut(.userLogout)
+        },
+        storeTokens: { access, refresh in
+            await AppSession.shared.store(TokenPair(accessToken: access, refreshToken: refresh))
+        }
     )
 
     static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(

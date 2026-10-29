@@ -5,6 +5,7 @@
 //  Created by cho on 6/22/25.
 //
 
+import AuthInterface
 import DesignSystem
 import DetailInterface
 import ExploreInterface
@@ -66,6 +67,20 @@ struct AppEntryView: View {
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 }
             }
+            .navigationDestination(for: AuthRoute.self) { route in
+                Group {
+                    // 아직 레거시인 가입·비밀번호 찾기는 App이 가로챈다 (Auth 이관 중)
+                    switch route {
+                    case .emailSignup:
+                        AppDIContainer.makeEmailSignupView()
+                    case .findPassword:
+                        AppDIContainer.makeFindPasswordView()
+                    default:
+                        AppDIContainer.authBuilder.make(route)
+                    }
+                }
+                .onAppear { AnalyticsManager.logScreen(route.screenName) }
+            }
             .navigationDestination(for: MyInfoRoute.self) { route in
                 AppDIContainer.myInfoBuilder.make(route)
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
@@ -80,9 +95,9 @@ struct AppEntryView: View {
                     case .emailSignup:
                         AppDIContainer.makeEmailSignupView()
                     case .emailLogin:
-                        AppDIContainer.makeEmailLoginView()
+                        AppDIContainer.authBuilder.make(.emailLogin)
                     case .LoginProblem:
-                        LoginProblemView()
+                        AppDIContainer.authBuilder.make(.loginProblem)
                     case .findPassword:
                         AppDIContainer.makeFindPasswordView()
                     case .homeSearch:

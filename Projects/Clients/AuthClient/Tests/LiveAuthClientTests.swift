@@ -1,4 +1,7 @@
+import AuthClientInterface
 import Foundation
+import Networking
+import Storage
 import Testing
 import os
 
@@ -60,5 +63,71 @@ struct LiveAuthClientTests {
         await makeClient(ClientStub(reply)).logout()
 
         #expect(loggedOut.withLock { $0 } == 1)
+    }
+
+    @Test("EL13. 이메일 로그인: 토큰 없이 POST api/users/login {email,password}. 성공하면 토큰·닉네임·이메일·sns 빈 값·userId 저장")
+    func emailLogin() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"reviewCompletedYn":true,"userId":42,"nickname":"애니","token":{"accessToken":"A","refreshToken":"R"}}}"#
+            ))
+        let defaults = UserDefaults(suiteName: "auth-\(UUID().uuidString)")!
+        defaults.set("KAKAO", forKey: "sns")
+        let stored = OSAllocatedUnfairLock(initialState: [String]())
+        let client = LiveAuthClient(
+            client: stub.client, onLoggedOut: {},
+            storeTokens: { access, refresh in stored.withLock { $0 = [access, refresh] } },
+            preferences: Preferences(defaults: defaults))
+
+        let result = try await client.loginWithEmail(email: "a@b.co", password: "pw1!")
+
+        let request = try #require(stub.requests.first)
+        #expect(request.httpMethod == "POST")
+        #expect(request.url?.path() == "/api/users/login")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+        #expect(
+            result
+                == .success(LoggedInUser(userId: 42, nickname: "애니", hasAccessToken: true, reviewCompleted: true)))
+        #expect(stored.withLock { $0 } == ["A", "R"])
+        #expect(defaults.string(forKey: "nickname") == "애니")
+        #expect(defaults.string(forKey: "email") == "a@b.co")
+        #expect(defaults.string(forKey: "sns") == "")
+        #expect(defaults.integer(forKey: "userId") == 42)
+        guard case .json(let body) = LiveAuthClient.emailLoginEndpoint(email: "a@b.co", password: "pw1!").body
+        else {
+            Issue.record("JSON 본문이 아니다")
+            return
+        }
+        let json = try JSONSerialization.jsonObject(with: try JSONEncoder().encode(body)) as? [String: String]
+        #expect(json == ["email": "a@b.co", "password": "pw1!"])
+    }
+
+    @Test(
+        "EL13. 응답 코드를 결과로 바꾼다 (저장하지 않는다)",
+        arguments: [
+            (110, EmailLoginResult.invalidPasswordFormat), (101, .wrongCredentials), (104, .wrongCredentials),
+            (106, .wrongCredentials), (105, .emptyPassword), (112, .accountNotFound), (132, .withdrawn),
+            (102, .emptyEmail), (500, .unexpected(code: 500)),
+        ]
+    )
+    func emailLoginCodes(code: Int, expected: EmailLoginResult) async throws {
+        let stub = ClientStub(.json(#"{"code":\#(code),"value":"FAIL","errorValue":null}"#))
+        let stored = OSAllocatedUnfairLock(initialState: 0)
+        let client = LiveAuthClient(
+            client: stub.client, onLoggedOut: {},
+            storeTokens: { _, _ in stored.withLock { $0 += 1 } })
+
+        #expect(try await client.loginWithEmail(email: "a", password: "b") == expected)
+        #expect(stored.withLock { $0 } == 0)
+    }
+
+    @Test("EL13. 200인데 result가 없으면 missingResult")
+    func emailLoginMissingResult() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","errorValue":null}"#))
+
+        let result = try await LiveAuthClient(client: stub.client, onLoggedOut: {})
+            .loginWithEmail(email: "a", password: "b")
+
+        #expect(result == .missingResult)
     }
 }

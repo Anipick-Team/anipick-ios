@@ -1,0 +1,59 @@
+import Analytics
+import AuthClientInterface
+import AuthInterface
+import Navigation
+import SwiftUI
+
+public struct AuthDependencies {
+    public let authClient: any AuthClient
+    public let navigator: any Navigator
+    public let analytics: any AnalyticsTracking
+    /// 로그인을 마쳤을 때 (App: 루트를 홈으로 바꾼다 — `NavigationManager.completeLogin`)
+    public let onLoginCompleted: @MainActor @Sendable () -> Void
+
+    public init(
+        authClient: any AuthClient,
+        navigator: any Navigator,
+        analytics: any AnalyticsTracking,
+        onLoginCompleted: @escaping @MainActor @Sendable () -> Void = {}
+    ) {
+        self.authClient = authClient
+        self.navigator = navigator
+        self.analytics = analytics
+        self.onLoginCompleted = onLoginCompleted
+    }
+}
+
+public struct AuthBuilder: AuthBuilding {
+    private let dependencies: AuthDependencies
+
+    public init(dependencies: AuthDependencies) {
+        self.dependencies = dependencies
+    }
+
+    public func make(_ route: AuthRoute) -> AnyView {
+        switch route {
+        case .emailLogin:
+            let reducer = EmailLoginReducer(
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator,
+                analytics: dependencies.analytics,
+                onLoginCompleted: dependencies.onLoginCompleted
+            )
+            return AnyView(EmailLoginView(state: EmailLoginReducer.State(), reducer: reducer))
+        case .loginProblem:
+            return AnyView(LoginProblemView())
+        case .emailSignup, .findPassword:
+            // 아직 레거시 화면 — App이 가로챈다
+            assertionFailure("레거시 화면 Route가 Auth 빌더로 왔다: \(route)")
+            return AnyView(EmptyView())
+        }
+    }
+}
+
+/// 레거시 `LoginProblemView` 그대로 (내용 없는 화면)
+struct LoginProblemView: View {
+    var body: some View {
+        Text("Login Problem View")
+    }
+}

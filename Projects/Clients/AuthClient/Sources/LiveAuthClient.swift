@@ -1,25 +1,95 @@
 import AuthClientInterface
 import ClientCore
 import Networking
+import Storage
 
-/// `api/users/*` (레거시 `LogoutAPI`)
+/// `api/users/*` (레거시 `AuthAPI`·`LogoutAPI`)
 public struct LiveAuthClient: AuthClient {
+    /// 레거시 `UserDefaultsManager`와 같은 키
+    static let nicknameKey = PreferenceKey("nickname", defaultValue: "--")
+    static let emailKey = PreferenceKey("email", defaultValue: "")
+    static let snsKey = PreferenceKey("sns", defaultValue: "")
+    static let userIdKey = PreferenceKey("userId", defaultValue: 0)
+
     private let client: HTTPClient
     private let accessToken: @Sendable () async -> String?
     private let onLoggedOut: @Sendable () async -> Void
+    private let storeTokens: @Sendable (_ access: String, _ refresh: String) async -> Void
+    private let preferences: Preferences
 
     /// - Parameters:
     ///   - client: 인증 클라이언트 (`tokenProvider`가 있는 것)
     ///   - accessToken: 지금 토큰 (`logoutImmediately`가 정리 전에 읽는다)
     ///   - onLoggedOut: 이 기기의 로그인 정보 정리 (App: 사용자 정보 삭제 + `AuthSession.signOut(.userLogout)`)
+    ///   - storeTokens: 로그인 토큰 저장 (App: `AuthSession.store`)
     public init(
         client: HTTPClient,
         accessToken: @escaping @Sendable () async -> String? = { nil },
-        onLoggedOut: @escaping @Sendable () async -> Void
+        onLoggedOut: @escaping @Sendable () async -> Void,
+        storeTokens: @escaping @Sendable (_ access: String, _ refresh: String) async -> Void = {
+            _, _ in
+        },
+        preferences: Preferences = Preferences()
     ) {
         self.client = client
         self.accessToken = accessToken
         self.onLoggedOut = onLoggedOut
+        self.storeTokens = storeTokens
+        self.preferences = preferences
+    }
+
+    public func loginWithEmail(
+        email: String,
+        password: String
+    ) async throws(TransportError) -> EmailLoginResult {
+        let response = try await client.send(
+            Self.emailLoginEndpoint(email: email, password: password))
+        switch response.code {
+        case 200:
+            guard let result = response.result else {
+                return .missingResult
+            }
+            // 레거시 순서: 토큰 → 닉네임 → 이메일 → sns(이메일 가입은 빈 값) → userId
+            let accessToken = result.token?.accessToken ?? ""
+            await storeTokens(accessToken, result.token?.refreshToken ?? "")
+            preferences.set(result.nickname ?? "---", for: Self.nicknameKey)
+            preferences.set(email, for: Self.emailKey)
+            preferences.set("", for: Self.snsKey)
+            if let userId = result.userId {
+                preferences.set(userId, for: Self.userIdKey)
+            } else {
+                preferences.removeValue(for: Self.userIdKey)
+            }
+            return .success(
+                LoggedInUser(
+                    userId: result.userId, nickname: result.nickname,
+                    hasAccessToken: !accessToken.isEmpty, reviewCompleted: result.reviewCompletedYn)
+            )
+        case 110:
+            return .invalidPasswordFormat
+        case 101, 104, 106:
+            return .wrongCredentials
+        case 105:
+            return .emptyPassword
+        case 112:
+            return .accountNotFound
+        case 132:
+            return .withdrawn
+        case 102:
+            return .emptyEmail
+        default:
+            return .unexpected(code: response.code)
+        }
+    }
+
+    /// 로그인은 토큰 없이 보낸다 — 이전 세션의 낡은 토큰이 붙어 실패하던 문제 (레거시 NetworkManager plainSession)
+    static func emailLoginEndpoint(email: String, password: String) -> Endpoint<LoginResult> {
+        return Endpoint(
+            method: .post,
+            path: "api/users/login",
+            body: .json(["email": email, "password": password]),
+            requiresAuth: false
+        )
     }
 
     public func logout() async {
@@ -53,4 +123,17 @@ public struct LiveAuthClient: AuthClient {
         path: "api/users/logout",
         requiresAuth: true
     )
+}
+
+/// 레거시 `LoginResult`
+struct LoginResult: Decodable, Sendable {
+    struct Token: Decodable, Sendable {
+        let accessToken: String
+        let refreshToken: String
+    }
+
+    let reviewCompletedYn: Bool?
+    let userId: Int?
+    let nickname: String?
+    let token: Token?
 }

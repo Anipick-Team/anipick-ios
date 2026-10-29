@@ -5,6 +5,7 @@
 //  Created by cho on 6/22/25.
 //
 
+import AuthInterface
 import DetailInterface
 import ExploreInterface
 import HomeInterface
@@ -260,6 +261,18 @@ extension ExploreRoute {
     var screenName: String {
         switch self {
         case .communityPost: return "community_detail"
+        }
+    }
+}
+
+extension AuthRoute {
+    /// 레거시 `AppRoute`의 화면 이름 (R14)
+    var screenName: String {
+        switch self {
+        case .emailLogin: return "email_login"
+        case .emailSignup: return "email_signup"
+        case .findPassword: return "find_password"
+        case .loginProblem: return "login_problem"
         }
     }
 }
