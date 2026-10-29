@@ -40,6 +40,8 @@
 		<string>kakaolink</string>
 		<string>kakaoplus</string>
 	</array>
+	<key>FirebaseAutomaticScreenReportingEnabled</key>
+	<false/>
 	<key>GIDClientID</key>
 	<string>376808777267-6bs66ad6kttc3s7vdnsnibrg16gdlsvh.apps.googleusercontent.com</string>
 	<key>NSAppTransportSecurity</key>

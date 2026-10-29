@@ -12,9 +12,6 @@ import Utils
 struct AppEntryView: View {
     @EnvironmentObject var navigationManager: NavigationManager
     @StateObject var viewModel = AppEntryViewModel()
-    @State private var showServerRecoveryNotice: Bool = false
-    @State private var showVersionNotice: Bool = false
-    @State private var versionNotice = VersionNoticeContent.fallback
     var body: some View {
         NavigationStack(path: $navigationManager.path) {
             Group {
@@ -22,6 +19,7 @@ struct AppEntryView: View {
                     AppDIContainer.makeContentView(activeTab: .home)
                 } else {
                     AppDIContainer.makeLoginView()
+                        .onAppear { AnalyticsManager.logScreen("login") }
                 }
             }
             .background(Color.white)
@@ -30,165 +28,135 @@ struct AppEntryView: View {
             }
             .onAppear {
                 viewModel.fetchMataData()
-                // 서버가 내려가도 공지가 보이도록 앱에 포함된 비상 공지를 먼저 준비합니다.
-                showVersionNotice = UserDefaultsManager.shared.getSeenVersionNoticeTitle() != versionNotice.title
-                viewModel.checkVersion { result in
-                    guard let result,
-                          let type = result.type,
-                          type == "notice" || type == "update" else {
-                        DLog("version notice 없음 - 비상 공지 사용")
-                        return
-                    }
-
-                    let serverNotice = VersionNoticeContent(
-                        title: result.title ?? versionNotice.title,
-                        content: result.content ?? versionNotice.content,
-                        url: result.url
-                    )
-                    DLog("version notice popup 대상 - title: \(serverNotice.title), type: \(type)")
-                    versionNotice = serverNotice
-                    showVersionNotice = UserDefaultsManager.shared.getSeenVersionNoticeTitle() != serverNotice.title
-                }
-                if !UserDefaultsManager.shared.getHasSeenServerRecoveryNotice() {
-                    showServerRecoveryNotice = true
-                }
+                viewModel.checkVersion()
             }
             // 새 Feature가 push한 Route의 목적지. 탭 루트에서 한 번만 등록한다 (A2)
             .navigationDestination(for: SettingRoute.self) { route in
                 AppDIContainer.settingBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: AppRoute.self) { route in
-                switch route {
-                case .emailSignup:
-                    AppDIContainer.makeEmailSignupView()
-                case .emailLogin:
-                    AppDIContainer.makeEmailLoginView()
-                case .LoginProblem:
-                    LoginProblemView()
-                case .findPassword:
-                    AppDIContainer.makeFindPasswordView()
-                case .homeSearch:
-                    AppDIContainer.makeHomeSearchView()
-                case .homeView:
-                    AppDIContainer.makeHomeView()
-                case .editNickname:
-                    AppDIContainer.settingBuilder.make(.editNickname)
-                case .editEmail:
-                    AppDIContainer.settingBuilder.make(.editEmail)
-                case .editPassword:
-                    AppDIContainer.settingBuilder.make(.editPassword)
-                case .deleteAccount:
-                    AppDIContainer.settingBuilder.make(.withdrawal)
-                case .myInfoInToWatchList:
-                    AppDIContainer.makeMyInfoInToWatchView()
-                case .myInfo:
-                    AppDIContainer.makeMyInfoView()
-                case .myInfoWatchingList:
-                    AppDIContainer.makeMyInfoInWatchingListView()
-                case .finishedWatchList:
-                    AppDIContainer.makeMyInfoFinishedWatchingView()
-                case .likeAnimeList:
-                    AppDIContainer.makeMyInfoLikeAnimeView()
-                case .likePersonList:
-                    AppDIContainer.makeMyInfoLikePersonView()
-                case .ratedAnimeList:
-                    AppDIContainer.makeMyInfoRatedAnimeView()
-                case .myContent:
-                    MyContentView()
-                case .ranking:
-                    AppDIContainer.makeRakingView()
-                case .research:
-                    AppDIContainer.makeResearchView()
-                case .review(let starRating, let animeId, let reviewContent):
-                    AppDIContainer.makeReviewView(starRating: starRating, animeId: animeId, reviewContent: reviewContent)
-                case .explore(let season, let seaseonYear):
-                    AppDIContainer.makeExploreView(season: season, year: seaseonYear)
-                case .animeDetail(let animeId):
-                    AppDIContainer.makeAnimeDetailView(animeId: animeId)
-                case .resetPassword:
-                    AppDIContainer.makeResetPassword()
-                case .content(let activeTab):
-                    AppDIContainer.makeContentView(activeTab: activeTab)
-                case .adultSetting:
-                    AppDIContainer.makeAdultSettingView()
-                case .adultCheck:
-                    // TODO: 성인인증 화면 구현 시 연결
-                    AppDIContainer.makeAdultSettingView()
-                case .setting:
-                    AppDIContainer.settingBuilder.make(.main)
-                case .inquiry:
-                    InquiryView()
-                case .preferenceSelection:
-                    AppDIContainer.makePreferenceSelectionView()
-                case .comingSoonDetail:
-                    AppDIContainer.makeComingSoonView()
-                case .weekdayNewAnime(let day):
-                    AppDIContainer.makeWeekdayNewAnimeView(day: day)
-                case .mainLoginView:
-                    AppDIContainer.makeLoginView()
-                case .recentReview:
-                    AppDIContainer.makeRecentReviewView()
-                case .recommendView(let animeId):
-                    AppDIContainer.makeRecommendationView(animeId: animeId)
-                case let .community(animeId, animeTitle, coverImageUrl, genreNames):
-                    CommunityView(
-                        animeId: animeId,
-                        animeTitle: animeTitle,
-                        coverImageUrl: coverImageUrl,
-                        genreNames: genreNames
-                    )
-                case let .communityDetail(postId):
-                    CommunityDetailView(postId: postId)
-                case let .communityWrite(seriesId, animeTitle):
-                    CommunityWriteView(seriesId: seriesId, animeTitle: animeTitle)
-                case let .communityEdit(postId, seriesId, animeTitle, title, content, isSpoiler, imageIds):
-                    CommunityWriteView(
-                        seriesId: seriesId,
-                        animeTitle: animeTitle,
-                        postId: postId,
-                        initialTitle: title,
-                        initialContent: content,
-                        initialIsSpoiler: isSpoiler,
-                        initialImageIds: imageIds
-                    )
-                case .producerDetail(let studioId):
-                    AppDIContainer.makeProducerDetailView(studioId: studioId)
-                case .voiceActorDetail(let animeId):
-                    AppDIContainer.makeVoiceActorDetailView(animeId: animeId)
-                case .characterAndVoiceActorDetail(let animeId):
-                    AppDIContainer.makeCharacterAndVoiceActorDetailVIew(animeId: animeId)
-                case let .seriesDetail(animeId, animeTitle):
-                    AppDIContainer.makeSeriesDetialView(animeId: animeId, animeTitle: animeTitle)
+                Group {
+                    switch route {
+                    case .emailSignup:
+                        AppDIContainer.makeEmailSignupView()
+                    case .emailLogin:
+                        AppDIContainer.makeEmailLoginView()
+                    case .LoginProblem:
+                        LoginProblemView()
+                    case .findPassword:
+                        AppDIContainer.makeFindPasswordView()
+                    case .homeSearch:
+                        AppDIContainer.makeHomeSearchView()
+                    case .homeView:
+                        AppDIContainer.makeHomeView()
+                    case .editNickname:
+                        AppDIContainer.settingBuilder.make(.editNickname)
+                    case .editEmail:
+                        AppDIContainer.settingBuilder.make(.editEmail)
+                    case .editPassword:
+                        AppDIContainer.settingBuilder.make(.editPassword)
+                    case .deleteAccount:
+                        AppDIContainer.settingBuilder.make(.withdrawal)
+                    case .myInfoInToWatchList:
+                        AppDIContainer.makeMyInfoInToWatchView()
+                    case .myInfo:
+                        AppDIContainer.makeMyInfoView()
+                    case .myInfoWatchingList:
+                        AppDIContainer.makeMyInfoInWatchingListView()
+                    case .finishedWatchList:
+                        AppDIContainer.makeMyInfoFinishedWatchingView()
+                    case .likeAnimeList:
+                        AppDIContainer.makeMyInfoLikeAnimeView()
+                    case .likePersonList:
+                        AppDIContainer.makeMyInfoLikePersonView()
+                    case .ratedAnimeList:
+                        AppDIContainer.makeMyInfoRatedAnimeView()
+                    case .myContent:
+                        MyContentView()
+                    case .ranking:
+                        AppDIContainer.makeRakingView()
+                    case .research:
+                        AppDIContainer.makeResearchView()
+                    case .review(let starRating, let animeId, let reviewContent):
+                        AppDIContainer.makeReviewView(starRating: starRating, animeId: animeId, reviewContent: reviewContent)
+                    case .explore(let season, let seaseonYear):
+                        AppDIContainer.makeExploreView(season: season, year: seaseonYear)
+                    case .animeDetail(let animeId):
+                        AppDIContainer.makeAnimeDetailView(animeId: animeId)
+                    case .resetPassword:
+                        AppDIContainer.makeResetPassword()
+                    case .content(let activeTab):
+                        AppDIContainer.makeContentView(activeTab: activeTab)
+                    case .adultSetting:
+                        AppDIContainer.makeAdultSettingView()
+                    case .adultCheck:
+                        // TODO: 성인인증 화면 구현 시 연결
+                        AppDIContainer.makeAdultSettingView()
+                    case .setting:
+                        AppDIContainer.settingBuilder.make(.main)
+                    case .inquiry:
+                        InquiryView()
+                    case .preferenceSelection:
+                        AppDIContainer.makePreferenceSelectionView()
+                    case .comingSoonDetail:
+                        AppDIContainer.makeComingSoonView()
+                    case .weekdayNewAnime(let day):
+                        AppDIContainer.makeWeekdayNewAnimeView(day: day)
+                    case .mainLoginView:
+                        AppDIContainer.makeLoginView()
+                    case .recentReview:
+                        AppDIContainer.makeRecentReviewView()
+                    case .recommendView(let animeId):
+                        AppDIContainer.makeRecommendationView(animeId: animeId)
+                    case let .community(seriesId, animeTitle, coverImageUrl, genreNames):
+                        CommunityView(
+                            seriesId: seriesId,
+                            animeTitle: animeTitle,
+                            coverImageUrl: coverImageUrl,
+                            genreNames: genreNames
+                        )
+                    case let .communityDetail(postId):
+                        CommunityDetailView(postId: postId)
+                    case let .communityWrite(seriesId, animeTitle):
+                        CommunityWriteView(seriesId: seriesId, animeTitle: animeTitle)
+                    case let .communityEdit(postId, seriesId, animeTitle, title, content, isSpoiler, imageIds):
+                        CommunityWriteView(
+                            seriesId: seriesId,
+                            animeTitle: animeTitle,
+                            postId: postId,
+                            initialTitle: title,
+                            initialContent: content,
+                            initialIsSpoiler: isSpoiler,
+                            initialImageIds: imageIds
+                        )
+                    case .producerDetail(let studioId):
+                        AppDIContainer.makeProducerDetailView(studioId: studioId)
+                    case .voiceActorDetail(let animeId):
+                        AppDIContainer.makeVoiceActorDetailView(animeId: animeId)
+                    case .characterAndVoiceActorDetail(let animeId):
+                        AppDIContainer.makeCharacterAndVoiceActorDetailVIew(animeId: animeId)
+                    case let .seriesDetail(animeId, animeTitle):
+                        AppDIContainer.makeSeriesDetialView(animeId: animeId, animeTitle: animeTitle)
                     
-                case let .recommend(animeId, animeTitle):
-                    AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
-                case let .recommend2(animeId, animeTitle):
-                    AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
-                default:
-                    Text("asdfasdf")
+                    case let .recommend(animeId, animeTitle):
+                        AppDIContainer.makeRecommendView(animeId: animeId, animeTitle: animeTitle)
+                    case let .recommend2(animeId, animeTitle):
+                        AppDIContainer.makeRecommemnd2View(animeId: animeId, animeTitle: animeTitle)
+                    default:
+                        Text("asdfasdf")
+                    }
+                }
+                .onAppear {
+                    if let screenName = route.screenName {
+                        AnalyticsManager.logScreen(screenName)
+                    }
                 }
             }
         }
         .background(Color.white)
         .sheet(item: $navigationManager.presentedRoute) { presented in
             modalDestination(presented.route)
-        }
-        .overlay {
-            if showVersionNotice {
-                VersionNoticePopupView(
-                    title: versionNotice.title,
-                    content: versionNotice.content,
-                    url: versionNotice.url
-                ) {
-                    UserDefaultsManager.shared.setSeenVersionNoticeTitle(versionNotice.title)
-                    showVersionNotice = false
-                }
-            } else if showServerRecoveryNotice {
-                ServerRecoveryNoticePopupView {
-                    UserDefaultsManager.shared.setHasSeenServerRecoveryNotice(true)
-                    showServerRecoveryNotice = false
-                }
-            }
         }
     }
 }
@@ -202,14 +170,3 @@ extension AppEntryView {
     }
 }
 
-private struct VersionNoticeContent {
-    let title: String
-    let content: String
-    let url: String?
-
-    static let fallback = VersionNoticeContent(
-        title: "업데이트 1.0.8.................",
-        content: "IOS 업데이트 1.0.8.................IOS 업데이트 1.0.8.................IOS 업데이트 1.0.8.................IOS 업데이트 1.0.8.................",
-        url: nil
-    )
-}

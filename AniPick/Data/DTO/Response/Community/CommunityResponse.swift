@@ -13,7 +13,17 @@ struct CommunityImageUploadResult: Decodable {
 struct CommunityBoardByAnimeResponse: Decodable {
     let code: Int
     let value: String
-    let result: CommunityBoard?
+    let result: CommunityBoardByAnime?
+}
+
+/// GET api/community/boards/by-anime/{animeId} 결과. 게시판이 없으면 hasBoard가 false이고 seriesId가 비어 올 수 있다.
+/// 게시판이 있으면 title·coverImageUrl·genres는 시즌이 아닌 시리즈 기준 값이다.
+struct CommunityBoardByAnime: Decodable {
+    let seriesId: Int?
+    let hasBoard: Bool?
+    let title: String?
+    let coverImageUrl: String?
+    let genres: [CommunityGenre]?
 }
 
 struct CommunityBoardsResponse: Decodable {

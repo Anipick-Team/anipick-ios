@@ -13,7 +13,9 @@ struct AnimeImageCommonCell: View {
     let imageUrl: String?
     let width: CGFloat?
     let height: CGFloat?
-    
+    var cornerRadius: CGFloat = 12
+    var contentMode: SwiftUI.ContentMode = .fit
+
     var body: some View {
         VStack(spacing: 0) {
             ZStack(alignment: .topLeading) {
@@ -21,7 +23,7 @@ struct AnimeImageCommonCell: View {
                     KFImage(imageURL)
                         .placeholder { placeholder }  // 로딩/실패 시 placeholder
                         .resizable()
-                        .scaledToFit()
+                        .aspectRatio(contentMode: contentMode)
                         .modifier(OptionalWidth(width: width))
                         .frame(height: height)
                         .clipped()
@@ -29,7 +31,7 @@ struct AnimeImageCommonCell: View {
                     placeholder
                 }
             }
-            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .clipShape(RoundedRectangle(cornerRadius: cornerRadius))
         }
 //        VStack(spacing: 0) {
 //            ZStack(alignment: .topLeading) {
@@ -58,7 +60,7 @@ struct AnimeImageCommonCell: View {
     private var placeholder: some View {
         Image(.animeThumbnail)
             .resizable()
-            .scaledToFit()
+            .aspectRatio(contentMode: contentMode)
             .modifier(OptionalWidth(width: width))
             .frame(height: height)
             .clipped()

@@ -13,6 +13,8 @@ let project = Project.module(
         .external("FirebaseCore"),
         .external("FirebaseAnalytics"),
         .external("FirebaseCrashlytics"),
+        // 코드에서 쓰지 않는다. 링크만 하면 FirebaseApp.configure()가 성능 수집을 시작한다
+        .external("FirebasePerformance"),
     ],
     product: .staticFramework
 )

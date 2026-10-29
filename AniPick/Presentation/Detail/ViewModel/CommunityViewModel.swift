@@ -37,13 +37,12 @@ final class CommunityViewModel: ObservableObject {
     @Published var hasNextPage: Bool = true
     @Published var errorMessage: String?
 
-    let animeId: Int
-    @Published private(set) var seriesId: Int?
+    let seriesId: Int
     private var lastId: Int?
     private var lastValue: String?
 
-    init(animeId: Int) {
-        self.animeId = animeId
+    init(seriesId: Int) {
+        self.seriesId = seriesId
         fetchPosts(reset: true)
     }
 
@@ -60,28 +59,8 @@ final class CommunityViewModel: ObservableObject {
         errorMessage = nil
         Task {
             do {
-                let resolvedSeriesId: Int
-                do {
-                    let board = try await CommunityAPIService.shared.boardByAnime(animeId: animeId)
-                    if let seriesId = board.result?.seriesId {
-                        resolvedSeriesId = seriesId
-                    } else {
-                        // 일부 응답에서는 애니 ID와 게시판의 series ID가 동일하게 사용됩니다.
-                        resolvedSeriesId = animeId
-                        DLog("커뮤니티 게시판 응답에 seriesId 없음 - animeId를 seriesId로 사용: \(animeId)")
-                    }
-                } catch {
-                    // 게시판 조회가 실패해도 게시글 API를 직접 시도해 화면이 비지 않도록 합니다.
-                    resolvedSeriesId = animeId
-                    DLog("커뮤니티 게시판 조회 실패, animeId로 게시글 조회 재시도 - animeId: \(animeId), error: \(error)")
-                }
-
-                await MainActor.run {
-                    self.seriesId = resolvedSeriesId
-                }
-
                 let response = try await CommunityAPIService.shared.posts(
-                    seriesId: resolvedSeriesId,
+                    seriesId: seriesId,
                     sort: selectedFilter.apiValue,
                     lastValue: lastValue,
                     lastId: lastId
@@ -89,7 +68,7 @@ final class CommunityViewModel: ObservableObject {
                 let newPosts = (response.result?.posts ?? []).map(Self.mapPost)
                 let cursor = response.result?.cursor
 
-                DLog("커뮤니티 게시글 조회 성공 - seriesId: \(resolvedSeriesId), count: \(newPosts.count), cursor: \(String(describing: cursor))")
+                DLog("커뮤니티 게시글 조회 성공 - seriesId: \(seriesId), count: \(newPosts.count), cursor: \(String(describing: cursor))")
                 await MainActor.run {
                     self.posts = reset ? newPosts : self.posts + newPosts
                     self.lastId = cursor?.lastId
@@ -98,7 +77,7 @@ final class CommunityViewModel: ObservableObject {
                     self.isLoading = false
                 }
             } catch {
-                DLog("커뮤니티 게시글 조회 실패 - animeId: \(animeId), error: \(error.localizedDescription)")
+                DLog("커뮤니티 게시글 조회 실패 - seriesId: \(seriesId), error: \(error.localizedDescription)")
                 await MainActor.run {
                     self.isLoading = false
                     self.errorMessage = "게시글을 불러오지 못했습니다."

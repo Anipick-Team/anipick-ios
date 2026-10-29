@@ -78,4 +78,17 @@ struct AnalyticsEventTests {
                     parameters: ["provider": .string("p"), "reason": .string("r")])
         )
     }
+
+    @Test("화면 조회·온보딩: screen_view는 Firebase 권장 파라미터 이름을 쓴다")
+    func screenAndOnboardingEvents() {
+        #expect(
+            AnalyticsEvent.screenView(name: "home")
+                == .init(
+                    name: "screen_view",
+                    parameters: ["screen_name": .string("home"), "screen_class": .string("home")])
+        )
+        #expect(
+            AnalyticsEvent.onboardingComplete(ratedCount: 3)
+                == .init(name: "onboarding_complete", parameters: ["rated_count": .int(3)]))
+    }
 }

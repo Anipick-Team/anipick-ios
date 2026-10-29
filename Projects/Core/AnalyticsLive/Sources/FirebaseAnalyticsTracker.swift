@@ -30,6 +30,20 @@ public struct FirebaseAnalyticsTracker: AnalyticsTracking {
         crashlytics.record(error: error)
     }
 
+    public func setUser(id: String?, loginMethod: String?) {
+        let crashlytics = Crashlytics.crashlytics()
+        crashlytics.setUserID(id)
+        crashlytics.setCustomValue(loginMethod, forKey: "login_method")
+        FirebaseAnalytics.Analytics.setUserID(id)
+        FirebaseAnalytics.Analytics.setUserProperty(loginMethod, forName: "login_method")
+    }
+
+    public func markScreen(_ name: String) {
+        let crashlytics = Crashlytics.crashlytics()
+        crashlytics.setCustomValue(name, forKey: "last_screen")
+        crashlytics.log("[Screen] \(name)")
+    }
+
     static func firebaseParameters(_ parameters: [String: AnalyticsValue]) -> [String: Any] {
         return parameters.mapValues { value -> Any in
             switch value {

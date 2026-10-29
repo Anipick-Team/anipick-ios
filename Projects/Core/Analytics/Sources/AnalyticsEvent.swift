@@ -18,6 +18,23 @@ public struct AnalyticsEvent: Sendable, Equatable {
 // MARK: - 이벤트 목록 (레거시 AniPick/Utils/AnalyticsManager.swift)
 
 extension AnalyticsEvent {
+    // MARK: 화면·온보딩
+
+    /// Firebase 권장 이벤트 `screen_view` (`AnalyticsEventScreenView`)
+    public static func screenView(name: String) -> AnalyticsEvent {
+        return AnalyticsEvent(
+            name: "screen_view",
+            parameters: ["screen_name": .string(name), "screen_class": .string(name)]
+        )
+    }
+
+    public static func onboardingComplete(ratedCount: Int) -> AnalyticsEvent {
+        return AnalyticsEvent(
+            name: "onboarding_complete",
+            parameters: ["rated_count": .int(ratedCount)]
+        )
+    }
+
     // MARK: 애니 상세
 
     public static func animeDetailView(animeId: Int, animeTitle: String?) -> AnalyticsEvent {

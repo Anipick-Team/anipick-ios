@@ -7,7 +7,7 @@ import SwiftUI
 import Utils
 
 struct CommunityView: View {
-    let animeId: Int
+    let seriesId: Int
     let animeTitle: String
     let coverImageUrl: String?
     let genreNames: [String]
@@ -16,12 +16,12 @@ struct CommunityView: View {
     @Environment(\.dismiss) private var dismiss
     @EnvironmentObject private var navigationManager: NavigationManager
 
-    init(animeId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String]) {
-        self.animeId = animeId
+    init(seriesId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String]) {
+        self.seriesId = seriesId
         self.animeTitle = animeTitle
         self.coverImageUrl = coverImageUrl
         self.genreNames = genreNames
-        self._viewModel = StateObject(wrappedValue: CommunityViewModel(animeId: animeId))
+        self._viewModel = StateObject(wrappedValue: CommunityViewModel(seriesId: seriesId))
     }
 
     var body: some View {
@@ -78,10 +78,6 @@ struct CommunityView: View {
             .background(Color.white)
             // MARK: - FAB
             Button {
-                guard let seriesId = viewModel.seriesId else {
-                    DLog("커뮤니티 글쓰기 이동 실패 - 게시판 정보 로딩 전")
-                    return
-                }
                 navigationManager.push(route: .communityWrite(seriesId: seriesId, animeTitle: animeTitle))
             } label: {
                 Image(systemName: "pencil")
@@ -92,8 +88,6 @@ struct CommunityView: View {
                     .clipShape(Circle())
                     .shadow(color: .black.opacity(0.15), radius: 6, x: 0, y: 3)
             }
-            .disabled(viewModel.seriesId == nil)
-            .opacity(viewModel.seriesId == nil ? 0.5 : 1)
             .padding(.trailing, 16)
             .padding(.bottom, 20)
         }
@@ -336,7 +330,7 @@ struct CommunityView: View {
 
 #Preview {
     CommunityView(
-        animeId: 0,
+        seriesId: 0,
         animeTitle: "진격의 거인",
         coverImageUrl: nil,
         genreNames: ["액션", "드라마", "판타지"]

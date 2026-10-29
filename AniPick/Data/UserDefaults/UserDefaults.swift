@@ -15,6 +15,7 @@ enum UserDefaultKey: String {
     case nickname
     case email
     case sns
+    case userId
     // 레거시: 이메일 기반 애플 로그인 시절 저장 키 (로그아웃 시 정리용)
     case appleUserId
     case appleEmail
@@ -27,9 +28,6 @@ enum UserDefaultKey: String {
     case lastVisitedAnime
 
     case imageId
-
-    case hasSeenServerRecoveryNotice
-    case seenVersionNoticeTitle
 
 }
 
@@ -76,6 +74,19 @@ extension UserDefaultsManager {
     
     func getSNSAccount() -> String {
         return defaults.string(forKey: UserDefaultKey.sns.rawValue) ?? ""
+    }
+
+    // 서버 내부 userId. 로그인 응답에 없으면 지운다 (이전 계정 값이 남지 않도록)
+    func setUserId(_ userId: Int?) {
+        if let userId {
+            defaults.set(userId, forKey: UserDefaultKey.userId.rawValue)
+        } else {
+            defaults.removeObject(forKey: UserDefaultKey.userId.rawValue)
+        }
+    }
+
+    func getUserId() -> Int? {
+        return defaults.object(forKey: UserDefaultKey.userId.rawValue) as? Int
     }
 }
 
@@ -186,6 +197,7 @@ extension UserDefaultsManager {
         self.setImageId(imageId: 0)
         // SNS 연동 정보
         self.setSNSAccount(sns: "")
+        self.setUserId(nil)
         defaults.removeObject(forKey: UserDefaultKey.appleUserId.rawValue)
         defaults.removeObject(forKey: UserDefaultKey.appleEmail.rawValue)
         // 유저 활동 기록
@@ -199,28 +211,5 @@ extension UserDefaultsManager {
     
     func getImageId() -> Int {
         return defaults.integer(forKey: UserDefaultKey.imageId.rawValue)
-    }
-}
-
-// MARK: - 공지
-extension UserDefaultsManager {
-    // 서버 복구 안내 팝업을 이미 확인했는지 여부 (로그아웃해도 유지)
-    func setHasSeenServerRecoveryNotice(_ value: Bool) {
-        defaults.set(value, forKey: UserDefaultKey.hasSeenServerRecoveryNotice.rawValue)
-    }
-
-    func getHasSeenServerRecoveryNotice() -> Bool {
-        return defaults.bool(forKey: UserDefaultKey.hasSeenServerRecoveryNotice.rawValue)
-    }
-}
-
-// MARK: - 버전 공지
-extension UserDefaultsManager {
-    func setSeenVersionNoticeTitle(_ title: String) {
-        defaults.set(title, forKey: UserDefaultKey.seenVersionNoticeTitle.rawValue)
-    }
-
-    func getSeenVersionNoticeTitle() -> String {
-        return defaults.string(forKey: UserDefaultKey.seenVersionNoticeTitle.rawValue) ?? ""
     }
 }

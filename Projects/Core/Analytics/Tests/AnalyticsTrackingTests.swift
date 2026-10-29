@@ -6,13 +6,23 @@ import os
 
 /// 보낸 이벤트와 비치명 오류를 기록한다
 final class RecordingTracker: AnalyticsTracking {
+    struct User: Equatable {
+        let id: String?
+        let loginMethod: String?
+    }
+
     struct NonFatal {
         let error: NSError
         let breadcrumb: String
     }
 
     private let state = OSAllocatedUnfairLock(
-        uncheckedState: (events: [AnalyticsEvent](), nonFatals: [NonFatal]())
+        uncheckedState: (
+            events: [AnalyticsEvent](),
+            nonFatals: [NonFatal](),
+            users: [User](),
+            screens: [String]()
+        )
     )
 
     var events: [AnalyticsEvent] {
@@ -23,6 +33,14 @@ final class RecordingTracker: AnalyticsTracking {
         return state.withLockUnchecked { $0.nonFatals }
     }
 
+    var users: [User] {
+        return state.withLockUnchecked { $0.users }
+    }
+
+    var screens: [String] {
+        return state.withLockUnchecked { $0.screens }
+    }
+
     func log(_ event: AnalyticsEvent) {
         state.withLockUnchecked { $0.events.append(event) }
     }
@@ -31,6 +49,14 @@ final class RecordingTracker: AnalyticsTracking {
         state.withLockUnchecked {
             $0.nonFatals.append(NonFatal(error: error as NSError, breadcrumb: breadcrumb))
         }
+    }
+
+    func setUser(id: String?, loginMethod: String?) {
+        state.withLockUnchecked { $0.users.append(User(id: id, loginMethod: loginMethod)) }
+    }
+
+    func markScreen(_ name: String) {
+        state.withLockUnchecked { $0.screens.append(name) }
     }
 }
 
@@ -67,5 +93,15 @@ struct AnalyticsTrackingTests {
         #expect(nonFatal.error.localizedDescription == "idToken nil")
         #expect(nonFatal.error.userInfo["provider"] as? String == "google")
         #expect(tracker.events == [.loginIssue(provider: "google", reason: "idToken nil")])
+    }
+
+    @Test("logScreen은 screen_view 이벤트를 보내고 오류 리포트에 화면 이름을 남긴다")
+    func logsScreen() {
+        let tracker = RecordingTracker()
+
+        tracker.logScreen("setting")
+
+        #expect(tracker.events == [.screenView(name: "setting")])
+        #expect(tracker.screens == ["setting"])
     }
 }

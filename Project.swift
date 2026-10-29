@@ -17,7 +17,7 @@ let project = Project(
             "CODE_SIGN_STYLE": "Automatic",
             "SWIFT_VERSION": "5.0",
             "MARKETING_VERSION": "1.2.0",
-            "CURRENT_PROJECT_VERSION": "3",
+            "CURRENT_PROJECT_VERSION": "7",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
             "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
             "SWIFT_EMIT_LOC_STRINGS": "YES",
@@ -43,6 +43,22 @@ let project = Project(
                 "AniPick/GoogleService-Info.plist",
             ],
             entitlements: .file(path: "AniPick/AniPick.entitlements"),
+            scripts: [
+                // Crashlytics dSYM 업로드. 스크립트 샌드박싱이 켜져 있어 읽는 파일을 입력으로 선언한다
+                .post(
+                    script: "\"${SRCROOT}/Tuist/.build/checkouts/firebase-ios-sdk/Crashlytics/run\"",
+                    name: "Upload dSYM to Crashlytics",
+                    inputPaths: [
+                        "$(SRCROOT)/Tuist/.build/checkouts/firebase-ios-sdk/Crashlytics/run",
+                        "$(SRCROOT)/Tuist/.build/checkouts/firebase-ios-sdk/Crashlytics/upload-symbols",
+                        "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}",
+                        "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${PRODUCT_NAME}",
+                        "${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Info.plist",
+                        "$(TARGET_BUILD_DIR)/$(UNLOCALIZED_RESOURCES_FOLDER_PATH)/GoogleService-Info.plist",
+                        "$(TARGET_BUILD_DIR)/$(EXECUTABLE_PATH)",
+                    ]
+                ),
+            ],
             dependencies: [
                 .project(target: "Storage", path: .relativeToRoot("Projects/Core/Storage")),
                 .project(target: "ClientCore", path: .relativeToRoot("Projects/Core/ClientCore")),
@@ -85,6 +101,8 @@ let project = Project(
                     "SUPPORTS_MACCATALYST": "NO",
                     "SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD": "NO",
                     "SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD": "NO",
+                    // Crashlytics 업로드 스크립트가 Debug 빌드에서도 dSYM을 입력으로 요구한다
+                    "DEBUG_INFORMATION_FORMAT": "dwarf-with-dsym",
                 ]
             )
         ),

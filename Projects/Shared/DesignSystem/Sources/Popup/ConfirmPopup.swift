@@ -87,7 +87,7 @@ public struct ConfirmPopup: View {
                     } label: {
                         Text(cancelTitle)
                             .font(.system(size: 16))
-                            .foregroundColor(.textGray)
+                            .foregroundColor(.gray6)
                             .frame(maxWidth: .infinity)
                     }
 

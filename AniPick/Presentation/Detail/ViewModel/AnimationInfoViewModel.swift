@@ -42,8 +42,11 @@ final class AnimationInfoViewModel: ObservableObject {
     private var reviewLastValue: String? = nil
     private var reviewLastId: Int? = nil
     @Published var selectedReviewSortOption: SortOption = .latest
-    
-    
+
+    @Published var isShowCommunityNotCreatedPopup: Bool = false
+    private var isCheckingCommunityBoard: Bool = false
+
+
     private let session = NetworkSession.authenticated
     
     init(animeId: Int, navigationManager: NavigationManager) {
@@ -537,6 +540,43 @@ extension AnimationInfoViewModel {
     
     func moveToRecommendView(animeId: Int, animeTitle: String) {
         self.navigationManager.push(route: .recommend(animeId: animeId, animeTitle: animeTitle))
+    }
+
+    /// 커뮤니티 게시판이 있으면 커뮤니티로 이동하고, 없으면 미생성 안내 팝업을 띄운다.
+    func openCommunity(_ detailInfo: AnimeDetail) {
+        guard !self.isCheckingCommunityBoard else { return }
+        self.isCheckingCommunityBoard = true
+        DLog("애니 상세 커뮤니티 탭 선택 - animeId: \(detailInfo.animeId)")
+
+        Task {
+            defer { self.isCheckingCommunityBoard = false }
+            do {
+                let board = try await CommunityAPIService.shared.boardByAnime(animeId: detailInfo.animeId)
+                guard let result = board.result, result.hasBoard == true, let seriesId = result.seriesId else {
+                    DLog("커뮤니티 게시판 없음 - animeId: \(detailInfo.animeId)")
+                    self.isShowCommunityNotCreatedPopup = true
+                    return
+                }
+                // 게시판 헤더는 탐색 경로와 같도록 시리즈 기준 값을 쓰고, 비어 있으면 애니 상세 값으로 채운다.
+                let genreNames = result.genres?.compactMap(\.name) ?? []
+                self.navigationManager.push(
+                    route: .community(
+                        seriesId: seriesId,
+                        animeTitle: result.title ?? detailInfo.title ?? "애니메이션",
+                        coverImageUrl: result.coverImageUrl ?? detailInfo.coverImageUrl,
+                        genreNames: genreNames.isEmpty ? (detailInfo.genres?.map(\.name) ?? []) : genreNames
+                    )
+                )
+            } catch {
+                DLog("커뮤니티 게시판 조회 실패 - animeId: \(detailInfo.animeId), error: \(error)")
+            }
+        }
+    }
+
+    func openCommunityInquiry() {
+        self.isShowCommunityNotCreatedPopup = false
+        let url = URL(string: "https://forms.gle/zDiFyZnNwm8kFi2A7")!
+        UIApplication.shared.open(url)
     }
 
 

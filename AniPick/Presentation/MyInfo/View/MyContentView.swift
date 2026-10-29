@@ -286,52 +286,60 @@ struct MyContentView: View {
     // MARK: - 게시글 셀
     @ViewBuilder
     private func postCell(_ post: MyPost) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
 
-            // 상단: 애니 썸네일 + 제목 + 태그
-            HStack(alignment: .top, spacing: 14) {
-                animeThumbnail(url: post.animeImageUrl)
+            // 상단: 애니 썸네일 + 제목 + 태그, 날짜
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .top, spacing: 16) {
+                    animeThumbnail(url: post.animeImageUrl)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(post.animeTitle)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.anipickBlack)
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(post.animeTitle)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.anipickBlack)
+                            .lineLimit(1)
 
-                    if !post.animeTag.isEmpty {
-                        tagChip(post.animeTag)
+                        if !post.animeTag.isEmpty {
+                            tagChip(post.animeTag)
+                        }
                     }
                 }
+
+                Text(post.date)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray6)
             }
 
-            // 날짜
-            Text(post.date)
-                .font(.system(size: 12))
-                .foregroundColor(.gray6)
+            // 제목 + 본문 (+ 첨부 이미지)
+            if let attachedImageUrl = post.attachedImageUrl {
+                HStack(alignment: .top, spacing: 16) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(post.title)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.anipickBlack)
+                            .lineLimit(2)
 
-            // 제목
-            Text(post.title)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.anipickBlack)
-                .lineLimit(2)
-
-            // 본문 + 첨부 이미지
-                    if let attachedImageUrl = post.attachedImageUrl {
-                HStack(alignment: .top, spacing: 10) {
-                    Text(post.body)
-                        .font(.system(size: 13))
-                        .foregroundColor(.gray6)
-                        .lineLimit(3)
-
-                    Spacer()
+                        Text(post.body)
+                            .font(.system(size: 13))
+                            .foregroundColor(.gray6)
+                            .lineLimit(3)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                     attachedThumbnail(url: attachedImageUrl)
                 }
             } else {
-                Text(post.body)
-                    .font(.system(size: 13))
-                    .foregroundColor(.gray6)
-                    .lineLimit(2)
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(post.title)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(.anipickBlack)
+                        .lineLimit(2)
+
+                    Text(post.body)
+                        .font(.system(size: 13))
+                        .foregroundColor(.gray6)
+                        .lineLimit(2)
+                }
             }
 
             // 통계 + 스포일러
@@ -349,49 +357,52 @@ struct MyContentView: View {
                 }
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
-        .cornerRadius(12)
+        .cornerRadius(8)
     }
 
     // MARK: - 댓글 셀
     @ViewBuilder
     private func commentCell(_ comment: MyCommentItem) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: 16) {
 
-            // 상단: 애니 썸네일 + 제목 + 태그
-            HStack(alignment: .top, spacing: 14) {
-                animeThumbnail(url: comment.animeImageUrl)
+            // 상단: 애니 썸네일 + 제목 + 태그, 날짜
+            VStack(alignment: .leading, spacing: 16) {
+                HStack(alignment: .top, spacing: 16) {
+                    animeThumbnail(url: comment.animeImageUrl)
 
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(comment.animeTitle)
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(.anipickBlack)
-                        .lineLimit(1)
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(comment.animeTitle)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.anipickBlack)
+                            .lineLimit(1)
 
-                    if !comment.animeTag.isEmpty {
-                        tagChip(comment.animeTag)
+                        if !comment.animeTag.isEmpty {
+                            tagChip(comment.animeTag)
+                        }
                     }
                 }
+
+                Text(comment.date)
+                    .font(.system(size: 12))
+                    .foregroundColor(.gray6)
             }
 
-            // 날짜
-            Text(comment.date)
-                .font(.system(size: 12))
-                .foregroundColor(.gray6)
+            // 댓글이 달린 게시글 제목 + 댓글 내용 (회색, 2줄 제한)
+            VStack(alignment: .leading, spacing: 8) {
+                Text(comment.postTitle)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.anipickBlack)
+                    .lineLimit(1)
 
-            // 댓글이 달린 게시글 제목
-            Text(comment.postTitle)
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.anipickBlack)
-                .lineLimit(1)
-
-            // 댓글 내용 (회색, 2줄 제한)
-            Text(comment.content)
-                .font(.system(size: 13))
-                .foregroundColor(.gray6)
-                .lineLimit(2)
+                Text(comment.content)
+                    .font(.system(size: 13))
+                    .foregroundColor(.gray6)
+                    .lineLimit(2)
+            }
 
             // 좋아요 수
             HStack(spacing: 4) {
@@ -403,10 +414,11 @@ struct MyContentView: View {
                     .foregroundColor(.gray6)
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 18)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color.white)
-        .cornerRadius(12)
+        .cornerRadius(8)
     }
 
     // MARK: - 공통 컴포넌트

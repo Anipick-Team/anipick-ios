@@ -156,11 +156,13 @@ extension MainLoginViewModel {
                 UserDefaultsManager.shared.setAccessToken(accessToken: accessToken)
                 UserDefaultsManager.shared.setRefreshToken(refreshToken: response.result?.token?.refreshToken ?? "")
                 UserDefaultsManager.shared.setNickname(response.result?.nickname ?? "")
+                UserDefaultsManager.shared.setUserId(response.result?.userId)
                 DLog("🔐 [Login][Social:\(provider.rawValue)] 서버 200, 토큰 저장 완료 (accessToken 길이=\(accessToken.count))")
                 if accessToken.isEmpty {
                     DLog("⚠️ [Login][Social:\(provider.rawValue)] 200이지만 accessToken이 비어있음 - 서버 응답 확인 필요")
                     AnalyticsManager.logLoginIssue(provider: provider.rawValue, reason: "200 but empty accessToken")
                 }
+                AnalyticsManager.setUser(userId: response.result?.userId, loginMethod: provider.rawValue)
                 AnalyticsManager.logLogin(method: provider.rawValue)
                 if response.result?.reviewCompletedYn ?? true {
                     DLog("🔐 [Login][Social:\(provider.rawValue)] 리뷰완료 사용자 → completeLogin (홈)")
