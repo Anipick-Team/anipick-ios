@@ -268,6 +268,9 @@ extension DeveloperToolsSupport.ImageResource {
     /// The "image" asset catalog image resource.
     nonisolated public static let image = DeveloperToolsSupport.ImageResource(name: "image", bundle: resourceBundle)
 
+    /// The "infoIcon" asset catalog image resource.
+    nonisolated public static let infoIcon = DeveloperToolsSupport.ImageResource(name: "infoIcon", bundle: resourceBundle)
+
     /// The "instagramIcon" asset catalog image resource.
     nonisolated public static let instagramIcon = DeveloperToolsSupport.ImageResource(name: "instagramIcon", bundle: resourceBundle)
 
@@ -1315,6 +1318,15 @@ extension AppKit.NSImage {
 #endif
     }
 
+    /// The "infoIcon" asset catalog image.
+    nonisolated public static var infoIcon: AppKit.NSImage {
+#if !targetEnvironment(macCatalyst)
+        return .init(resource: .infoIcon)
+#else
+        return .init()
+#endif
+    }
+
     /// The "instagramIcon" asset catalog image.
     nonisolated public static var instagramIcon: AppKit.NSImage {
 #if !targetEnvironment(macCatalyst)
@@ -2025,6 +2037,15 @@ extension UIKit.UIImage {
 #endif
     }
 
+    /// The "infoIcon" asset catalog image.
+    nonisolated public static var infoIcon: UIKit.UIImage {
+#if !os(watchOS)
+        return .init(resource: .infoIcon)
+#else
+        return .init()
+#endif
+    }
+
     /// The "instagramIcon" asset catalog image.
     nonisolated public static var instagramIcon: UIKit.UIImage {
 #if !os(watchOS)
@@ -2425,6 +2446,7 @@ enum AssetCatalogIndex {
         "half-star",
         "heart",
         "image",
+        "infoIcon",
         "instagramIcon",
         "instagramIconSmall",
         "kakaoLoginButton",

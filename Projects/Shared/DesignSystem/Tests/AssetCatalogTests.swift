@@ -6,10 +6,10 @@ import UIKit
 
 @Suite("에셋 카탈로그")
 struct AssetCatalogTests {
-    @Test("색 17개와 이미지 78개가 목록에 있다 (레거시 앱 카탈로그와 같은 수)")
+    @Test("색 17개와 이미지 79개가 목록에 있다 (레거시 앱 카탈로그 + PR #18 infoIcon)")
     func indexMatchesLegacyCatalogs() {
         #expect(AssetCatalogIndex.colorNames.count == 17)
-        #expect(AssetCatalogIndex.imageNames.count == 78)
+        #expect(AssetCatalogIndex.imageNames.count == 79)
     }
 
     @Test("모든 색을 DesignSystem 번들에서 찾는다")
