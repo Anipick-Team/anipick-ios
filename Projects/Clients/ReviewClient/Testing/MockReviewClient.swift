@@ -22,6 +22,7 @@ public final class MockReviewClient: ReviewClient {
         var result: Result<Void, TransportError>
         var delay: Duration
         var written: [WrittenReview] = []
+        var deletedIds: [Int] = []
     }
 
     private let state: OSAllocatedUnfairLock<State>
@@ -32,6 +33,18 @@ public final class MockReviewClient: ReviewClient {
 
     public var written: [WrittenReview] {
         return state.withLock { $0.written }
+    }
+
+    public var deletedIds: [Int] {
+        return state.withLock { $0.deletedIds }
+    }
+
+    public func deleteReview(id: Int) async throws(TransportError) {
+        try state.withLock {
+            $0.deletedIds.append(id)
+            return $0.result
+        }
+        .get()
     }
 
     public func writeReview(

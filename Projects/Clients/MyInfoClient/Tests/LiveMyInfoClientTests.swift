@@ -99,4 +99,36 @@ struct LiveMyInfoClientTests {
             _ = try await LiveMyInfoClient(client: stub.client).likedPersons(lastId: nil)
         }
     }
+
+    @Test("RA1. 평가한 작품: api/mypage/animes/rated에 정렬·커서·size=20·reviewOnly=false")
+    func ratedReviews() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"count":12,"cursor":{"sort":"likes","lastId":31},"reviews":[{"animeId":1,"title":"A","coverImageUrl":null,"rating":4.5,"reviewId":31,"reviewContent":"좋다","createdAt":"2026.10.01","likeCount":2,"isLiked":false}]}}"#
+            ))
+        let client = LiveMyInfoClient(client: stub.client)
+
+        let page = try await client.ratedReviews(
+            sort: .likes, lastId: 30, lastLikeCount: 5, lastRating: 4.0)
+        _ = try await client.ratedReviews(
+            sort: .latest, lastId: nil, lastLikeCount: nil, lastRating: nil)
+
+        #expect(stub.requests.first?.url?.path() == "/api/mypage/animes/rated")
+        #expect(
+            query(stub.requests[0])
+                == [
+                    "lastId": "30", "lastLikeCount": "5", "lastRating": "4.0", "size": "20",
+                    "sort": "likes", "reviewOnly": "false",
+                ])
+        #expect(query(stub.requests[1]) == ["size": "20", "sort": "latest", "reviewOnly": "false"])
+        #expect(
+            page
+                == RatedPage(
+                    count: 12, lastId: 31,
+                    reviews: [
+                        RatedReview(
+                            animeId: 1, title: "A", coverImageUrl: nil, rating: 4.5, reviewId: 31,
+                            reviewContent: "좋다", createdAt: "2026.10.01", likeCount: 2)
+                    ]))
+    }
 }

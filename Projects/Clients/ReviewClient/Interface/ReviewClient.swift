@@ -8,4 +8,7 @@ public protocol ReviewClient: Sendable {
     /// 그래서 이 함수도 전송·응답 해석에 실패할 때만 던진다.
     func writeReview(animeId: Int, content: String, rating: Double, isSpoiler: Bool)
         async throws(TransportError)
+
+    /// 내 리뷰 삭제 (`DELETE api/reviews/{id}`). 레거시처럼 응답 본문을 읽으면 성공이다(`code`를 보지 않음)
+    func deleteReview(id: Int) async throws(TransportError)
 }

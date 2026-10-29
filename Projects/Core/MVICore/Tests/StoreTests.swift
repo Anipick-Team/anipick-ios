@@ -51,6 +51,8 @@ struct TestReducer: Reducer {
         case load(id: String?, value: String, delay: Duration)
         case loaded(String)
         case loadNothing
+        /// 두 작업을 함께 시작한다
+        case loadBoth(first: String, second: String, delay: Duration)
     }
 
     func reduce(into state: inout State, intent: Intent) -> Effect<Intent> {
@@ -73,6 +75,12 @@ struct TestReducer: Reducer {
             return .none
         case .loadNothing:
             return .run { nil }
+        case .loadBoth(let first, let second, let delay):
+            return .merge([
+                reduce(into: &state, intent: .load(id: nil, value: first, delay: delay)),
+                reduce(into: &state, intent: .load(id: nil, value: second, delay: delay)),
+                .none,
+            ])
         }
     }
 }
@@ -195,5 +203,29 @@ struct StoreTests {
         store.send(.increment)
 
         #expect(changed.withLock { $0 })
+    }
+
+    @Test("merge는 모든 작업을 시작하고, finish는 모두 끝나고 결과가 반영될 때까지 기다린다")
+    func mergeRunsAll() async {
+        let store = makeStore()
+
+        await store.send(.loadBoth(first: "A", second: "B", delay: .milliseconds(20))).finish()
+
+        #expect(store.state.log.sorted() == ["A", "B"])
+        #expect(store.runningTaskCount == 0)
+    }
+
+    @Test("merge를 기다리던 쪽이 취소되면 모든 작업이 취소된다")
+    func mergeCancelsAll() async {
+        let store = makeStore()
+        let effect = store.send(.loadBoth(first: "A", second: "B", delay: .seconds(10)))
+        let viewTask = Task { await effect.finish() }
+        #expect(await recorder.waitUntil { $0.started.count == 2 })
+
+        viewTask.cancel()
+        await viewTask.value
+
+        #expect(await recorder.waitUntil { $0.cancelled.count == 2 })
+        #expect(store.state.log.isEmpty)
     }
 }

@@ -53,7 +53,9 @@ struct AppDIContainer {
     static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(
         dependencies: MyInfoDependencies(
             myInfoClient: LiveMyInfoClient(client: AppSession.httpClient),
-            navigator: navigator
+            reviewClient: LiveReviewClient(client: AppSession.httpClient),
+            navigator: navigator,
+            ratedReviewsReloadNotification: .reloadRatedAnime
         )
     )
 

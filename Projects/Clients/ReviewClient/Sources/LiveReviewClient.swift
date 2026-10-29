@@ -27,6 +27,16 @@ public struct LiveReviewClient: ReviewClient {
         )
     }
 
+    public func deleteReview(id: Int) async throws(TransportError) {
+        let _: ServerResponse<EmptyResult> = try await client.send(
+            Self.deleteReviewEndpoint(id: id))
+    }
+
+    /// 레거시 `ReviewAPI.deleteReview`
+    static func deleteReviewEndpoint(id: Int) -> Endpoint<EmptyResult> {
+        return Endpoint(method: .delete, path: "api/reviews/\(id)", requiresAuth: true)
+    }
+
     /// 레거시 `AnimeAPI.swift` — `PATCH api/reviews/{animeId}/animes`, JSON 본문
     static func writeReviewEndpoint(
         animeId: Int,

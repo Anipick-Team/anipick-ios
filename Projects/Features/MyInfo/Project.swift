@@ -3,7 +3,7 @@ import ProjectDescriptionHelpers
 
 let project = Project.feature(
     "MyInfo",
-    dependencies: [.client("MyInfo"), .feature("Detail")],
+    dependencies: [.client("MyInfo"), .client("Review"), .feature("Detail"), .feature("Review")],
     modules: [.core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
     testModules: [.shared("FeatureTestSupport"), .core("ClientCore")]
 )

@@ -52,4 +52,16 @@ struct LiveReviewClientTests {
                 .writeReview(animeId: 1, content: "", rating: 0, isSpoiler: false)
         }
     }
+
+    @Test("내 리뷰 삭제: DELETE api/reviews/{id}, 토큰")
+    func deletesReview() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","errorValue":null}"#))
+
+        try await LiveReviewClient(client: stub.client).deleteReview(id: 77)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.httpMethod == "DELETE")
+        #expect(request.url?.path() == "/api/reviews/77")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == "Bearer T")
+    }
 }

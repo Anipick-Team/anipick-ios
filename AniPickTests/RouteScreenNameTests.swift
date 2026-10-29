@@ -47,6 +47,7 @@ struct RouteScreenNameTests {
         arguments: [
             (MyInfoRoute.watchList, AppRoute.myInfoInToWatchList), (.watching, .myInfoWatchingList),
             (.finished, .finishedWatchList), (.likedAnimes, .likeAnimeList), (.likedPersons, .likePersonList),
+            (.ratedReviews, .ratedAnimeList),
         ]
     )
     func myInfo(route: MyInfoRoute, legacy: AppRoute) {

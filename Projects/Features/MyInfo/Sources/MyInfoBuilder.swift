@@ -1,15 +1,27 @@
+import Foundation
 import MyInfoClientInterface
 import MyInfoInterface
 import Navigation
+import ReviewClientInterface
 import SwiftUI
 
 public struct MyInfoDependencies {
     public let myInfoClient: any MyInfoClient
+    public let reviewClient: any ReviewClient
     public let navigator: any Navigator
+    /// 이 알림을 받으면 평가한 작품 첫 페이지를 다시 받는다 (App: 레거시 `.reloadRatedAnime`)
+    public let ratedReviewsReloadNotification: Notification.Name?
 
-    public init(myInfoClient: any MyInfoClient, navigator: any Navigator) {
+    public init(
+        myInfoClient: any MyInfoClient,
+        reviewClient: any ReviewClient,
+        navigator: any Navigator,
+        ratedReviewsReloadNotification: Notification.Name? = nil
+    ) {
         self.myInfoClient = myInfoClient
+        self.reviewClient = reviewClient
         self.navigator = navigator
+        self.ratedReviewsReloadNotification = ratedReviewsReloadNotification
     }
 }
 
@@ -34,6 +46,19 @@ public struct MyInfoBuilder: MyInfoBuilding {
                 navigator: dependencies.navigator
             )
             return AnyView(LikedAnimesView(state: LikedAnimesReducer.State(), reducer: reducer))
+        case .ratedReviews:
+            let reducer = RatedReviewsReducer(
+                myInfoClient: dependencies.myInfoClient,
+                reviewClient: dependencies.reviewClient,
+                navigator: dependencies.navigator
+            )
+            return AnyView(
+                RatedReviewsView(
+                    state: RatedReviewsReducer.State(),
+                    reducer: reducer,
+                    reloadNotification: dependencies.ratedReviewsReloadNotification
+                )
+            )
         case .likedPersons:
             let reducer = LikedPersonsReducer(
                 myInfoClient: dependencies.myInfoClient,

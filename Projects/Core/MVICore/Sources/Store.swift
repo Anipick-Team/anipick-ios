@@ -24,11 +24,34 @@ public final class Store<R: Reducer> {
     /// 리듀서를 동기적으로 실행해 `state`를 바꾸고, 돌려받은 작업을 시작한다.
     @discardableResult
     public func send(_ intent: R.Intent) -> EffectTask {
-        switch reducer.reduce(into: &state, intent: intent) {
+        return start(reducer.reduce(into: &state, intent: intent))
+    }
+
+    private func start(_ effect: Effect<R.Intent>) -> EffectTask {
+        switch effect {
         case .none:
             return EffectTask(task: nil)
         case .run(let id, let operation):
             return EffectTask(task: run(id: id, operation: operation))
+        case .merge(let effects):
+            let tasks = effects.compactMap { start($0).task }
+            guard !tasks.isEmpty else {
+                return EffectTask(task: nil)
+            }
+            // 모두 끝날 때까지 기다리는 작업. 기다리는 쪽이 취소되면 모두 취소한다
+            return EffectTask(
+                task: Task {
+                    await withTaskCancellationHandler {
+                        for task in tasks {
+                            await task.value
+                        }
+                    } onCancel: {
+                        for task in tasks {
+                            task.cancel()
+                        }
+                    }
+                }
+            )
         }
     }
 

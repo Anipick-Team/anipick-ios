@@ -5,6 +5,8 @@ import MyInfoClientInterface
 import MyInfoClientTesting
 import MyInfoFeature
 import MyInfoInterface
+import ReviewClientTesting
+import ReviewInterface
 import SwiftUI
 
 /// 서버 없이 마이페이지 목록 화면을 띄운다.
@@ -26,7 +28,18 @@ struct ExampleRoot: View {
             MyPage(
                 count: 9, items: (1...9).map { .sample($0, rating: $0 % 2 == 0 ? 4.5 : nil) },
                 lastId: 9)),
-        personPage: .success(MyPage(count: 6, items: (1...6).map { .sample($0) }, lastId: 6))
+        personPage: .success(MyPage(count: 6, items: (1...6).map { .sample($0) }, lastId: 6)),
+        ratedPages: [
+            .success(
+                RatedPage(
+                    count: 9, lastId: 9,
+                    reviews: (1...9).map {
+                        .sample(
+                            $0,
+                            content: $0 % 3 == 0
+                                ? nil : String(repeating: "긴 리뷰 내용 ", count: $0 * 3))
+                    }))
+        ]
     )
 
     var body: some View {
@@ -46,6 +59,9 @@ struct ExampleRoot: View {
             .navigationDestination(for: DetailRoute.self) { route in
                 FakeDetailBuilder().make(route)
             }
+            .navigationDestination(for: ReviewRoute.self) { route in
+                Text("Review: \(String(describing: route))")
+            }
         }
     }
 
@@ -55,6 +71,7 @@ struct ExampleRoot: View {
             [
                 ("볼 애니", MyInfoRoute.watchList), ("보는 중", .watching), ("다 본 애니", .finished),
                 ("좋아요한 작품", .likedAnimes), ("좋아요한 인물", .likedPersons),
+                ("평가한 작품", .ratedReviews),
             ],
             id: \.0
         ) { title, route in
@@ -62,6 +79,7 @@ struct ExampleRoot: View {
                 builder = MyInfoBuilder(
                     dependencies: MyInfoDependencies(
                         myInfoClient: MockMyInfoClient(scenario),
+                        reviewClient: MockReviewClient(),
                         navigator: navigator
                     )
                 )

@@ -12,6 +12,8 @@ public enum MyInfoRoute: Hashable, Sendable {
     case likedAnimes
     /// 좋아요한 인물
     case likedPersons
+    /// 평가한 작품
+    case ratedReviews
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).

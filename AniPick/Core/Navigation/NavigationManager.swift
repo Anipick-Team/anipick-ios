@@ -247,6 +247,7 @@ extension MyInfoRoute {
         case .finished: return "my_finished_list"
         case .likedAnimes: return "my_liked_anime"
         case .likedPersons: return "my_liked_person"
+        case .ratedReviews: return "my_rated_anime"
         }
     }
 }

@@ -101,7 +101,7 @@ struct AppEntryView: View {
                     case .likePersonList:
                         AppDIContainer.myInfoBuilder.make(.likedPersons)
                     case .ratedAnimeList:
-                        AppDIContainer.makeMyInfoRatedAnimeView()
+                        AppDIContainer.myInfoBuilder.make(.ratedReviews)
                     case .myContent:
                         MyContentView()
                     case .ranking:

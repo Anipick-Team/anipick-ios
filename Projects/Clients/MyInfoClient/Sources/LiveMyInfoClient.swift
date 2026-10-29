@@ -43,6 +43,41 @@ public struct LiveMyInfoClient: MyInfoClient {
         )
     }
 
+    public func ratedReviews(
+        sort: RatedSort,
+        lastId: Int?,
+        lastLikeCount: Int?,
+        lastRating: Double?
+    ) async throws(TransportError) -> RatedPage {
+        let result = try await client.send(
+            Self.ratedReviewsEndpoint(
+                sort: sort, lastId: lastId, lastLikeCount: lastLikeCount, lastRating: lastRating)
+        )
+        .requireResult()
+        return RatedPage(
+            count: result.count,
+            lastId: result.cursor?.lastId,
+            reviews: (result.reviews ?? []).map(\.review)
+        )
+    }
+
+    /// 레거시 `MyInfoAPI.ratedAnimeList`: `lastRating`은 Double 그대로(예: "4.5"), `reviewOnly`는 늘 "false"
+    static func ratedReviewsEndpoint(
+        sort: RatedSort,
+        lastId: Int?,
+        lastLikeCount: Int?,
+        lastRating: Double?
+    ) -> Endpoint<RatedResult> {
+        return endpoint(
+            "api/mypage/animes/rated",
+            [
+                "lastId": lastId.map(String.init), "lastLikeCount": lastLikeCount.map(String.init),
+                "lastRating": lastRating.map { String($0) }, "size": "20", "sort": sort.rawValue,
+                "reviewOnly": "false",
+            ]
+        )
+    }
+
     /// 레거시 경로: 상태마다 다른 경로에 같은 `status`를 함께 보낸다
     static func watchListEndpoint(_ status: WatchStatus, lastId: Int?) -> Endpoint<WatchListResult>
     {
@@ -136,4 +171,33 @@ struct LikedPersonsResult: Decodable, Sendable {
     let count: Int
     let cursor: Cursor
     let persons: [PersonDTO]
+}
+
+/// 레거시 `MyReviewListResult`: 모든 값이 선택값
+struct RatedResult: Decodable, Sendable {
+    struct Cursor: Decodable, Sendable {
+        let lastId: Int?
+    }
+
+    struct Review: Decodable, Sendable {
+        let animeId: Int?
+        let title: String?
+        let coverImageUrl: String?
+        let rating: Double?
+        let reviewId: Int?
+        let reviewContent: String?
+        let createdAt: String?
+        let likeCount: Int?
+
+        var review: RatedReview {
+            return RatedReview(
+                animeId: animeId, title: title, coverImageUrl: coverImageUrl, rating: rating,
+                reviewId: reviewId, reviewContent: reviewContent, createdAt: createdAt,
+                likeCount: likeCount)
+        }
+    }
+
+    let count: Int?
+    let cursor: Cursor?
+    let reviews: [Review]?
 }

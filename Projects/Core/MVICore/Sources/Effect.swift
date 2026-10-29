@@ -6,4 +6,6 @@ public enum Effect<Intent: Sendable>: Sendable {
     /// - 같은 `id`의 새 작업이 오면 진행 중인 작업을 취소한다 (검색어 연속 입력 등).
     /// - 취소된 작업의 결과는 반영하지 않는다.
     case run(id: (any Hashable & Sendable)? = nil, operation: @Sendable () async -> Intent?)
+    /// 여러 작업을 함께 시작한다. 각 작업의 취소·결과 규칙은 `run`과 같다.
+    case merge([Effect<Intent>])
 }

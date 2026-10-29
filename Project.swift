@@ -149,6 +149,7 @@ let project = Project(
                 .project(target: "RankingClientTesting", path: .relativeToRoot("Projects/Clients/RankingClient")),
                 .project(target: "MyInfoClientInterface", path: .relativeToRoot("Projects/Clients/MyInfoClient")),
                 .project(target: "MyInfoClientTesting", path: .relativeToRoot("Projects/Clients/MyInfoClient")),
+                .project(target: "ReviewClientTesting", path: .relativeToRoot("Projects/Clients/ReviewClient")),
                 .project(target: "MetadataClientLive", path: .relativeToRoot("Projects/Clients/MetadataClient")),
                 .project(target: "DetailInterface", path: .relativeToRoot("Projects/Features/Detail")),
                 .project(target: "HomeInterface", path: .relativeToRoot("Projects/Features/Home")),
