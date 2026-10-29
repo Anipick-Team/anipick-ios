@@ -9,6 +9,8 @@ public final class MockDetailClient: DetailClient {
         case recommendations(animeId: Int, lastId: Int?)
         case studio(id: Int, lastId: Int?, lastValue: String?)
         case characters(animeId: Int)
+        case person(id: Int, lastId: Int?)
+        case personLike(id: Int, liked: Bool)
     }
 
     private struct State {
@@ -16,6 +18,7 @@ public final class MockDetailClient: DetailClient {
         var recommendations: [Result<AnimeRecommendationPage?, TransportError>] = []
         var studio: [Result<StudioPage, TransportError>] = []
         var characters: Result<[CastMember], TransportError> = .success([])
+        var person: [Result<PersonPage, TransportError>] = []
         var requests: [Request] = []
     }
 
@@ -86,6 +89,24 @@ public final class MockDetailClient: DetailClient {
         return try result.get()
     }
 
+    public func stubPerson(_ pages: [Result<PersonPage, TransportError>]) {
+        state.withLock { $0.person = pages }
+    }
+
+    public func person(id: Int, lastId: Int?) async throws(TransportError) -> PersonPage {
+        let result = state.withLock { state in
+            state.requests.append(.person(id: id, lastId: lastId))
+            return Self.next(&state.person) ?? .failure(.decoding)
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func setPersonLike(id: Int, liked: Bool) async throws(TransportError) {
+        state.withLock { $0.requests.append(.personLike(id: id, liked: liked)) }
+        await pause()
+    }
+
     private static func next<Value>(_ queue: inout [Value]) -> Value? {
         guard let first = queue.first else {
             return nil
@@ -123,5 +144,14 @@ extension CastMember {
         return CastMember(
             character: CastPerson(id: id, name: "캐릭터 \(id)", imageUrl: nil),
             voiceActor: CastPerson(id: 100 + id, name: "성우 \(id)", imageUrl: nil))
+    }
+}
+
+extension PersonWork {
+    /// 테스트·Example용
+    public static func sample(_ id: Int) -> PersonWork {
+        return PersonWork(
+            animeId: 10 + id, animeTitle: "애니 \(id)", characterId: id, characterName: "배역 \(id)",
+            characterImageUrl: nil)
     }
 }

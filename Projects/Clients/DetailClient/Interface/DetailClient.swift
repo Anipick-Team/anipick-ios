@@ -94,6 +94,49 @@ public struct CastMember: Hashable, Sendable {
     }
 }
 
+/// 성우가 맡은 배역 하나 (레거시 `PersonWork`)
+public struct PersonWork: Hashable, Sendable {
+    public let animeId: Int
+    public let animeTitle: String
+    public let characterId: Int
+    public let characterName: String
+    public let characterImageUrl: String?
+
+    public init(
+        animeId: Int, animeTitle: String, characterId: Int, characterName: String,
+        characterImageUrl: String?
+    ) {
+        self.animeId = animeId
+        self.animeTitle = animeTitle
+        self.characterId = characterId
+        self.characterName = characterName
+        self.characterImageUrl = characterImageUrl
+    }
+}
+
+/// 성우 상세 한 페이지 (레거시 `PersonDetailResult`)
+public struct PersonPage: Equatable, Sendable {
+    public let name: String
+    public let profileImageUrl: String?
+    public let isLiked: Bool
+    /// 참여 작품 전체 개수
+    public let count: Int
+    public let lastId: Int
+    public let works: [PersonWork]
+
+    public init(
+        name: String, profileImageUrl: String?, isLiked: Bool, count: Int, lastId: Int,
+        works: [PersonWork]
+    ) {
+        self.name = name
+        self.profileImageUrl = profileImageUrl
+        self.isLiked = isLiked
+        self.count = count
+        self.lastId = lastId
+        self.works = works
+    }
+}
+
 public protocol DetailClient: Sendable {
     /// 관련 작품 (`GET api/animes/{id}/series`, size=10). 결과가 없으면 nil
     func series(animeId: Int, lastId: Int?) async throws(TransportError) -> SeriesPage?
@@ -105,4 +148,8 @@ public protocol DetailClient: Sendable {
         -> StudioPage
     /// 캐릭터·성우진 첫 20명 (`GET api/animes/{id}/characters`). 필수 값이 없으면 `.decoding`
     func characters(animeId: Int) async throws(TransportError) -> [CastMember]
+    /// 성우 상세 (`GET api/person/{id}`, lastId·size=20). 모든 값이 필수 (없으면 `.decoding`)
+    func person(id: Int, lastId: Int?) async throws(TransportError) -> PersonPage
+    /// 인물 좋아요 (`POST`·`DELETE api/persons/{id}/like`). 응답은 보지 않는다
+    func setPersonLike(id: Int, liked: Bool) async throws(TransportError)
 }

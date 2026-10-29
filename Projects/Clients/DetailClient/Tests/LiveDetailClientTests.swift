@@ -118,4 +118,40 @@ struct LiveDetailClientTests {
                     CastMember(character: nil, voiceActor: nil),
                 ])
     }
+
+    @Test(
+        "VA1. 성우: GET api/person/{id}, lastId·size=20 (모든 값 필수). 좋아요는 POST·DELETE api/persons/{id}/like"
+    )
+    func person() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"personId":3,"name":"카지","profileImageUrl":null,"isLiked":true,"count":40,"cursor":{"lastId":8},"works":[{"animeId":1,"animeTitle":"A","characterId":8,"characterName":"C","characterImageUrl":"u"}]}}"#
+            ))
+        let client = LiveDetailClient(client: stub.client)
+
+        let page = try await client.person(id: 3, lastId: 5)
+        try await client.setPersonLike(id: 3, liked: true)
+        try await client.setPersonLike(id: 3, liked: false)
+
+        #expect(
+            stub.requests.map { "\($0.httpMethod ?? "") \($0.url?.path() ?? "")" }
+                == ["GET /api/person/3", "POST /api/persons/3/like", "DELETE /api/persons/3/like"])
+        #expect(query(try #require(stub.requests.first)) == ["lastId": "5", "size": "20"])
+        #expect(
+            page
+                == PersonPage(
+                    name: "카지", profileImageUrl: nil, isLiked: true, count: 40, lastId: 8,
+                    works: [
+                        PersonWork(
+                            animeId: 1, animeTitle: "A", characterId: 8, characterName: "C",
+                            characterImageUrl: "u")
+                    ]))
+        let noCursor = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"name":"a","isLiked":false,"count":0,"cursor":{},"works":[]}}"#
+            ))
+        await #expect(throws: TransportError.decoding) {
+            try await LiveDetailClient(client: noCursor.client).person(id: 3, lastId: nil)
+        }
+    }
 }

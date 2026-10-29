@@ -40,7 +40,14 @@ public struct DetailBuilder: DetailBuilding {
                     reducer: CastReducer(
                         detailClient: dependencies.detailClient, navigator: dependencies.navigator))
             )
-        case .anime, .voiceActor:
+        case .voiceActor(let id):
+            return AnyView(
+                VoiceActorView(
+                    state: VoiceActorReducer.State(personId: id),
+                    reducer: VoiceActorReducer(
+                        detailClient: dependencies.detailClient, navigator: dependencies.navigator))
+            )
+        case .anime:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Detail 빌더로 왔다: \(route)")
             return AnyView(EmptyView())

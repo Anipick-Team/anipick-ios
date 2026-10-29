@@ -66,6 +66,30 @@ public struct LiveDetailClient: DetailClient {
         }
     }
 
+    public func person(id: Int, lastId: Int?) async throws(TransportError) -> PersonPage {
+        let result = try await client.send(
+            Self.query("api/person/\(id)", ["lastId": lastId.map(String.init), "size": "20"])
+                as Endpoint<PersonResult>
+        )
+        .requireResult()
+        return PersonPage(
+            name: result.name, profileImageUrl: result.profileImageUrl, isLiked: result.isLiked,
+            count: result.count,
+            lastId: result.cursor.lastId,
+            works: result.works.map {
+                PersonWork(
+                    animeId: $0.animeId, animeTitle: $0.animeTitle, characterId: $0.characterId,
+                    characterName: $0.characterName, characterImageUrl: $0.characterImageUrl)
+            })
+    }
+
+    public func setPersonLike(id: Int, liked: Bool) async throws(TransportError) {
+        let _: ServerResponse<EmptyResult> = try await client.send(
+            Endpoint(
+                method: liked ? .post : .delete, path: "api/persons/\(id)/like", requiresAuth: true)
+        )
+    }
+
     static func query<Result>(_ path: String, _ parameters: [String: String?]) -> Endpoint<Result> {
         return Endpoint(
             method: .get,
@@ -155,4 +179,26 @@ struct CharactersResult: Decodable, Sendable {
 
     let cursor: ValueCursor
     let characters: [Pair]
+}
+
+/// 레거시 `PersonDetailResult` (모두 필수 값)
+struct PersonResult: Decodable, Sendable {
+    struct Cursor: Decodable, Sendable {
+        let lastId: Int
+    }
+
+    struct Work: Decodable, Sendable {
+        let animeId: Int
+        let animeTitle: String
+        let characterId: Int
+        let characterName: String
+        let characterImageUrl: String?
+    }
+
+    let name: String
+    let profileImageUrl: String?
+    let isLiked: Bool
+    let count: Int
+    let cursor: Cursor
+    let works: [Work]
 }
