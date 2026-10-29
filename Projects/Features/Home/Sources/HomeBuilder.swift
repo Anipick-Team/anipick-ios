@@ -2,22 +2,30 @@ import Foundation
 import HomeClientInterface
 import HomeInterface
 import Navigation
+import ReviewClientInterface
 import SwiftUI
 
 public struct HomeDependencies {
     public let homeClient: any HomeClient
+    public let reviewClient: any ReviewClient
     public let navigator: any Navigator
     /// 이 기기에 저장된 닉네임 (없으면 "--")
     public let cachedNickname: @MainActor () -> String
+    /// 이미지 id를 받을 주소 (`{서버}api/image/{id}`, 인증 필요)
+    public let imageURL: @Sendable (Int) -> URL
 
     public init(
         homeClient: any HomeClient,
+        reviewClient: any ReviewClient,
         navigator: any Navigator,
-        cachedNickname: @escaping @MainActor () -> String
+        cachedNickname: @escaping @MainActor () -> String,
+        imageURL: @escaping @Sendable (Int) -> URL
     ) {
         self.homeClient = homeClient
+        self.reviewClient = reviewClient
         self.navigator = navigator
         self.cachedNickname = cachedNickname
+        self.imageURL = imageURL
     }
 }
 
@@ -47,6 +55,13 @@ public struct HomeBuilder: HomeBuilding {
                         day: WeekdayNewAnimeDay(rawValue: day) ?? .of(Date())),
                     reducer: WeekdayNewAnimeReducer(
                         homeClient: dependencies.homeClient, navigator: dependencies.navigator)))
+        case .recentReviews:
+            return AnyView(
+                RecentReviewsView(
+                    state: RecentReviewsReducer.State(),
+                    reducer: RecentReviewsReducer(
+                        reviewClient: dependencies.reviewClient, navigator: dependencies.navigator),
+                    imageURL: dependencies.imageURL))
         case .search:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Home 빌더로 왔다: \(route)")

@@ -155,7 +155,7 @@ struct AppEntryView: View {
                     case .mainLoginView:
                         AppDIContainer.authBuilder.make(.mainLogin)
                     case .recentReview:
-                        AppDIContainer.makeRecentReviewView()
+                        AppDIContainer.homeBuilder.make(.recentReviews)
                     case .recommendView(let animeId):
                         AppDIContainer.homeBuilder.make(.similarRecommendations(animeId: animeId))
                     case let .community(seriesId, animeTitle, coverImageUrl, genreNames):

@@ -12,6 +12,8 @@ public enum HomeRoute: Hashable, Sendable {
     case comingSoon
     /// 요일별 신작 (레거시 `AppRoute.weekdayNewAnime`). day는 월=1 … 일=7, 범위 밖이면 오늘
     case weekdayNewAnime(day: Int)
+    /// 최근 리뷰 목록 (레거시 `AppRoute.recentReview`)
+    case recentReviews
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).

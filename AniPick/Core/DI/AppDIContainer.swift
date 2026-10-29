@@ -138,8 +138,10 @@ struct AppDIContainer {
     static let homeBuilder: any HomeBuilding = HomeBuilder(
         dependencies: HomeDependencies(
             homeClient: LiveHomeClient(client: AppSession.httpClient),
+            reviewClient: LiveReviewClient(client: AppSession.httpClient),
             navigator: navigator,
-            cachedNickname: { UserDefaultsManager.shared.getNickname() }
+            cachedNickname: { UserDefaultsManager.shared.getNickname() },
+            imageURL: { URL(string: "\(NetworkManager.baseUrl)api/image/\($0)")! }
         )
     )
 

@@ -7,6 +7,8 @@ import os
 final class ClientStub: Sendable {
     enum Reply: Sendable {
         case json(String)
+        /// 2xx가 아닌 상태와 본문
+        case status(Int, String)
         case failure(URLError.Code)
     }
 
@@ -92,6 +94,12 @@ final class ClientStubProtocol: URLProtocol, @unchecked Sendable {
         case .json(let body):
             let response = HTTPURLResponse(
                 url: url, statusCode: 200, httpVersion: "HTTP/1.1", headerFields: nil)!
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: Data(body.utf8))
+            client?.urlProtocolDidFinishLoading(self)
+        case .status(let code, let body):
+            let response = HTTPURLResponse(
+                url: url, statusCode: code, httpVersion: "HTTP/1.1", headerFields: nil)!
             client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
             client?.urlProtocol(self, didLoad: Data(body.utf8))
             client?.urlProtocolDidFinishLoading(self)

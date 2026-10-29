@@ -3,6 +3,7 @@ import HomeClientInterface
 import HomeClientTesting
 import HomeFeature
 import HomeInterface
+import ReviewClientTesting
 import SwiftUI
 
 /// 서버 없이 홈 화면들을 띄운다.
@@ -29,7 +30,9 @@ struct ExampleRoot: View {
         NavigationStack(path: $navigator.path) {
             HomeBuilder(
                 dependencies: HomeDependencies(
-                    homeClient: client, navigator: navigator, cachedNickname: { "하노" })
+                    homeClient: client, reviewClient: MockReviewClient(), navigator: navigator,
+                    cachedNickname: { "하노" },
+                    imageURL: { URL(string: "https://example.invalid/api/image/\($0)")! })
             )
             .make(.recommendations(animeId: 1, animeTitle: nil))
             .navigationDestination(for: HomeRoute.self) { route in

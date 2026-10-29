@@ -239,6 +239,7 @@ extension HomeRoute {
         case .recommendations, .similarRecommendations: return "recommend"
         case .comingSoon: return "coming_soon"
         case .weekdayNewAnime: return "weekday_new_anime"
+        case .recentReviews: return "recent_review"
         }
     }
 }

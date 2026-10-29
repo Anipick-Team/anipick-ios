@@ -46,6 +46,7 @@ struct RouteScreenNameTests {
             HomeRoute.recommendations(animeId: 1, animeTitle: nil).screenName
                 == AppRoute.recommend2(animeId: 1, animeTitle: nil).screenName)
         #expect(HomeRoute.comingSoon.screenName == AppRoute.comingSoonDetail.screenName)
+        #expect(HomeRoute.recentReviews.screenName == AppRoute.recentReview.screenName)
         #expect(HomeRoute.weekdayNewAnime(day: 1).screenName == AppRoute.weekdayNewAnime(day: 1).screenName)
         #expect(
             HomeRoute.similarRecommendations(animeId: 1).screenName
