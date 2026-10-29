@@ -21,7 +21,7 @@ struct ContentView: View {
     
     var body: some View {
         TabView(selection: $viewModel.activeTab) {
-            AppDIContainer.makeHomeView()
+            AppDIContainer.homeBuilder.make(.main)
                 .tabItem {
                     Image(viewModel.activeTab == .home ? .homeFilled : .homeUnfilled)
                     Text("홈")

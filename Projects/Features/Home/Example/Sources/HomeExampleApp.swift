@@ -35,7 +35,7 @@ struct ExampleRoot: View {
                     cachedNickname: { "하노" },
                     imageURL: { URL(string: "https://example.invalid/api/image/\($0)")! })
             )
-            .make(.recommendations(animeId: 1, animeTitle: nil))
+            .make(.main)
             .navigationDestination(for: HomeRoute.self) { route in
                 Text("레거시 화면: \(String(describing: route))")
             }

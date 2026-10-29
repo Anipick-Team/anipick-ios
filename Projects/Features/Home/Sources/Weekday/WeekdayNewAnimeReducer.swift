@@ -108,7 +108,7 @@ struct WeekdayNewAnimeReducer: Reducer {
             let (day, sort) = (state.day, state.sort)
             return .run { [homeClient] in
                 let page = try? await homeClient.weekdayNewAnimes(
-                    day: day.apiValue, sort: sort.apiValue, lastId: lastId)
+                    day: day.apiValue, sort: sort.apiValue, lastId: lastId, size: 18)
                 return .moreLoaded(day, sort, page)
             }
 
@@ -160,7 +160,7 @@ struct WeekdayNewAnimeReducer: Reducer {
         let (day, sort) = (state.day, state.sort)
         return .run { [homeClient] in
             let page = try? await homeClient.weekdayNewAnimes(
-                day: day.apiValue, sort: sort.apiValue, lastId: nil)
+                day: day.apiValue, sort: sort.apiValue, lastId: nil, size: 18)
             return .loaded(day, sort, page)
         }
     }

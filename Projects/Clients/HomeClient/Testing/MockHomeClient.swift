@@ -8,7 +8,13 @@ public final class MockHomeClient: HomeClient {
         case recommendations(lastId: Int?, lastValue: String?)
         case recentRecommendations(animeId: Int, lastId: Int?, lastValue: String?)
         case comingSoon(sort: String, lastId: Int?, includeAdult: Bool)
-        case weekday(day: String, sort: String, lastId: Int?)
+        case weekday(day: String, sort: String, lastId: Int?, size: Int)
+        case trending
+        case homeRecommendations
+        case homeRecentRecommendations(animeId: Int)
+        case homeRecentReviews
+        case upcomingSeason
+        case homeComingSoon
         case popular
         case searchAnimes(query: String, lastId: Int?)
         case searchPersons(query: String, lastId: Int?)
@@ -25,7 +31,34 @@ public final class MockHomeClient: HomeClient {
         var personPages: [Result<SearchPage<SearchPerson>?, TransportError>] = []
         var studioPages: [Result<SearchPage<SearchStudio>?, TransportError>] = []
         var keywords: [String] = []
+        var home = HomeStub()
         var requests: [Request] = []
+    }
+
+    /// 홈 메인 화면의 결과
+    public struct HomeStub: Sendable {
+        public var trending: Result<[TrendingAnime], TransportError>
+        public var recommendations: Result<RecommendationPage?, TransportError>
+        public var recentRecommendations: Result<RecommendationPage?, TransportError>
+        public var recentReviews: Result<[HomeReview], TransportError>
+        public var upcoming: Result<UpcomingSeason, TransportError>
+        public var comingSoon: Result<[HomeAnime], TransportError>
+
+        public init(
+            trending: Result<[TrendingAnime], TransportError> = .success([]),
+            recommendations: Result<RecommendationPage?, TransportError> = .success(nil),
+            recentRecommendations: Result<RecommendationPage?, TransportError> = .success(nil),
+            recentReviews: Result<[HomeReview], TransportError> = .success([]),
+            upcoming: Result<UpcomingSeason, TransportError> = .failure(.decoding),
+            comingSoon: Result<[HomeAnime], TransportError> = .success([])
+        ) {
+            self.trending = trending
+            self.recommendations = recommendations
+            self.recentRecommendations = recentRecommendations
+            self.recentReviews = recentReviews
+            self.upcoming = upcoming
+            self.comingSoon = comingSoon
+        }
     }
 
     private let state = OSAllocatedUnfairLock(initialState: State())
@@ -65,16 +98,61 @@ public final class MockHomeClient: HomeClient {
         return try result.get()
     }
 
-    public func weekdayNewAnimes(day: String, sort: String, lastId: Int?)
+    public func weekdayNewAnimes(day: String, sort: String, lastId: Int?, size: Int)
         async throws(TransportError)
         -> WeekdayAnimePage
     {
         let result = state.withLock { state -> Result<WeekdayAnimePage, TransportError> in
-            state.requests.append(.weekday(day: day, sort: sort, lastId: lastId))
+            state.requests.append(.weekday(day: day, sort: sort, lastId: lastId, size: size))
             return Self.next(&state.weekday) ?? .success(WeekdayAnimePage(animes: [], lastId: nil))
         }
         await pause()
         return try result.get()
+    }
+
+    public func stubHome(_ home: HomeStub) {
+        state.withLock { $0.home = home }
+    }
+
+    private func respond<Value: Sendable>(
+        _ request: Request, _ pick: @Sendable (HomeStub) -> Result<Value, TransportError>
+    )
+        async throws(TransportError) -> Value
+    {
+        let result = state.withLock { state in
+            state.requests.append(request)
+            return pick(state.home)
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func trending() async throws(TransportError) -> [TrendingAnime] {
+        return try await respond(.trending) { $0.trending }
+    }
+
+    public func homeRecommendations() async throws(TransportError) -> RecommendationPage? {
+        return try await respond(.homeRecommendations) { $0.recommendations }
+    }
+
+    public func homeRecentRecommendations(animeId: Int) async throws(TransportError)
+        -> RecommendationPage?
+    {
+        return try await respond(.homeRecentRecommendations(animeId: animeId)) {
+            $0.recentRecommendations
+        }
+    }
+
+    public func homeRecentReviews() async throws(TransportError) -> [HomeReview] {
+        return try await respond(.homeRecentReviews) { $0.recentReviews }
+    }
+
+    public func upcomingSeason() async throws(TransportError) -> UpcomingSeason {
+        return try await respond(.upcomingSeason) { $0.upcoming }
+    }
+
+    public func homeComingSoon() async throws(TransportError) -> [HomeAnime] {
+        return try await respond(.homeComingSoon) { $0.comingSoon }
     }
 
     /// 검색 결과. 각 목록은 차례로 (다 쓰면 마지막 것을 반복, 없으면 nil)

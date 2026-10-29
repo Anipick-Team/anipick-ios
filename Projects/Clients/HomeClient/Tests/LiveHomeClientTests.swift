@@ -109,7 +109,7 @@ struct LiveHomeClientTests {
             ))
 
         let page = try await LiveHomeClient(client: stub.client).weekdayNewAnimes(
-            day: "TUE", sort: "popularity", lastId: nil)
+            day: "TUE", sort: "popularity", lastId: nil, size: 18)
 
         let request = try #require(stub.requests.first)
         #expect(request.url?.path() == "/api/animes")
@@ -122,7 +122,7 @@ struct LiveHomeClientTests {
         let empty = ClientStub(.json(#"{"code":200,"value":"SUCCESS","result":null}"#))
         #expect(
             try await LiveHomeClient(client: empty.client).weekdayNewAnimes(
-                day: "MON", sort: "latest", lastId: 2)
+                day: "MON", sort: "latest", lastId: 2, size: 6)
                 == WeekdayAnimePage(animes: [], lastId: nil))
     }
 
@@ -209,5 +209,56 @@ struct LiveHomeClientTests {
         client.clearRecentKeywords()
 
         #expect(client.recentKeywords().isEmpty)
+    }
+
+    @Test("HM1. 홈 요청 경로: 실시간 인기·취향 추천·비슷한 작품·최근 리뷰·방영 예정·공개 예정")
+    func homeEndpoints() async throws {
+        let list = ClientStub(
+            .json(#"{"code":200,"value":"OK","result":[{"animeId":1,"title":"A","rank":1}]}"#))
+        let client = LiveHomeClient(client: list.client)
+        #expect(
+            try await client.trending() == [
+                TrendingAnime(animeId: 1, title: "A", coverImageUrl: nil, rank: 1)
+            ])
+        #expect(
+            try await client.homeComingSoon() == [
+                HomeAnime(animeId: 1, title: "A", coverImageUrl: nil)
+            ])
+        #expect(try await client.homeRecentReviews().count == 1)
+
+        let page = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"referenceAnimeTitle":"R","animes":[{"animeId":2}]}}"#
+            ))
+        let pageClient = LiveHomeClient(client: page.client)
+        #expect(try await pageClient.homeRecommendations()?.referenceAnimeTitle == "R")
+        #expect(try await pageClient.homeRecentRecommendations(animeId: 9)?.animes.count == 1)
+
+        let season = ClientStub(
+            .json(#"{"code":200,"value":"OK","result":{"season":4,"seasonYear":2026,"animes":[]}}"#)
+        )
+        #expect(
+            try await LiveHomeClient(client: season.client).upcomingSeason()
+                == UpcomingSeason(season: 4, seasonYear: 2026, animes: []))
+
+        #expect(
+            (list.requests + page.requests + season.requests).map { $0.url?.path() ?? "" }
+                == [
+                    "/api/home/animes/trending", "/api/home/animes/coming-soon",
+                    "/api/home/reviews/recent",
+                    "/api/home/recommendation/animes", "/api/home/recommendation/animes/9/recent",
+                    "/api/animes/upcoming-season",
+                ])
+    }
+
+    @Test("HM2. 최근 리뷰·방영 예정·공개 예정은 결과가 없으면 실패 (레거시 필수 값), 실시간 인기는 빈 목록")
+    func requiredResults() async throws {
+        let empty = ClientStub(.json(#"{"code":200,"value":"OK","result":null}"#))
+        let client = LiveHomeClient(client: empty.client)
+
+        #expect(try await client.trending().isEmpty)
+        await #expect(throws: TransportError.decoding) { try await client.homeRecentReviews() }
+        await #expect(throws: TransportError.decoding) { try await client.upcomingSeason() }
+        await #expect(throws: TransportError.decoding) { try await client.homeComingSoon() }
     }
 }

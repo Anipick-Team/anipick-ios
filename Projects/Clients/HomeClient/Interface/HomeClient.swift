@@ -123,6 +123,54 @@ public struct SearchPage<Item: Hashable & Sendable>: Equatable, Sendable {
     }
 }
 
+/// 실시간 인기 한 칸 (레거시 `TrendingAnimes`)
+public struct TrendingAnime: Hashable, Sendable {
+    public let animeId: Int?
+    public let title: String?
+    public let coverImageUrl: String?
+    public let rank: Int?
+
+    public init(animeId: Int?, title: String?, coverImageUrl: String?, rank: Int?) {
+        self.animeId = animeId
+        self.title = title
+        self.coverImageUrl = coverImageUrl
+        self.rank = rank
+    }
+}
+
+/// 홈의 최근 리뷰 카드 (레거시 `Review`)
+public struct HomeReview: Hashable, Sendable {
+    public let reviewId: Int?
+    public let animeTitle: String?
+    public let reviewContent: String?
+    public let nickname: String?
+    public let createdAt: String?
+
+    public init(
+        reviewId: Int?, animeTitle: String?, reviewContent: String?, nickname: String?,
+        createdAt: String?
+    ) {
+        self.reviewId = reviewId
+        self.animeTitle = animeTitle
+        self.reviewContent = reviewContent
+        self.nickname = nickname
+        self.createdAt = createdAt
+    }
+}
+
+/// 다음 분기 방영 예정 (레거시 `AnimeSeasonResult`)
+public struct UpcomingSeason: Equatable, Sendable {
+    public let season: Int
+    public let seasonYear: Int
+    public let animes: [HomeAnime]
+
+    public init(season: Int, seasonYear: Int, animes: [HomeAnime]) {
+        self.season = season
+        self.seasonYear = seasonYear
+        self.animes = animes
+    }
+}
+
 public protocol HomeClient: Sendable {
     /// 취향 추천 (`GET api/recommendation/animes`). 결과나 목록이 없으면 nil
     func recommendations(lastId: Int?, lastValue: String?) async throws(TransportError)
@@ -134,9 +182,23 @@ public protocol HomeClient: Sendable {
     /// 공개 예정 (`GET api/animes/coming-soon`, 18개씩). sort는 latest·popularity·startDate. 결과나 목록이 없으면 nil
     func comingSoon(sort: String, lastId: Int?, includeAdult: Bool) async throws(TransportError)
         -> ComingSoonPage?
-    /// 요일별 신작 (`GET api/animes`, 18개씩). day는 MON~SUN, sort는 popularity·latest. 결과가 없으면 빈 페이지
-    func weekdayNewAnimes(day: String, sort: String, lastId: Int?) async throws(TransportError)
+    /// 요일별 신작 (`GET api/animes`). day는 MON~SUN, sort는 popularity·latest. 결과가 없으면 빈 페이지
+    func weekdayNewAnimes(day: String, sort: String, lastId: Int?, size: Int)
+        async throws(TransportError)
         -> WeekdayAnimePage
+
+    /// 홈 실시간 인기 (`GET api/home/animes/trending`). 결과가 없으면 빈 목록
+    func trending() async throws(TransportError) -> [TrendingAnime]
+    /// 홈 취향 추천 (`GET api/home/recommendation/animes`). 결과나 목록이 없으면 nil
+    func homeRecommendations() async throws(TransportError) -> RecommendationPage?
+    /// 홈 비슷한 작품 (`GET api/home/recommendation/animes/{id}/recent`). 결과나 목록이 없으면 nil
+    func homeRecentRecommendations(animeId: Int) async throws(TransportError) -> RecommendationPage?
+    /// 홈 최근 리뷰 (`GET api/home/reviews/recent`). 결과가 없으면 `.decoding` (레거시 필수 값)
+    func homeRecentReviews() async throws(TransportError) -> [HomeReview]
+    /// 다음 분기 방영 예정 (`GET api/animes/upcoming-season`). 결과가 없으면 `.decoding`
+    func upcomingSeason() async throws(TransportError) -> UpcomingSeason
+    /// 홈 공개 예정 (`GET api/home/animes/coming-soon`). 결과가 없으면 `.decoding`
+    func homeComingSoon() async throws(TransportError) -> [HomeAnime]
     /// 검색 첫 화면의 인기 작품 (`GET api/search/init`). 결과가 없으면 빈 목록
     func popularAnimes() async throws(TransportError) -> [HomeAnime]
     /// 작품 검색 (`GET api/search/animes?query&lastId`). 결과가 없으면 nil

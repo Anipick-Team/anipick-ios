@@ -42,7 +42,8 @@ struct WeekdayNewAnimeReducerTests {
 
         #expect(!store.state.isLoading)
         #expect(store.state.animes.map(\.animeId) == [1, 2])
-        #expect(client.requests == [.weekday(day: "TUE", sort: "popularity", lastId: nil)])
+        #expect(
+            client.requests == [.weekday(day: "TUE", sort: "popularity", lastId: nil, size: 18)])
     }
 
     @Test("WN3. 요일·정렬을 바꾸면 처음부터. 같은 값이면 받지 않는다")
@@ -60,9 +61,9 @@ struct WeekdayNewAnimeReducerTests {
         #expect(
             client.requests
                 == [
-                    .weekday(day: "TUE", sort: "popularity", lastId: nil),
-                    .weekday(day: "SUN", sort: "popularity", lastId: nil),
-                    .weekday(day: "SUN", sort: "latest", lastId: nil),
+                    .weekday(day: "TUE", sort: "popularity", lastId: nil, size: 18),
+                    .weekday(day: "SUN", sort: "popularity", lastId: nil, size: 18),
+                    .weekday(day: "SUN", sort: "latest", lastId: nil, size: 18),
                 ])
     }
 
@@ -79,7 +80,8 @@ struct WeekdayNewAnimeReducerTests {
         let sunday = makeStore(client, day: .sunday)
         await sunday.send(.swipedToNextDay).finish()
         #expect(sunday.state.day == .sunday)
-        #expect(client.requests == [.weekday(day: "TUE", sort: "popularity", lastId: nil)])
+        #expect(
+            client.requests == [.weekday(day: "TUE", sort: "popularity", lastId: nil, size: 18)])
     }
 
     @Test("WN5. 응답이 오기 전에 요일·정렬이 바뀌면 그 응답은 버린다 (받는 중 표시도 그대로)")
@@ -124,8 +126,8 @@ struct WeekdayNewAnimeReducerTests {
         #expect(!store.state.hasMore)
         #expect(
             client.requests.suffix(2) == [
-                .weekday(day: "TUE", sort: "popularity", lastId: 2),
-                .weekday(day: "TUE", sort: "popularity", lastId: 3),
+                .weekday(day: "TUE", sort: "popularity", lastId: 2, size: 18),
+                .weekday(day: "TUE", sort: "popularity", lastId: 3, size: 18),
             ])
     }
 

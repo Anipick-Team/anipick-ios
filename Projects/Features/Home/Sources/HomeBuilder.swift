@@ -15,6 +15,12 @@ public struct HomeDependencies {
     public let cachedNickname: @MainActor () -> String
     /// 이미지 id를 받을 주소 (`{서버}api/image/{id}`, 인증 필요)
     public let imageURL: @Sendable (Int) -> URL
+    /// 마지막으로 본 애니 id (없으면 0)
+    public let lastVisitedAnimeId: @MainActor () -> Int
+    /// 랭킹 탭으로 (탭 구조는 App이 안다)
+    public let showRanking: @MainActor () -> Void
+    /// 탐색 탭으로 연도·분기를 넘긴다
+    public let showExplore: @MainActor (_ year: Int, _ season: Int) -> Void
 
     public init(
         homeClient: any HomeClient,
@@ -22,7 +28,10 @@ public struct HomeDependencies {
         navigator: any Navigator,
         analytics: any AnalyticsTracking,
         cachedNickname: @escaping @MainActor () -> String,
-        imageURL: @escaping @Sendable (Int) -> URL
+        imageURL: @escaping @Sendable (Int) -> URL,
+        lastVisitedAnimeId: @escaping @MainActor () -> Int = { 0 },
+        showRanking: @escaping @MainActor () -> Void = {},
+        showExplore: @escaping @MainActor (_ year: Int, _ season: Int) -> Void = { _, _ in }
     ) {
         self.homeClient = homeClient
         self.reviewClient = reviewClient
@@ -30,6 +39,9 @@ public struct HomeDependencies {
         self.analytics = analytics
         self.cachedNickname = cachedNickname
         self.imageURL = imageURL
+        self.lastVisitedAnimeId = lastVisitedAnimeId
+        self.showRanking = showRanking
+        self.showExplore = showExplore
     }
 }
 
@@ -42,6 +54,18 @@ public struct HomeBuilder: HomeBuilding {
 
     public func make(_ route: HomeRoute) -> AnyView {
         switch route {
+        case .main:
+            let reducer = HomeMainReducer(
+                homeClient: dependencies.homeClient,
+                navigator: dependencies.navigator,
+                cachedNickname: dependencies.cachedNickname,
+                lastVisitedAnimeId: dependencies.lastVisitedAnimeId,
+                showRanking: dependencies.showRanking,
+                showExplore: dependencies.showExplore
+            )
+            return AnyView(
+                HomeMainView(
+                    state: HomeMainReducer.State(selectedWeekday: .of(Date())), reducer: reducer))
         case .recommendations(_, let animeTitle):
             return makeRecommendations(.forYou(animeTitle: animeTitle))
         case .similarRecommendations(let animeId):

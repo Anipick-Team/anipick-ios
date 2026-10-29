@@ -142,18 +142,69 @@ public struct LiveHomeClient: HomeClient {
         )
     }
 
-    public func weekdayNewAnimes(day: String, sort: String, lastId: Int?)
+    public func weekdayNewAnimes(day: String, sort: String, lastId: Int?, size: Int)
         async throws(TransportError)
         -> WeekdayAnimePage
     {
         let response = try await client.send(
             Self.query(
                 "api/animes",
-                ["day": day, "sort": sort, "lastId": lastId.map(String.init), "size": "18"])
+                ["day": day, "sort": sort, "lastId": lastId.map(String.init), "size": String(size)])
                 as Endpoint<WeekdayResult>)
         return WeekdayAnimePage(
             animes: (response.result?.animes ?? []).map(\.anime),
             lastId: response.result?.cursor?.lastId)
+    }
+
+    public func trending() async throws(TransportError) -> [TrendingAnime] {
+        let response = try await client.send(
+            Self.query("api/home/animes/trending", [:]) as Endpoint<[TrendingDTO]>)
+        return (response.result ?? []).map {
+            TrendingAnime(
+                animeId: $0.animeId, title: $0.title, coverImageUrl: $0.coverImageUrl, rank: $0.rank
+            )
+        }
+    }
+
+    public func homeRecommendations() async throws(TransportError) -> RecommendationPage? {
+        return Self.page(try await client.send(Self.query("api/home/recommendation/animes", [:])))
+    }
+
+    public func homeRecentRecommendations(animeId: Int) async throws(TransportError)
+        -> RecommendationPage?
+    {
+        return Self.page(
+            try await client.send(
+                Self.query("api/home/recommendation/animes/\(animeId)/recent", [:])))
+    }
+
+    public func homeRecentReviews() async throws(TransportError) -> [HomeReview] {
+        let reviews = try await client.send(
+            Self.query("api/home/reviews/recent", [:]) as Endpoint<[HomeReviewDTO]>
+        )
+        .requireResult()
+        return reviews.map {
+            HomeReview(
+                reviewId: $0.reviewId, animeTitle: $0.animeTitle, reviewContent: $0.reviewContent,
+                nickname: $0.nickname, createdAt: $0.createdAt)
+        }
+    }
+
+    public func upcomingSeason() async throws(TransportError) -> UpcomingSeason {
+        let result = try await client.send(
+            Self.query("api/animes/upcoming-season", [:]) as Endpoint<SeasonResult>
+        )
+        .requireResult()
+        return UpcomingSeason(
+            season: result.season, seasonYear: result.seasonYear, animes: result.animes.map(\.anime)
+        )
+    }
+
+    public func homeComingSoon() async throws(TransportError) -> [HomeAnime] {
+        return try await client.send(
+            Self.query("api/home/animes/coming-soon", [:]) as Endpoint<[AnimeDTO]>
+        )
+        .requireResult().map(\.anime)
     }
 
     static func query<Result>(_ path: String, _ parameters: [String: String?]) -> Endpoint<Result> {
@@ -288,4 +339,28 @@ struct StudioDTO: Decodable, Sendable {
     var studio: SearchStudio {
         return SearchStudio(studioId: studioId, name: name)
     }
+}
+
+/// 레거시 `TrendingAnimes`
+struct TrendingDTO: Decodable, Sendable {
+    let animeId: Int?
+    let title: String?
+    let coverImageUrl: String?
+    let rank: Int?
+}
+
+/// 레거시 `Review` (홈 최근 리뷰)
+struct HomeReviewDTO: Decodable, Sendable {
+    let reviewId: Int?
+    let animeTitle: String?
+    let reviewContent: String?
+    let nickname: String?
+    let createdAt: String?
+}
+
+/// 레거시 `AnimeSeasonResult` (모두 필수 값)
+struct SeasonResult: Decodable, Sendable {
+    let season: Int
+    let seasonYear: Int
+    let animes: [AnimeDTO]
 }

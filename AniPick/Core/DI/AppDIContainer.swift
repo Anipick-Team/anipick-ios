@@ -142,7 +142,14 @@ struct AppDIContainer {
             navigator: navigator,
             analytics: AppAnalytics.tracker,
             cachedNickname: { UserDefaultsManager.shared.getNickname() },
-            imageURL: { URL(string: "\(NetworkManager.baseUrl)api/image/\($0)")! }
+            imageURL: { URL(string: "\(NetworkManager.baseUrl)api/image/\($0)")! },
+            lastVisitedAnimeId: { UserDefaultsManager.shared.getLastVisitedAnimeId() },
+            // 레거시 HomeViewModel.moveToRankingView·moveToExploreView 그대로 (탭 구조는 Phase 4)
+            showRanking: { navigationManager.push(route: .content(activeTab: .ranking)) },
+            showExplore: { year, season in
+                appState.pushExplore(year: String(year), season: String(season))
+                navigationManager.push(route: .content(activeTab: .research))
+            }
         )
     )
 

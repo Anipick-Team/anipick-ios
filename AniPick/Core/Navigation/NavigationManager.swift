@@ -236,6 +236,7 @@ extension HomeRoute {
     /// 레거시 `AppRoute`의 화면 이름 (R14)
     var screenName: String {
         switch self {
+        case .main: return "home"
         case .search: return "home_search"
         case .recommendations, .similarRecommendations: return "recommend"
         case .comingSoon: return "coming_soon"

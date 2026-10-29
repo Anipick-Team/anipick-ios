@@ -90,7 +90,7 @@ struct AppEntryView: View {
                     case .homeSearch:
                         AppDIContainer.homeBuilder.make(.search)
                     case .homeView:
-                        AppDIContainer.makeHomeView()
+                        AppDIContainer.homeBuilder.make(.main)
                     case .editNickname:
                         AppDIContainer.settingBuilder.make(.editNickname)
                     case .editEmail:
