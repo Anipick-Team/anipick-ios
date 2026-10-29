@@ -8,6 +8,7 @@ import ExploreInterface
 import FeatureTestSupport
 import Foundation
 import MVICore
+import ReviewClientTesting
 import Testing
 import os
 
@@ -20,6 +21,7 @@ struct AnimeDetailReducerTests {
     private let tracker = RecordingTracker()
     private let client = MockDetailClient()
     private let community = MockCommunityClient()
+    private let reviews = MockReviewClient()
     private let visited = OSAllocatedUnfairLock<[Int]>(initialState: [])
     private let shared = OSAllocatedUnfairLock<[String]>(initialState: [])
     private let opened = OSAllocatedUnfairLock<[URL]>(initialState: [])
@@ -28,8 +30,8 @@ struct AnimeDetailReducerTests {
         return Store(
             initialState: .init(animeId: animeId),
             reducer: AnimeDetailReducer(
-                detailClient: client, communityClient: community, navigator: navigator,
-                analytics: tracker,
+                detailClient: client, reviewClient: reviews, communityClient: community,
+                navigator: navigator, analytics: tracker,
                 setLastVisitedAnimeId: { [visited] id in visited.withLock { $0.append(id) } },
                 shareAnime: { [shared] id, title in shared.withLock { $0.append("\(id) \(title)") }
                 },

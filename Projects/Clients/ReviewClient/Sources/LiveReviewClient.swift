@@ -86,6 +86,66 @@ public struct LiveReviewClient: ReviewClient {
             Endpoint(method: .post, path: "api/\(id)/block-user", requiresAuth: true))
     }
 
+    public func animeReviews(
+        animeId: Int, sort: String, includesSpoiler: Bool, lastValue: String?, lastId: Int?
+    )
+        async throws(TransportError) -> AnimeReviewPage
+    {
+        let response = try await client.send(
+            Self.animeReviewsEndpoint(
+                animeId: animeId, sort: sort, includesSpoiler: includesSpoiler,
+                lastValue: lastValue, lastId: lastId))
+        return AnimeReviewPage(
+            reviews: response.result?.reviews?.map(\.review),
+            lastId: response.result?.cursor?.lastId,
+            lastValue: response.result?.cursor?.lastValue)
+    }
+
+    /// 레거시 `AnimeAPI.reviewList`
+    static func animeReviewsEndpoint(
+        animeId: Int, sort: String, includesSpoiler: Bool, lastValue: String?, lastId: Int?
+    ) -> Endpoint<RecentResult> {
+        let parameters: [String: String?] = [
+            "sort": sort, "isSpoiler": includesSpoiler ? "true" : "false", "lastValue": lastValue,
+            "lastId": lastId.map(String.init), "size": "10",
+        ]
+        return Endpoint(
+            method: .get,
+            path: "api/animes/\(animeId)/reviews",
+            query: parameters.compactMapValues { $0 }.sorted { $0.key < $1.key }
+                .map { URLQueryItem(name: $0.key, value: $0.value) },
+            requiresAuth: true
+        )
+    }
+
+    public func myReview(animeId: Int) async throws(TransportError) -> MyReview? {
+        let response = try await client.send(
+            Endpoint<MyReviewResult>(
+                method: .get, path: "api/animes/\(animeId)/my-review", requiresAuth: true))
+        return response.result.map {
+            MyReview(
+                reviewId: $0.reviewId, rating: $0.rating, content: $0.content,
+                createdAt: $0.createdAt,
+                likeCount: $0.likeCount)
+        }
+    }
+
+    public func registerRating(animeId: Int, rating: Double) async throws(TransportError) {
+        try await sendReadingBody(
+            Endpoint(
+                method: .post, path: "api/rating/\(animeId)/animes",
+                body: .json(RatingOnlyBody(rating: rating)),
+                requiresAuth: true))
+    }
+
+    public func editRating(reviewId: Int, rating: Double) async throws(TransportError) {
+        try await sendReadingBody(
+            Endpoint(
+                method: .patch, path: "api/rating/\(reviewId)/animes",
+                body: .json(RatingOnlyBody(rating: rating)),
+                requiresAuth: true))
+    }
+
     /// 레거시는 `.validate()` 없이 `BaseResponse`로 읽기만 한다. HTTP 상태와 무관하게 {code, value}를 읽으면 성공이다
     private func sendReadingBody(_ endpoint: Endpoint<EmptyResult>) async throws(TransportError) {
         let data = try await client.sendRaw(endpoint)
@@ -140,6 +200,7 @@ struct BodyEnvelope: Decodable {
 struct RecentResult: Decodable, Sendable {
     struct Cursor: Decodable, Sendable {
         let lastId: Int?
+        let lastValue: String?
     }
 
     struct Item: Decodable, Sendable {
@@ -156,6 +217,8 @@ struct RecentResult: Decodable, Sendable {
         let likeCount: Int?
         let likedByCurrentUser: Bool?
         let content: String?
+        let isMine: Bool?
+        let isSpoiler: Bool?
 
         var review: RecentReview {
             return RecentReview(
@@ -166,10 +229,25 @@ struct RecentResult: Decodable, Sendable {
                 profileImageId: profileImageUrl.map {
                     Int($0.components(separatedBy: "/").last ?? "") ?? 0
                 },
-                createdAt: createdAt, likeCount: likeCount, isLiked: likedByCurrentUser)
+                createdAt: createdAt, likeCount: likeCount, isLiked: likedByCurrentUser,
+                isMine: isMine,
+                isSpoiler: isSpoiler)
         }
     }
 
     let cursor: Cursor?
     let reviews: [Item]?
+}
+
+struct RatingOnlyBody: Encodable, Sendable {
+    let rating: Double
+}
+
+/// 레거시 `MyReviewItem`
+struct MyReviewResult: Decodable, Sendable {
+    let reviewId: Int?
+    let rating: Double?
+    let content: String?
+    let createdAt: String?
+    let likeCount: Int?
 }

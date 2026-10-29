@@ -13,6 +13,7 @@ import DetailClientInterface
 import DetailClientTesting
 import FeatureTestSupport
 import Navigation
+import ReviewClientTesting
 import SwiftUI
 import Testing
 
@@ -84,12 +85,10 @@ struct AnimeDetailEquivalenceTests {
         return DetailFeature.AnimeDetailView(
             state: state,
             reducer: AnimeDetailReducer(
-                detailClient: MockDetailClient(), communityClient: MockCommunityClient(),
+                detailClient: MockDetailClient(), reviewClient: MockReviewClient(), communityClient: MockCommunityClient(),
                 navigator: LegacyNavigator(navigationManager: NavigationManager()), analytics: RecordingTracker(),
-                setLastVisitedAnimeId: { _ in }, shareAnime: { _, _ in }, openURL: { _ in })
-        ) { _ in
-            EmptyView()
-        }
+                setLastVisitedAnimeId: { _ in }, shareAnime: { _, _ in }, openURL: { _ in }),
+            imageURL: { URL(string: "https://example.invalid/\($0)")! })
     }
 
     @Test(

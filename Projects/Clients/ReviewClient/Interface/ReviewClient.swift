@@ -23,6 +23,51 @@ public protocol ReviewClient: Sendable {
     func reportReview(id: Int, message: String) async throws(TransportError)
     /// 사용자 차단 (`POST api/{userId}/block-user`). 신고와 같이 본문을 읽으면 성공이다
     func blockUser(id: Int) async throws(TransportError)
+
+    /// 애니의 리뷰 (`GET api/animes/{id}/reviews`, sort·isSpoiler·lastValue·lastId·size=10).
+    /// 결과가 없으면 목록·커서가 모두 nil인 페이지
+    func animeReviews(
+        animeId: Int, sort: String, includesSpoiler: Bool, lastValue: String?, lastId: Int?
+    )
+        async throws(TransportError) -> AnimeReviewPage
+    /// 이 애니의 내 리뷰 (`GET api/animes/{id}/my-review`). 없으면 nil
+    func myReview(animeId: Int) async throws(TransportError) -> MyReview?
+    /// 별점만 등록 (`POST api/rating/{animeId}/animes` JSON {rating}). 본문을 읽으면 성공이다
+    func registerRating(animeId: Int, rating: Double) async throws(TransportError)
+    /// 별점 수정 (`PATCH api/rating/{reviewId}/animes` JSON {rating}). 본문을 읽으면 성공이다
+    func editRating(reviewId: Int, rating: Double) async throws(TransportError)
+}
+
+/// 애니 리뷰 한 페이지. reviews가 nil이면 화면을 바꾸지 않는다 (커서는 바꾼다)
+public struct AnimeReviewPage: Equatable, Sendable {
+    public let reviews: [RecentReview]?
+    public let lastId: Int?
+    public let lastValue: String?
+
+    public init(reviews: [RecentReview]?, lastId: Int?, lastValue: String?) {
+        self.reviews = reviews
+        self.lastId = lastId
+        self.lastValue = lastValue
+    }
+}
+
+/// 이 애니의 내 리뷰 (레거시 `MyReviewItem`)
+public struct MyReview: Equatable, Sendable {
+    public let reviewId: Int?
+    public let rating: Double?
+    public let content: String?
+    public let createdAt: String?
+    public let likeCount: Int?
+
+    public init(
+        reviewId: Int?, rating: Double?, content: String?, createdAt: String?, likeCount: Int?
+    ) {
+        self.reviewId = reviewId
+        self.rating = rating
+        self.content = content
+        self.createdAt = createdAt
+        self.likeCount = likeCount
+    }
 }
 
 /// 최근 리뷰 한 칸 (레거시 `ReviewItem`)
@@ -41,13 +86,18 @@ public struct RecentReview: Equatable, Sendable {
     public let createdAt: String?
     public var likeCount: Int?
     public var isLiked: Bool?
+    /// 애니 상세의 리뷰 목록만 쓴다
+    public let isMine: Bool?
+    public let isSpoiler: Bool?
 
     public init(
         reviewId: Int?, userId: Int?, animeId: Int?, animeTitle: String?,
         animeCoverImageUrl: String?,
         rating: Double?, text: String, nickname: String?, profileImageId: Int?, createdAt: String?,
-        likeCount: Int?, isLiked: Bool?
+        likeCount: Int?, isLiked: Bool?, isMine: Bool? = nil, isSpoiler: Bool? = nil
     ) {
+        self.isMine = isMine
+        self.isSpoiler = isSpoiler
         self.reviewId = reviewId
         self.userId = userId
         self.animeId = animeId

@@ -5,20 +5,18 @@ import SwiftUI
 import UIKit
 
 /// 레거시 `AnimationInfoView`와 같은 배치. 머리가 접혔는지(스크롤 -120)는 레이아웃 상태라 View가 들고 있다.
-struct AnimeDetailView<ReviewTab: View>: View {
+struct AnimeDetailView: View {
     @State private var store: Store<AnimeDetailReducer>
     @State private var headerCollapsed = false
-    private let reviewTab: (Store<AnimeDetailReducer>) -> ReviewTab
-    private let scrolled: (CGFloat) -> Void
+    @State private var width: CGFloat = 0
+    private let imageURL: (Int) -> URL
 
     init(
         state: AnimeDetailReducer.State, reducer: AnimeDetailReducer,
-        scrolled: @escaping (CGFloat) -> Void = { _ in },
-        @ViewBuilder reviewTab: @escaping (Store<AnimeDetailReducer>) -> ReviewTab
+        imageURL: @escaping (Int) -> URL
     ) {
         _store = State(initialValue: Store(initialState: state, reducer: reducer))
-        self.scrolled = scrolled
-        self.reviewTab = reviewTab
+        self.imageURL = imageURL
     }
 
     private var state: AnimeDetailReducer.State {
@@ -34,8 +32,12 @@ struct AnimeDetailView<ReviewTab: View>: View {
                 // 스크롤 위치를 재는 자리 (레거시: 리뷰 메뉴를 닫는 데 쓴다). 아래 내용과 기본 간격 8이 생기는 것도 레거시 그대로
                 GeometryReader { geo in
                     Color.clear
-                        .onChange(of: geo.frame(in: .global).minY) { _, newValue in
-                            scrolled(newValue)
+                        .onChange(of: geo.frame(in: .global).minY) {
+                            if store.state.isMyReviewMenuPresented
+                                || store.state.isBlockMenuPresented
+                            {
+                                store.send(.scrolled)
+                            }
                         }
                 }
                 .frame(height: 0)
@@ -59,12 +61,19 @@ struct AnimeDetailView<ReviewTab: View>: View {
                 }
             }
 
+            reviewPopups()
+
             if let url = state.previewImageURL {
                 ImagePreviewPopup(imageURL: url) {
                     store.send(.previewClosed)
                 }
                 .zIndex(1001)
             }
+        }
+        .onGeometryChange(for: CGFloat.self) { proxy in
+            return proxy.size.width
+        } action: { newWidth in
+            width = newWidth
         }
         .overlay(alignment: .top) {
             if headerCollapsed {
@@ -85,7 +94,86 @@ struct AnimeDetailView<ReviewTab: View>: View {
         .onAppear {
             store.send(.appeared)
         }
+        .onDisappear {
+            store.send(.disappeared)
+        }
         .navigationBarBackButtonHidden()
+        .overlay(alignment: .top) {
+            VStack(spacing: 8) {
+                if state.isBlockToastPresented {
+                    toast("사용자 차단이 완료되었습니다.")
+                }
+                if state.isReportToastPresented {
+                    toast("신고가 정상적으로 접수되었습니다.")
+                }
+                if state.isRatingToastPresented {
+                    toast("리뷰가 성공적으로 작성되었습니다!")
+                }
+            }
+        }
+        .animation(.default, value: state.isBlockToastPresented)
+        .animation(.default, value: state.isReportToastPresented)
+        .animation(.default, value: state.isRatingToastPresented)
+    }
+
+    /// 리뷰 메뉴와 신고·차단 창 (레거시 상세 화면 맨 위)
+    @ViewBuilder
+    private func reviewPopups() -> some View {
+        if state.isBlockConfirmPresented {
+            BlockUserPopup {
+                store.send(.blockCancelled)
+            } okAction: {
+                store.send(.blockConfirmed)
+            }
+        }
+
+        if state.isReportConfirmPresented {
+            ReportConfirmPopup {
+                store.send(.reportConfirmCancelled)
+            } nextAction: {
+                store.send(.reportConfirmNextTapped)
+            }
+        }
+
+        if state.isReportReasonPresented {
+            ReportReasonPopup {
+                store.send(.reportReasonCancelled)
+            } okAction: { reason in
+                store.send(.reportReasonConfirmed(reason))
+            }
+        }
+
+        // 레거시: 화면 너비 - 70, ⋮ 버튼 아래 + 60
+        if state.isMyReviewMenuPresented {
+            MyReviewMenu {
+                store.send(.myReviewDeleteTapped)
+            } editAction: {
+                store.send(.myReviewEditTapped)
+            }
+            .position(x: width - 70, y: state.menuAnchorMaxY + 60)
+            .zIndex(1000)
+        }
+
+        if state.isBlockMenuPresented {
+            ReportBlockMenu {
+                store.send(.reportMenuTapped)
+            } blockAction: {
+                store.send(.blockMenuTapped)
+            }
+            .position(x: width - 70, y: state.menuAnchorMaxY + 60)
+            .zIndex(1000)
+        }
+    }
+
+    private func toast(_ message: String) -> some View {
+        return Text(message)
+            .textStyle(size: 14, color: .gray5)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color.anipickBlack)
+            .cornerRadius(8)
+            .padding(.horizontal, 20)
+            .transition(.move(edge: .top).combined(with: .opacity))
     }
 
     // MARK: - 배너·표지
@@ -259,7 +347,7 @@ struct AnimeDetailView<ReviewTab: View>: View {
             case .info:
                 AnimeInfoTab(info: info, state: state) { store.send($0) }
             case .reviews:
-                reviewTab(store)
+                AnimeReviewsTab(state: state, imageURL: imageURL) { store.send($0) }
             case .community:
                 EmptyView()
             }

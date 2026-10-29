@@ -4,6 +4,7 @@ import DetailClientTesting
 import DetailFeature
 import DetailInterface
 import FeatureTestSupport
+import ReviewClientTesting
 import SwiftUI
 
 /// 서버 없이 상세 화면들을 띄운다.
@@ -27,7 +28,8 @@ struct ExampleRoot: View {
         NavigationStack(path: $navigator.path) {
             DetailBuilder(
                 dependencies: DetailDependencies(
-                    detailClient: client, communityClient: MockCommunityClient(),
+                    detailClient: client, reviewClient: MockReviewClient(),
+                    communityClient: MockCommunityClient(),
                     navigator: navigator,
                     analytics: RecordingTracker())
             )

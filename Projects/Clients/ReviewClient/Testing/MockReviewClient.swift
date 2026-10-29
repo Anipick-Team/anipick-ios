@@ -28,14 +28,21 @@ public final class MockReviewClient: ReviewClient {
         var likeResult: Result<Bool, TransportError> = .success(true)
         var actionResult: Result<Void, TransportError> = .success(())
         var actions: [Action] = []
+        var animePages: [Result<AnimeReviewPage, TransportError>] = []
+        var myReviews: [Result<MyReview?, TransportError>] = []
     }
 
     /// 최근 리뷰 화면의 요청 기록
-    public enum Action: Equatable, Sendable {
+    public enum Action: Hashable, Sendable {
         case recent(lastId: Int?)
         case like(id: Int, liked: Bool)
         case report(id: Int, message: String)
         case block(userId: Int)
+        case animeReviews(
+            animeId: Int, sort: String, includesSpoiler: Bool, lastValue: String?, lastId: Int?)
+        case myReview(animeId: Int)
+        case registerRating(animeId: Int, rating: Double)
+        case editRating(reviewId: Int, rating: Double)
     }
 
     private let state: OSAllocatedUnfairLock<State>
@@ -106,6 +113,68 @@ public final class MockReviewClient: ReviewClient {
         .get()
     }
 
+    /// 애니 상세 리뷰 탭 결과. 각각 차례로 (다 쓰면 마지막 것을 반복)
+    public func stubAnimeReviews(
+        _ pages: [Result<AnimeReviewPage, TransportError>],
+        myReviews: [Result<MyReview?, TransportError>] = []
+    ) {
+        state.withLock {
+            $0.animePages = pages
+            $0.myReviews = myReviews
+        }
+    }
+
+    public func animeReviews(
+        animeId: Int, sort: String, includesSpoiler: Bool, lastValue: String?, lastId: Int?
+    )
+        async throws(TransportError) -> AnimeReviewPage
+    {
+        let result = state.withLock { state -> Result<AnimeReviewPage, TransportError> in
+            state.actions.append(
+                .animeReviews(
+                    animeId: animeId, sort: sort, includesSpoiler: includesSpoiler,
+                    lastValue: lastValue, lastId: lastId))
+            guard let first = state.animePages.first else {
+                return .success(AnimeReviewPage(reviews: [], lastId: nil, lastValue: nil))
+            }
+            if state.animePages.count > 1 {
+                state.animePages.removeFirst()
+            }
+            return first
+        }
+        return try result.get()
+    }
+
+    public func myReview(animeId: Int) async throws(TransportError) -> MyReview? {
+        let result = state.withLock { state -> Result<MyReview?, TransportError> in
+            state.actions.append(.myReview(animeId: animeId))
+            guard let first = state.myReviews.first else {
+                return .success(nil)
+            }
+            if state.myReviews.count > 1 {
+                state.myReviews.removeFirst()
+            }
+            return first
+        }
+        return try result.get()
+    }
+
+    public func registerRating(animeId: Int, rating: Double) async throws(TransportError) {
+        try state.withLock {
+            $0.actions.append(.registerRating(animeId: animeId, rating: rating))
+            return $0.actionResult
+        }
+        .get()
+    }
+
+    public func editRating(reviewId: Int, rating: Double) async throws(TransportError) {
+        try state.withLock {
+            $0.actions.append(.editRating(reviewId: reviewId, rating: rating))
+            return $0.actionResult
+        }
+        .get()
+    }
+
     public var written: [WrittenReview] {
         return state.withLock { $0.written }
     }
@@ -160,14 +229,15 @@ public final class MockReviewClient: ReviewClient {
 
 extension RecentReview {
     /// 테스트·Example용
-    public static func sample(_ id: Int, likeCount: Int? = 1, isLiked: Bool? = false)
-        -> RecentReview
-    {
+    public static func sample(
+        _ id: Int, likeCount: Int? = 1, isLiked: Bool? = false, isMine: Bool? = nil,
+        isSpoiler: Bool? = nil
+    ) -> RecentReview {
         return RecentReview(
             reviewId: id, userId: 100 + id, animeId: 10 + id, animeTitle: "애니 \(id)",
             animeCoverImageUrl: nil,
             rating: 4.5, text: "리뷰 \(id)", nickname: "닉네임 \(id)", profileImageId: nil,
             createdAt: "2026.10.30",
-            likeCount: likeCount, isLiked: isLiked)
+            likeCount: likeCount, isLiked: isLiked, isMine: isMine, isSpoiler: isSpoiler)
     }
 }

@@ -159,4 +159,69 @@ struct LiveReviewClientTests {
             try await LiveReviewClient(client: broken.client).blockUser(id: 9)
         }
     }
+
+    @Test(
+        "RT1. 애니 리뷰: GET api/animes/{id}/reviews, sort·isSpoiler(true/false)·lastValue·lastId·size=10. 결과가 없으면 목록·커서 nil"
+    )
+    func animeReviews() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"cursor":{"lastId":4,"lastValue":"v"},"reviews":[{"reviewId":4,"isMine":true,"isSpoiler":true,"content":"c"}]}}"#
+            ))
+
+        let page = try await LiveReviewClient(client: stub.client)
+            .animeReviews(
+                animeId: 7, sort: "likes", includesSpoiler: false, lastValue: "x", lastId: 3)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/animes/7/reviews")
+        let items =
+            URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
+        #expect(
+            Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })
+                == [
+                    "sort": "likes", "isSpoiler": "false", "lastValue": "x", "lastId": "3",
+                    "size": "10",
+                ])
+        #expect(page.lastId == 4)
+        #expect(page.lastValue == "v")
+        #expect(page.reviews?.first?.isMine == true)
+        #expect(page.reviews?.first?.isSpoiler == true)
+
+        let none = ClientStub(.json(#"{"code":200,"value":"OK","result":null}"#))
+        #expect(
+            try await LiveReviewClient(client: none.client)
+                .animeReviews(
+                    animeId: 7, sort: "latest", includesSpoiler: true, lastValue: nil, lastId: nil)
+                == AnimeReviewPage(reviews: nil, lastId: nil, lastValue: nil))
+    }
+
+    @Test(
+        "RT2. 내 리뷰: GET api/animes/{id}/my-review (없으면 nil). 별점 등록 POST·수정 PATCH api/rating/{id}/animes {rating}"
+    )
+    func myReviewAndRating() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"reviewId":9,"rating":3.5,"content":"c","createdAt":"d","likeCount":2}}"#
+            ))
+        let client = LiveReviewClient(client: stub.client)
+
+        let mine = try await client.myReview(animeId: 7)
+        try await client.registerRating(animeId: 7, rating: 4)
+        try await client.editRating(reviewId: 9, rating: 2.5)
+
+        #expect(
+            mine == MyReview(reviewId: 9, rating: 3.5, content: "c", createdAt: "d", likeCount: 2))
+        #expect(
+            stub.requests.map { "\($0.httpMethod ?? "") \($0.url?.path() ?? "")" }
+                == [
+                    "GET /api/animes/7/my-review", "POST /api/rating/7/animes",
+                    "PATCH /api/rating/9/animes",
+                ])
+        #expect(
+            String(decoding: try JSONEncoder().encode(RatingOnlyBody(rating: 4)), as: UTF8.self)
+                == #"{"rating":4}"#)
+        let none = ClientStub(.json(#"{"code":200,"value":"OK","result":null}"#))
+        #expect(try await LiveReviewClient(client: none.client).myReview(animeId: 7) == nil)
+    }
 }

@@ -141,6 +141,7 @@ struct AppDIContainer {
     static let detailBuilder: any DetailBuilding = DetailBuilder(
         dependencies: DetailDependencies(
             detailClient: LiveDetailClient(client: AppSession.httpClient),
+            reviewClient: LiveReviewClient(client: AppSession.httpClient),
             communityClient: LiveCommunityClient(
                 client: AppSession.httpClient, imageBaseURL: URL(string: NetworkManager.baseUrl)!),
             navigator: navigator,
@@ -151,7 +152,8 @@ struct AppDIContainer {
                 let text = "애니픽에서 '\(title)'을 확인해보세요!"
                 ShareSheet.present(items: DeepLink.anime(id: animeId).universalLink.map { [text, $0] } ?? [text])
             },
-            openURL: { UIApplication.shared.open($0) }
+            openURL: { UIApplication.shared.open($0) },
+            imageURL: { URL(string: "\(NetworkManager.baseUrl)api/image/\($0)")! }
         )
     )
 

@@ -4,10 +4,12 @@ import DetailClientInterface
 import Foundation
 import DetailInterface
 import Navigation
+import ReviewClientInterface
 import SwiftUI
 
 public struct DetailDependencies {
     public let detailClient: any DetailClient
+    public let reviewClient: any ReviewClient
     public let communityClient: any CommunityClient
     public let navigator: any Navigator
     public let analytics: any AnalyticsTracking
@@ -16,17 +18,25 @@ public struct DetailDependencies {
     /// 공유 시트 (App: 문구 + Universal Link — 딥링크 경로는 App이 안다)
     public let shareAnime: @MainActor (_ animeId: Int, _ title: String) -> Void
     public let openURL: @MainActor (URL) -> Void
+    /// 이미지 id를 받을 주소 (`{서버}api/image/{id}`, 인증 필요). 리뷰 작성자 프로필에 쓴다
+    public let imageURL: @Sendable (Int) -> URL
 
     public init(
         detailClient: any DetailClient,
+        reviewClient: any ReviewClient,
         communityClient: any CommunityClient,
         navigator: any Navigator,
         analytics: any AnalyticsTracking,
         setLastVisitedAnimeId: @escaping @MainActor (Int) -> Void = { _ in },
         shareAnime: @escaping @MainActor (_ animeId: Int, _ title: String) -> Void = { _, _ in },
-        openURL: @escaping @MainActor (URL) -> Void = { _ in }
+        openURL: @escaping @MainActor (URL) -> Void = { _ in },
+        imageURL: @escaping @Sendable (Int) -> URL = {
+            URL(string: "https://example.invalid/api/image/\($0)")!
+        }
     ) {
         self.detailClient = detailClient
+        self.reviewClient = reviewClient
+        self.imageURL = imageURL
         self.communityClient = communityClient
         self.navigator = navigator
         self.analytics = analytics
@@ -71,9 +81,9 @@ public struct DetailBuilder: DetailBuilding {
                         detailClient: dependencies.detailClient, navigator: dependencies.navigator))
             )
         case .anime(let id):
-            // 리뷰 탭은 Detail-5에서 옮긴다. 그때까지 App이 이 Route를 레거시 화면으로 가로챈다
             let reducer = AnimeDetailReducer(
                 detailClient: dependencies.detailClient,
+                reviewClient: dependencies.reviewClient,
                 communityClient: dependencies.communityClient,
                 navigator: dependencies.navigator,
                 analytics: dependencies.analytics,
@@ -82,10 +92,9 @@ public struct DetailBuilder: DetailBuilding {
                 openURL: dependencies.openURL
             )
             return AnyView(
-                AnimeDetailView(state: AnimeDetailReducer.State(animeId: id), reducer: reducer) {
-                    _ in
-                    EmptyView()
-                })
+                AnimeDetailView(
+                    state: AnimeDetailReducer.State(animeId: id), reducer: reducer,
+                    imageURL: dependencies.imageURL))
         }
     }
 

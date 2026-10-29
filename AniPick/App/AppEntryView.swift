@@ -44,14 +44,8 @@ struct AppEntryView: View {
             }
             // 아직 레거시인 화면: 이관한 Feature가 push한 Route를 레거시 화면에 연결한다
             .navigationDestination(for: DetailRoute.self) { route in
-                switch route {
-                case .anime(let id):
-                    AppDIContainer.makeAnimeDetailView(animeId: id)
-                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
-                default:
-                    AppDIContainer.detailBuilder.make(route)
-                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
-                }
+                AppDIContainer.detailBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: ExploreRoute.self) { route in
                 AppDIContainer.exploreBuilder.make(route)
@@ -124,7 +118,7 @@ struct AppEntryView: View {
                         // 레거시도 연도·분기 인자를 쓰지 않는다
                         AppDIContainer.exploreBuilder.make(.main)
                     case .animeDetail(let animeId):
-                        AppDIContainer.makeAnimeDetailView(animeId: animeId)
+                        AppDIContainer.detailBuilder.make(.anime(id: animeId))
                     case .resetPassword:
                         AppDIContainer.authBuilder.make(.resetPassword)
                     case .content(let activeTab):

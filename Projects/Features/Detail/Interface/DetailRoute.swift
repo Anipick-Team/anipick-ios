@@ -1,9 +1,6 @@
 import SwiftUI
 
 /// 애니 상세 Feature의 화면.
-///
-/// 아직 레거시인 화면(`anime`)도 미리 둔다. 이관하기 전까지는 App이 이 Route를 가로채
-/// 레거시 화면을 보여 준다 (같은 Feature 안의 Strangler).
 public enum DetailRoute: Hashable, Sendable {
     /// 애니 상세 (레거시 `AppRoute.animeDetail`)
     case anime(id: Int)
