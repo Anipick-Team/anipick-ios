@@ -37,11 +37,24 @@ public enum EmailLoginResult: Equatable, Sendable {
     case unexpected(code: Int)
 }
 
+/// 이메일 회원가입 결과
+public enum EmailSignupResult: Equatable, Sendable {
+    /// 200. 토큰·사용자 정보는 Client가 저장했다
+    case success
+    /// 109
+    case duplicatedEmail
+    /// 그 밖의 코드 (레거시는 아무것도 하지 않는다)
+    case unexpected(code: Int)
+}
+
 /// 로그인·로그아웃.
 public protocol AuthClient: Sendable {
     /// `POST api/users/login`. 성공하면 토큰과 사용자 정보(닉네임·이메일·sns 없음·userId)를 이 기기에 저장한다
     func loginWithEmail(email: String, password: String) async throws(TransportError)
         -> EmailLoginResult
+    /// `POST api/users/signup`. 성공하면 토큰과 사용자 정보(닉네임·이메일·sns 없음·userId 없음)를 저장한다
+    func signupWithEmail(email: String, password: String, agreedToTerms: Bool)
+        async throws(TransportError) -> EmailSignupResult
     /// 서버 응답을 기다린 뒤, 결과와 무관하게 이 기기의 로그인 정보를 지운다 (이메일 변경 후).
     func logout() async
     /// 지우기 직전 토큰으로 서버에 알려 두고, 응답을 기다리지 않고 바로 지운다 (설정 → 로그아웃).

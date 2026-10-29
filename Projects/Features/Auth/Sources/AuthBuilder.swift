@@ -1,6 +1,7 @@
 import Analytics
 import AuthClientInterface
 import AuthInterface
+import Foundation
 import Navigation
 import SwiftUI
 
@@ -10,17 +11,21 @@ public struct AuthDependencies {
     public let analytics: any AnalyticsTracking
     /// 로그인을 마쳤을 때 (App: 루트를 홈으로 바꾼다 — `NavigationManager.completeLogin`)
     public let onLoginCompleted: @MainActor @Sendable () -> Void
+    /// 약관·개인정보 처리방침 외부 링크
+    public let openURL: @MainActor @Sendable (URL) -> Void
 
     public init(
         authClient: any AuthClient,
         navigator: any Navigator,
         analytics: any AnalyticsTracking,
-        onLoginCompleted: @escaping @MainActor @Sendable () -> Void = {}
+        onLoginCompleted: @escaping @MainActor @Sendable () -> Void = {},
+        openURL: @escaping @MainActor @Sendable (URL) -> Void = { _ in }
     ) {
         self.authClient = authClient
         self.navigator = navigator
         self.analytics = analytics
         self.onLoginCompleted = onLoginCompleted
+        self.openURL = openURL
     }
 }
 
@@ -41,9 +46,17 @@ public struct AuthBuilder: AuthBuilding {
                 onLoginCompleted: dependencies.onLoginCompleted
             )
             return AnyView(EmailLoginView(state: EmailLoginReducer.State(), reducer: reducer))
+        case .emailSignup:
+            let reducer = EmailSignupReducer(
+                authClient: dependencies.authClient,
+                navigator: dependencies.navigator,
+                analytics: dependencies.analytics,
+                openURL: dependencies.openURL
+            )
+            return AnyView(EmailSignupView(state: EmailSignupReducer.State(), reducer: reducer))
         case .loginProblem:
             return AnyView(LoginProblemView())
-        case .emailSignup, .findPassword:
+        case .findPassword, .preferenceSelection:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Auth 빌더로 왔다: \(route)")
             return AnyView(EmptyView())

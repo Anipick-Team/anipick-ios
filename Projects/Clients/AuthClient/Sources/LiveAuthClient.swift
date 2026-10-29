@@ -82,6 +82,44 @@ public struct LiveAuthClient: AuthClient {
         }
     }
 
+    public func signupWithEmail(
+        email: String,
+        password: String,
+        agreedToTerms: Bool
+    ) async throws(TransportError) -> EmailSignupResult {
+        let response = try await client.send(
+            Self.signupEndpoint(email: email, password: password, agreedToTerms: agreedToTerms))
+        switch response.code {
+        case 200:
+            // 레거시: result가 없어도 빈 토큰과 "nickname - null"을 저장한다. 가입 응답에는 userId가 없다
+            await storeTokens(
+                response.result?.token?.accessToken ?? "",
+                response.result?.token?.refreshToken ?? "")
+            preferences.set(response.result?.nickname ?? "nickname - null", for: Self.nicknameKey)
+            preferences.set(email, for: Self.emailKey)
+            preferences.set("", for: Self.snsKey)
+            preferences.removeValue(for: Self.userIdKey)
+            return .success
+        case 109:
+            return .duplicatedEmail
+        default:
+            return .unexpected(code: response.code)
+        }
+    }
+
+    /// 레거시는 인증 세션으로 보내 빈(또는 이전) 토큰이 붙었다. 가입에는 토큰이 필요 없어 붙이지 않는다
+    static func signupEndpoint(email: String, password: String, agreedToTerms: Bool) -> Endpoint<
+        LoginResult
+    > {
+        return Endpoint(
+            method: .post,
+            path: "api/users/signup",
+            body: .json(
+                SignupBody(email: email, password: password, termsAndConditions: agreedToTerms)),
+            requiresAuth: false
+        )
+    }
+
     /// 로그인은 토큰 없이 보낸다 — 이전 세션의 낡은 토큰이 붙어 실패하던 문제 (레거시 NetworkManager plainSession)
     static func emailLoginEndpoint(email: String, password: String) -> Endpoint<LoginResult> {
         return Endpoint(
@@ -136,4 +174,10 @@ struct LoginResult: Decodable, Sendable {
     let userId: Int?
     let nickname: String?
     let token: Token?
+}
+
+struct SignupBody: Encodable, Sendable {
+    let email: String
+    let password: String
+    let termsAndConditions: Bool
 }

@@ -273,6 +273,7 @@ extension AuthRoute {
         case .emailSignup: return "email_signup"
         case .findPassword: return "find_password"
         case .loginProblem: return "login_problem"
+        case .preferenceSelection: return "preference_selection"
         }
     }
 }

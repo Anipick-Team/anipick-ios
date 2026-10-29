@@ -50,7 +50,8 @@ struct AppDIContainer {
             authClient: liveAuthClient,
             navigator: navigator,
             analytics: AppAnalytics.tracker,
-            onLoginCompleted: { navigationManager.completeLogin() }
+            onLoginCompleted: { navigationManager.completeLogin() },
+            openURL: { UIApplication.shared.open($0) }
         )
     )
 

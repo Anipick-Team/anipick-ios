@@ -17,14 +17,45 @@ public final class MockAuthClient: AuthClient {
     private let counts = OSAllocatedUnfairLock(initialState: (logout: 0, immediate: 0))
     private let logins = OSAllocatedUnfairLock(initialState: [EmailLogin]())
     private let emailLoginResult: Result<EmailLoginResult, TransportError>
+    private let signupResult: Result<EmailSignupResult, TransportError>
+    private let signups = OSAllocatedUnfairLock(initialState: [Signup]())
+
+    public struct Signup: Equatable, Sendable {
+        public let email: String
+        public let password: String
+        public let agreedToTerms: Bool
+
+        public init(email: String, password: String, agreedToTerms: Bool) {
+            self.email = email
+            self.password = password
+            self.agreedToTerms = agreedToTerms
+        }
+    }
 
     public init(
         emailLoginResult: Result<EmailLoginResult, TransportError> = .success(
             .success(
                 LoggedInUser(
-                    userId: 1, nickname: "애니픽", hasAccessToken: true, reviewCompleted: true)))
+                    userId: 1, nickname: "애니픽", hasAccessToken: true, reviewCompleted: true))),
+        signupResult: Result<EmailSignupResult, TransportError> = .success(.success)
     ) {
         self.emailLoginResult = emailLoginResult
+        self.signupResult = signupResult
+    }
+
+    public var emailSignups: [Signup] {
+        return signups.withLock { $0 }
+    }
+
+    public func signupWithEmail(
+        email: String,
+        password: String,
+        agreedToTerms: Bool
+    ) async throws(TransportError) -> EmailSignupResult {
+        signups.withLock {
+            $0.append(Signup(email: email, password: password, agreedToTerms: agreedToTerms))
+        }
+        return try signupResult.get()
     }
 
     public var emailLogins: [EmailLogin] {

@@ -132,38 +132,14 @@ struct EmailLoginView: View {
     }
 
     private func passwordField() -> some View {
-        let text = Binding(
-            get: { store.state.password },
-            set: { store.send(.passwordChanged($0)) }
-        )
-        let prompt = Text("비밀번호를 입력해주세요")
-            .font(.system(size: 16, weight: .medium))
-            .foregroundColor(.textGray)
-        return ZStack {
-            if store.state.isPasswordVisible {
-                TextField("", text: text, prompt: prompt)
-                    .foregroundColor(.anipickBlack)
-                    .padding(16)
-                    .background(.textFieldBackground)
-                    .cornerRadius(8)
-            } else {
-                SecureField("", text: text, prompt: prompt)
-                    .foregroundColor(.anipickBlack)
-                    .padding(16)
-                    .background(.textFieldBackground)
-                    .cornerRadius(8)
-            }
-
-            HStack {
-                Spacer()
-
-                Button {
-                    store.send(.passwordVisibilityTapped)
-                } label: {
-                    Image(store.state.isPasswordVisible ? .eyeVisibleIcons : .eyeUnvisibleIcons)
-                        .padding(.trailing, 15)
-                }
-            }
+        return PasswordInputField(
+            text: Binding(
+                get: { store.state.password },
+                set: { store.send(.passwordChanged($0)) }
+            ),
+            isVisible: store.state.isPasswordVisible
+        ) {
+            store.send(.passwordVisibilityTapped)
         }
     }
 }

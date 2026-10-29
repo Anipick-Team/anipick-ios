@@ -43,6 +43,11 @@ struct ExampleRoot: View {
                         }
                     }
                 }
+                Section("회원가입") {
+                    Button("성공 → 취향 선택(가짜)") {
+                        open(.emailSignup, result: .missingResult)
+                    }
+                }
                 Section("기타") {
                     Button("로그인 문제") {
                         open(.loginProblem, result: .missingResult)
@@ -51,7 +56,11 @@ struct ExampleRoot: View {
             }
             .navigationTitle(loggedIn ? "로그인 완료" : "로그인 시나리오")
             .navigationDestination(for: AuthRoute.self) { route in
-                builder?.make(route)
+                if route == .preferenceSelection || route == .findPassword {
+                    Text("레거시 화면: \(String(describing: route))")
+                } else {
+                    builder?.make(route)
+                }
             }
         }
     }

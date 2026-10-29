@@ -65,7 +65,9 @@ struct LiveAuthClientTests {
         #expect(loggedOut.withLock { $0 } == 1)
     }
 
-    @Test("EL13. 이메일 로그인: 토큰 없이 POST api/users/login {email,password}. 성공하면 토큰·닉네임·이메일·sns 빈 값·userId 저장")
+    @Test(
+        "EL13. 이메일 로그인: 토큰 없이 POST api/users/login {email,password}. 성공하면 토큰·닉네임·이메일·sns 빈 값·userId 저장"
+    )
     func emailLogin() async throws {
         let stub = ClientStub(
             .json(
@@ -87,26 +89,35 @@ struct LiveAuthClientTests {
         #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
         #expect(
             result
-                == .success(LoggedInUser(userId: 42, nickname: "애니", hasAccessToken: true, reviewCompleted: true)))
+                == .success(
+                    LoggedInUser(
+                        userId: 42, nickname: "애니", hasAccessToken: true, reviewCompleted: true)))
         #expect(stored.withLock { $0 } == ["A", "R"])
         #expect(defaults.string(forKey: "nickname") == "애니")
         #expect(defaults.string(forKey: "email") == "a@b.co")
         #expect(defaults.string(forKey: "sns") == "")
         #expect(defaults.integer(forKey: "userId") == 42)
-        guard case .json(let body) = LiveAuthClient.emailLoginEndpoint(email: "a@b.co", password: "pw1!").body
+        guard
+            case .json(let body) = LiveAuthClient.emailLoginEndpoint(
+                email: "a@b.co", password: "pw1!"
+            ).body
         else {
             Issue.record("JSON 본문이 아니다")
             return
         }
-        let json = try JSONSerialization.jsonObject(with: try JSONEncoder().encode(body)) as? [String: String]
+        let json =
+            try JSONSerialization.jsonObject(with: try JSONEncoder().encode(body))
+            as? [String: String]
         #expect(json == ["email": "a@b.co", "password": "pw1!"])
     }
 
     @Test(
         "EL13. 응답 코드를 결과로 바꾼다 (저장하지 않는다)",
         arguments: [
-            (110, EmailLoginResult.invalidPasswordFormat), (101, .wrongCredentials), (104, .wrongCredentials),
-            (106, .wrongCredentials), (105, .emptyPassword), (112, .accountNotFound), (132, .withdrawn),
+            (110, EmailLoginResult.invalidPasswordFormat), (101, .wrongCredentials),
+            (104, .wrongCredentials),
+            (106, .wrongCredentials), (105, .emptyPassword), (112, .accountNotFound),
+            (132, .withdrawn),
             (102, .emptyEmail), (500, .unexpected(code: 500)),
         ]
     )
@@ -129,5 +140,66 @@ struct LiveAuthClientTests {
             .loginWithEmail(email: "a", password: "b")
 
         #expect(result == .missingResult)
+    }
+
+    @Test(
+        "SU11. 가입: 토큰 없이 POST api/users/signup {email,password,termsAndConditions}. 200이면 토큰·닉네임·이메일 저장, sns 빈 값, userId 지움"
+    )
+    func signup() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"nickname":null,"token":{"accessToken":"A","refreshToken":"R"}}}"#
+            ))
+        let defaults = UserDefaults(suiteName: "auth-\(UUID().uuidString)")!
+        defaults.set(9, forKey: "userId")
+        let stored = OSAllocatedUnfairLock(initialState: [String]())
+        let client = LiveAuthClient(
+            client: stub.client, onLoggedOut: {},
+            storeTokens: { access, refresh in stored.withLock { $0 = [access, refresh] } },
+            preferences: Preferences(defaults: defaults))
+
+        let result = try await client.signupWithEmail(
+            email: "a@b.co", password: "pw", agreedToTerms: true)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/users/signup")
+        #expect(request.value(forHTTPHeaderField: "Authorization") == nil)
+        #expect(result == .success)
+        #expect(stored.withLock { $0 } == ["A", "R"])
+        #expect(defaults.string(forKey: "nickname") == "nickname - null")
+        #expect(defaults.string(forKey: "email") == "a@b.co")
+        #expect(defaults.string(forKey: "sns") == "")
+        #expect(defaults.object(forKey: "userId") == nil)
+        guard
+            case .json(let body) = LiveAuthClient.signupEndpoint(
+                email: "a", password: "b", agreedToTerms: true
+            ).body
+        else {
+            Issue.record("JSON 본문이 아니다")
+            return
+        }
+        let json =
+            try JSONSerialization.jsonObject(with: try JSONEncoder().encode(body)) as? [String: Any]
+        #expect(json?["email"] as? String == "a")
+        #expect(json?["password"] as? String == "b")
+        #expect(json?["termsAndConditions"] as? Bool == true)
+    }
+
+    @Test("SU11. 109는 duplicatedEmail, 그 밖은 unexpected (저장하지 않음)")
+    func signupCodes() async throws {
+        let stored = OSAllocatedUnfairLock(initialState: 0)
+        for (code, expected) in [
+            (109, EmailSignupResult.duplicatedEmail), (500, .unexpected(code: 500)),
+        ] {
+            let stub = ClientStub(.json(#"{"code":\#(code),"value":"FAIL","errorValue":null}"#))
+            let client = LiveAuthClient(
+                client: stub.client, onLoggedOut: {},
+                storeTokens: { _, _ in stored.withLock { $0 += 1 } })
+
+            #expect(
+                try await client.signupWithEmail(email: "a", password: "b", agreedToTerms: true)
+                    == expected)
+        }
+        #expect(stored.withLock { $0 } == 0)
     }
 }

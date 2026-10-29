@@ -69,10 +69,10 @@ struct AppEntryView: View {
             }
             .navigationDestination(for: AuthRoute.self) { route in
                 Group {
-                    // 아직 레거시인 가입·비밀번호 찾기는 App이 가로챈다 (Auth 이관 중)
+                    // 아직 레거시인 비밀번호 찾기·취향 선택은 App이 가로챈다 (Auth 이관 중)
                     switch route {
-                    case .emailSignup:
-                        AppDIContainer.makeEmailSignupView()
+                    case .preferenceSelection:
+                        AppDIContainer.makePreferenceSelectionView()
                     case .findPassword:
                         AppDIContainer.makeFindPasswordView()
                     default:
@@ -93,7 +93,7 @@ struct AppEntryView: View {
                 Group {
                     switch route {
                     case .emailSignup:
-                        AppDIContainer.makeEmailSignupView()
+                        AppDIContainer.authBuilder.make(.emailSignup)
                     case .emailLogin:
                         AppDIContainer.authBuilder.make(.emailLogin)
                     case .LoginProblem:
