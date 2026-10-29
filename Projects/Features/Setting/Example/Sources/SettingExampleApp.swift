@@ -1,4 +1,5 @@
 import AuthClientTesting
+import FeatureTestSupport
 import Navigation
 import SettingFeature
 import SettingInterface
@@ -13,30 +14,6 @@ struct SettingExampleApp: App {
             ExampleRoot()
         }
     }
-}
-
-@Observable
-final class ExampleNavigator: Navigator {
-    var path = NavigationPath()
-
-    func push(_ route: some Hashable & Sendable) {
-        path.append(route)
-    }
-
-    func pop() {
-        guard !path.isEmpty else {
-            return
-        }
-        path.removeLast()
-    }
-
-    func popToRoot() {
-        path = NavigationPath()
-    }
-
-    func present(_ route: some Hashable & Sendable) {}
-
-    func dismiss() {}
 }
 
 extension MockUserClient.Scenario {

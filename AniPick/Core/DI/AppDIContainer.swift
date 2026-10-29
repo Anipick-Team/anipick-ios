@@ -6,6 +6,9 @@
 //
 import SwiftUI
 import AuthClientLive
+import ReviewClientLive
+import ReviewFeature
+import ReviewInterface
 import SettingFeature
 import SettingInterface
 import Session
@@ -37,6 +40,21 @@ struct AppDIContainer {
             navigator: navigator,
             openURL: { UIApplication.shared.open($0) },
             appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+        )
+    )
+
+    static let reviewBuilder: any ReviewBuilding = ReviewBuilder(
+        dependencies: ReviewDependencies(
+            reviewClient: LiveReviewClient(client: AppSession.httpClient),
+            navigator: navigator,
+            analytics: AppAnalytics.tracker,
+            openURL: { UIApplication.shared.open($0) },
+            // 별점 남긴 애니 목록이 다시 불러온다 (레거시 WriteReviewViewModel.swift:54-57)
+            onReviewWritten: {
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .reloadRatedAnime, object: nil)
+                }
+            }
         )
     )
     

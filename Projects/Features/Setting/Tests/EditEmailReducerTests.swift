@@ -1,4 +1,5 @@
 import AuthClientTesting
+import FeatureTestSupport
 import MVICore
 import Testing
 import UserClientInterface

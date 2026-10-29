@@ -5,6 +5,7 @@
 //  Created by cho on 6/22/25.
 //
 
+import ReviewInterface
 import SwiftUI
 import SettingInterface
 import Utils
@@ -33,6 +34,10 @@ struct AppEntryView: View {
             // 새 Feature가 push한 Route의 목적지. 탭 루트에서 한 번만 등록한다 (A2)
             .navigationDestination(for: SettingRoute.self) { route in
                 AppDIContainer.settingBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
+            }
+            .navigationDestination(for: ReviewRoute.self) { route in
+                AppDIContainer.reviewBuilder.make(route)
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: AppRoute.self) { route in
@@ -79,7 +84,9 @@ struct AppEntryView: View {
                     case .research:
                         AppDIContainer.makeResearchView()
                     case .review(let starRating, let animeId, let reviewContent):
-                        AppDIContainer.makeReviewView(starRating: starRating, animeId: animeId, reviewContent: reviewContent)
+                        AppDIContainer.reviewBuilder.make(
+                            .write(animeId: animeId, rating: starRating, content: reviewContent)
+                        )
                     case .explore(let season, let seaseonYear):
                         AppDIContainer.makeExploreView(season: season, year: seaseonYear)
                     case .animeDetail(let animeId):

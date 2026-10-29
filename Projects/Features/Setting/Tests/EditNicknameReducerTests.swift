@@ -1,3 +1,4 @@
+import FeatureTestSupport
 import MVICore
 import Navigation
 import Testing
@@ -5,51 +6,6 @@ import UserClientInterface
 import UserClientTesting
 
 @testable import SettingFeature
-
-/// 이동 요청을 기록한다
-final class RecordingNavigator: Navigator {
-    enum Action: Equatable {
-        case push(AnyHashable)
-        case pop
-        case popToRoot
-        case present(AnyHashable)
-        case dismiss
-    }
-
-    private(set) var actions: [Action] = []
-
-    func push(_ route: some Hashable & Sendable) {
-        actions.append(.push(AnyHashable(route)))
-    }
-
-    func pop() {
-        actions.append(.pop)
-    }
-
-    func popToRoot() {
-        actions.append(.popToRoot)
-    }
-
-    func present(_ route: some Hashable & Sendable) {
-        actions.append(.present(AnyHashable(route)))
-    }
-
-    func dismiss() {
-        actions.append(.dismiss)
-    }
-}
-
-/// 조건이 맞을 때까지 기다린다 (기한 2초)
-func waitUntil(_ condition: () -> Bool) async -> Bool {
-    let deadline = ContinuousClock.now + .seconds(2)
-    while !condition() {
-        guard ContinuousClock.now < deadline else {
-            return false
-        }
-        try? await Task.sleep(for: .milliseconds(5))
-    }
-    return true
-}
 
 /// 동작 목록 B1~B13 (notes/2026-10-19-R-setting-01-edit-nickname.md)과 1:1
 @Suite("닉네임 변경", .timeLimit(.minutes(1)))

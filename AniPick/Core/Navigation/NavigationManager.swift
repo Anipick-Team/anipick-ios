@@ -5,6 +5,7 @@
 //  Created by cho on 6/22/25.
 //
 
+import ReviewInterface
 import SettingInterface
 import SwiftUI
 import Utils
@@ -202,6 +203,15 @@ extension SettingRoute {
         case .withdrawal: return "delete_account"
         case .editPassword: return "edit_password"
         case .editEmail: return "edit_email"
+        }
+    }
+}
+
+extension ReviewRoute {
+    /// 레거시 `AppRoute.review`의 화면 이름 (R14)
+    var screenName: String {
+        switch self {
+        case .write: return "review_write"
         }
     }
 }

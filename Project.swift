@@ -72,6 +72,9 @@ let project = Project(
                 .project(target: "SettingFeature", path: .relativeToRoot("Projects/Features/Setting")),
                 .project(target: "UserClientLive", path: .relativeToRoot("Projects/Clients/UserClient")),
                 .project(target: "AuthClientLive", path: .relativeToRoot("Projects/Clients/AuthClient")),
+                .project(target: "ReviewInterface", path: .relativeToRoot("Projects/Features/Review")),
+                .project(target: "ReviewFeature", path: .relativeToRoot("Projects/Features/Review")),
+                .project(target: "ReviewClientLive", path: .relativeToRoot("Projects/Clients/ReviewClient")),
                 // Firebase는 AnalyticsLive만 의존한다 (앱이 직접 의존하면 정적 라이브러리가 두 벌 링크된다)
                 .project(target: "AnalyticsLive", path: .relativeToRoot("Projects/Core/AnalyticsLive")),
                 .external(name: "Alamofire"),
@@ -127,6 +130,10 @@ let project = Project(
                 .project(target: "SettingFeature", path: .relativeToRoot("Projects/Features/Setting")),
                 .project(target: "UserClientLive", path: .relativeToRoot("Projects/Clients/UserClient")),
                 .project(target: "AuthClientLive", path: .relativeToRoot("Projects/Clients/AuthClient")),
+                .project(target: "ReviewInterface", path: .relativeToRoot("Projects/Features/Review")),
+                .project(target: "ReviewFeature", path: .relativeToRoot("Projects/Features/Review")),
+                .project(target: "ReviewClientLive", path: .relativeToRoot("Projects/Clients/ReviewClient")),
+                .project(target: "FeatureTestSupport", path: .relativeToRoot("Projects/Shared/FeatureTestSupport")),
                 .external(name: "Alamofire"),
             ]
         ),

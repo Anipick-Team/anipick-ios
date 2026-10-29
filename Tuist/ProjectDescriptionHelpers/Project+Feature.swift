@@ -20,11 +20,13 @@ extension Project {
     ///   - dependencies: 다른 Feature·Client의 Interface. 구현 타깃은 표현할 수 없다.
     ///   - modules: Core·Shared 모듈 (Navigation, MVICore, DesignSystem 등)
     ///   - interfaceModules: Interface 타깃이 쓰는 Core·Shared 모듈 (대개 비어 있음)
+    ///   - testModules: Tests·Example만 쓰는 모듈 (`FeatureTestSupport` 등)
     public static func feature(
         _ name: String,
         dependencies: [InterfaceDependency] = [],
         modules: [ModuleDependency] = [],
         interfaceModules: [ModuleDependency] = [],
+        testModules: [ModuleDependency] = [],
         hasResources: Bool = false
     ) -> Project {
         let interface = Target.target(
@@ -78,7 +80,8 @@ extension Project {
             ]
                 + dependencies.map(\.interface)
                 + dependencies.map(\.testing)
-                + modules.filter { !$0.isExternal }.map(\.target),
+                + modules.filter { !$0.isExternal }.map(\.target)
+                + testModules.map(\.target),
             settings: .swift6(isolation: .mainActor)
         )
 
@@ -95,7 +98,8 @@ extension Project {
                 .target(name: interface.name),
             ]
                 + dependencies.map(\.testing)
-                + modules.filter { !$0.isExternal }.map(\.target),
+                + modules.filter { !$0.isExternal }.map(\.target)
+                + testModules.map(\.target),
             settings: .swift6(isolation: .mainActor)
         )
 

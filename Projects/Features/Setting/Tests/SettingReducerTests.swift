@@ -1,5 +1,6 @@
 import AuthClientTesting
 import Foundation
+import FeatureTestSupport
 import MVICore
 import SettingInterface
 import Testing
