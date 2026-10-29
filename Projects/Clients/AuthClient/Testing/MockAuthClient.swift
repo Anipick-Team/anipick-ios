@@ -71,7 +71,7 @@ public final class MockAuthClient: AuthClient {
         initialState: (scenario: FindPassword(), calls: [FindPasswordCall]()))
 
     public var findPasswordScenario: FindPassword {
-        get { findPasswordState.withLock { $0.scenario } }
+        get { return findPasswordState.withLock { $0.scenario } }
         set { findPasswordState.withLock { $0.scenario = newValue } }
     }
 
@@ -142,7 +142,7 @@ public final class MockAuthClient: AuthClient {
         initialState: (scenario: Social(), logins: [SocialLogin]()))
 
     public var socialScenario: Social {
-        get { socialState.withLock { $0.scenario } }
+        get { return socialState.withLock { $0.scenario } }
         set { socialState.withLock { $0.scenario = newValue } }
     }
 
