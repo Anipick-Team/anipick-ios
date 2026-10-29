@@ -35,6 +35,47 @@ public struct LiveDetailClient: DetailClient {
             lastId: result.cursor?.lastId)
     }
 
+    public func studio(id: Int, lastId: Int?, lastValue: String?) async throws(TransportError)
+        -> StudioPage
+    {
+        let result = try await client.send(
+            Self.query(
+                "api/studios/\(id)/animes",
+                ["lastId": lastId.map(String.init), "lastValue": lastValue, "size": "20"])
+                as Endpoint<StudioResult>
+        )
+        .requireResult()
+        return StudioPage(
+            studioName: result.studioName,
+            animes: result.animes.map {
+                StudioAnime(
+                    animeId: $0.animeId, title: $0.title, coverImageUrl: $0.coverImageUrl,
+                    seasonYear: $0.seasonYear)
+            },
+            lastId: result.cursor.lastId, lastValue: result.cursor.lastValue)
+    }
+
+    public func characters(animeId: Int) async throws(TransportError) -> [CastMember] {
+        let result = try await client.send(
+            Self.query("api/animes/\(animeId)/characters", ["size": "20"])
+                as Endpoint<CharactersResult>
+        )
+        .requireResult()
+        return result.characters.map {
+            CastMember(character: $0.character?.person, voiceActor: $0.voiceActor?.person)
+        }
+    }
+
+    static func query<Result>(_ path: String, _ parameters: [String: String?]) -> Endpoint<Result> {
+        return Endpoint(
+            method: .get,
+            path: path,
+            query: parameters.compactMapValues { $0 }.sorted { $0.key < $1.key }
+                .map { URLQueryItem(name: $0.key, value: $0.value) },
+            requiresAuth: true
+        )
+    }
+
     /// 레거시 `AnimeAPI`: 넘긴 size와 상관없이 늘 10을 보낸다
     static func pageEndpoint<Result>(_ path: String, lastId: Int?) -> Endpoint<Result> {
         let parameters: [String: String?] = ["lastId": lastId.map(String.init), "size": "10"]
@@ -74,4 +115,44 @@ struct RecommendationResult: Decodable, Sendable {
     let referenceAnimeTitle: String?
     let cursor: PageCursor?
     let animes: [AnimeDTO]?
+}
+
+struct ValueCursor: Decodable, Sendable {
+    let lastId: Int?
+    let lastValue: String?
+}
+
+/// 레거시 `StudioDetailResult` (모두 필수 값)
+struct StudioResult: Decodable, Sendable {
+    struct Anime: Decodable, Sendable {
+        let animeId: Int?
+        let title: String?
+        let coverImageUrl: String?
+        let seasonYear: String
+    }
+
+    let studioName: String
+    let cursor: ValueCursor
+    let animes: [Anime]
+}
+
+/// 레거시 `CharacterAndVoiceActorPair`
+struct CharactersResult: Decodable, Sendable {
+    struct Person: Decodable, Sendable {
+        let id: Int
+        let name: String
+        let imageUrl: String?
+
+        var person: CastPerson {
+            return CastPerson(id: id, name: name, imageUrl: imageUrl)
+        }
+    }
+
+    struct Pair: Decodable, Sendable {
+        let character: Person?
+        let voiceActor: Person?
+    }
+
+    let cursor: ValueCursor
+    let characters: [Pair]
 }

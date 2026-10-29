@@ -72,6 +72,8 @@ struct RouteScreenNameTests {
             DetailRoute.voiceActor(id: 1).screenName == AppRoute.voiceActorDetail(animeId: 1).screenName)
         #expect(DetailRoute.producer(id: 1).screenName == AppRoute.producerDetail(studioId: 1).screenName)
         #expect(
+            DetailRoute.cast(animeId: 1).screenName == AppRoute.characterAndVoiceActorDetail(animeId: 1).screenName)
+        #expect(
             DetailRoute.series(animeId: 1, animeTitle: "").screenName
                 == AppRoute.seriesDetail(animeId: 1, animeTitle: "").screenName)
         #expect(

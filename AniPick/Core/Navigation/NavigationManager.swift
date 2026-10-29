@@ -230,6 +230,7 @@ extension DetailRoute {
         case .producer: return "producer_detail"
         case .series: return "series_detail"
         case .recommendations: return "recommend"
+        case .cast: return "character_voice_actor"
         }
     }
 }

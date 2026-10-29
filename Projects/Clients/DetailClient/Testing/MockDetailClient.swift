@@ -7,11 +7,15 @@ public final class MockDetailClient: DetailClient {
     public enum Request: Hashable, Sendable {
         case series(animeId: Int, lastId: Int?)
         case recommendations(animeId: Int, lastId: Int?)
+        case studio(id: Int, lastId: Int?, lastValue: String?)
+        case characters(animeId: Int)
     }
 
     private struct State {
         var series: [Result<SeriesPage?, TransportError>] = []
         var recommendations: [Result<AnimeRecommendationPage?, TransportError>] = []
+        var studio: [Result<StudioPage, TransportError>] = []
+        var characters: Result<[CastMember], TransportError> = .success([])
         var requests: [Request] = []
     }
 
@@ -54,6 +58,34 @@ public final class MockDetailClient: DetailClient {
         return try result.get()
     }
 
+    public func stubStudio(_ pages: [Result<StudioPage, TransportError>]) {
+        state.withLock { $0.studio = pages }
+    }
+
+    public func stubCharacters(_ result: Result<[CastMember], TransportError>) {
+        state.withLock { $0.characters = result }
+    }
+
+    public func studio(id: Int, lastId: Int?, lastValue: String?) async throws(TransportError)
+        -> StudioPage
+    {
+        let result = state.withLock { state in
+            state.requests.append(.studio(id: id, lastId: lastId, lastValue: lastValue))
+            return Self.next(&state.studio) ?? .failure(.decoding)
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func characters(animeId: Int) async throws(TransportError) -> [CastMember] {
+        let result = state.withLock { state in
+            state.requests.append(.characters(animeId: animeId))
+            return state.characters
+        }
+        await pause()
+        return try result.get()
+    }
+
     private static func next<Value>(_ queue: inout [Value]) -> Value? {
         guard let first = queue.first else {
             return nil
@@ -75,5 +107,21 @@ extension DetailAnime {
     /// 테스트·Example용
     public static func sample(_ id: Int) -> DetailAnime {
         return DetailAnime(animeId: id, title: "애니 \(id)", coverImageUrl: nil)
+    }
+}
+
+extension StudioAnime {
+    /// 테스트·Example용
+    public static func sample(_ id: Int, year: String) -> StudioAnime {
+        return StudioAnime(animeId: id, title: "애니 \(id)", coverImageUrl: nil, seasonYear: year)
+    }
+}
+
+extension CastMember {
+    /// 테스트·Example용
+    public static func sample(_ id: Int) -> CastMember {
+        return CastMember(
+            character: CastPerson(id: id, name: "캐릭터 \(id)", imageUrl: nil),
+            voiceActor: CastPerson(id: 100 + id, name: "성우 \(id)", imageUrl: nil))
     }
 }

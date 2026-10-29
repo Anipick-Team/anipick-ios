@@ -26,7 +26,21 @@ public struct DetailBuilder: DetailBuilding {
             return makeList(.series, animeId: animeId, animeTitle: animeTitle)
         case .recommendations(let animeId, let animeTitle):
             return makeList(.recommendations, animeId: animeId, animeTitle: animeTitle)
-        case .anime, .voiceActor, .producer:
+        case .producer(let id):
+            return AnyView(
+                ProducerView(
+                    state: ProducerReducer.State(studioId: id),
+                    reducer: ProducerReducer(
+                        detailClient: dependencies.detailClient, navigator: dependencies.navigator))
+            )
+        case .cast(let animeId):
+            return AnyView(
+                CastView(
+                    state: CastReducer.State(animeId: animeId),
+                    reducer: CastReducer(
+                        detailClient: dependencies.detailClient, navigator: dependencies.navigator))
+            )
+        case .anime, .voiceActor:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Detail 빌더로 왔다: \(route)")
             return AnyView(EmptyView())

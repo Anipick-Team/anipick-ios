@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 애니 상세 Feature의 화면.
 ///
-/// 아직 레거시인 화면(`anime`·`voiceActor`·`producer`)도 미리 둔다. 이관하기 전까지는 App이 이 Route를 가로채
+/// 아직 레거시인 화면(`anime`·`voiceActor`)도 미리 둔다. 이관하기 전까지는 App이 이 Route를 가로채
 /// 레거시 화면을 보여 준다 (같은 Feature 안의 Strangler).
 public enum DetailRoute: Hashable, Sendable {
     /// 애니 상세 (레거시 `AppRoute.animeDetail`)
@@ -15,6 +15,8 @@ public enum DetailRoute: Hashable, Sendable {
     case series(animeId: Int, animeTitle: String)
     /// 함께 볼만한 작품 (레거시 `AppRoute.recommend`)
     case recommendations(animeId: Int, animeTitle: String)
+    /// 캐릭터·성우진 (레거시 `AppRoute.characterAndVoiceActorDetail`)
+    case cast(animeId: Int)
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).

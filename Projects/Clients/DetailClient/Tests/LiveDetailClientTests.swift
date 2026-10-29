@@ -65,4 +65,57 @@ struct LiveDetailClientTests {
             try await LiveDetailClient(client: noList.client).recommendations(animeId: 7, lastId: 1)
                 == nil)
     }
+
+    @Test("PR1. 제작사: GET api/studios/{id}/animes, lastId·lastValue·size=20. 이름·커서·목록·연도는 필수")
+    func studio() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"studioName":"MAPPA","cursor":{"lastId":5,"lastValue":"v"},"animes":[{"animeId":5,"title":"A","seasonYear":"2024"}]}}"#
+            ))
+
+        let page = try await LiveDetailClient(client: stub.client).studio(
+            id: 3, lastId: 2, lastValue: "x")
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/studios/3/animes")
+        #expect(query(request) == ["lastId": "2", "lastValue": "x", "size": "20"])
+        #expect(
+            page
+                == StudioPage(
+                    studioName: "MAPPA",
+                    animes: [
+                        StudioAnime(animeId: 5, title: "A", coverImageUrl: nil, seasonYear: "2024")
+                    ],
+                    lastId: 5, lastValue: "v"))
+        let noYear = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"studioName":"M","cursor":{},"animes":[{"animeId":1}]}}"#
+            ))
+        await #expect(throws: TransportError.decoding) {
+            try await LiveDetailClient(client: noYear.client).studio(
+                id: 3, lastId: nil, lastValue: nil)
+        }
+    }
+
+    @Test("CV1. 캐릭터·성우진: GET api/animes/{id}/characters?size=20 (커서 없이 한 번)")
+    func characters() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"OK","result":{"cursor":{},"characters":[{"character":{"id":1,"name":"루피","imageUrl":"c"},"voiceActor":{"id":9,"name":"성우","imageUrl":null},"role":"MAIN"},{"character":null,"voiceActor":null}]}}"#
+            ))
+
+        let cast = try await LiveDetailClient(client: stub.client).characters(animeId: 7)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/animes/7/characters")
+        #expect(query(request) == ["size": "20"])
+        #expect(
+            cast
+                == [
+                    CastMember(
+                        character: CastPerson(id: 1, name: "루피", imageUrl: "c"),
+                        voiceActor: CastPerson(id: 9, name: "성우", imageUrl: nil)),
+                    CastMember(character: nil, voiceActor: nil),
+                ])
+    }
 }

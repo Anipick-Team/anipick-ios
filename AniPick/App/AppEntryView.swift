@@ -51,9 +51,6 @@ struct AppEntryView: View {
                 case .voiceActor(let id):
                     AppDIContainer.makeVoiceActorDetailView(animeId: id)
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
-                case .producer(let id):
-                    AppDIContainer.makeProducerDetailView(studioId: id)
-                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 default:
                     AppDIContainer.detailBuilder.make(route)
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
@@ -171,11 +168,11 @@ struct AppEntryView: View {
                                 postId: postId, seriesId: seriesId, animeTitle: animeTitle, title: title,
                                 content: content, isSpoiler: isSpoiler, imageIds: imageIds))
                     case .producerDetail(let studioId):
-                        AppDIContainer.makeProducerDetailView(studioId: studioId)
+                        AppDIContainer.detailBuilder.make(.producer(id: studioId))
                     case .voiceActorDetail(let animeId):
                         AppDIContainer.makeVoiceActorDetailView(animeId: animeId)
                     case .characterAndVoiceActorDetail(let animeId):
-                        AppDIContainer.makeCharacterAndVoiceActorDetailVIew(animeId: animeId)
+                        AppDIContainer.detailBuilder.make(.cast(animeId: animeId))
                     case let .seriesDetail(animeId, animeTitle):
                         AppDIContainer.detailBuilder.make(.series(animeId: animeId, animeTitle: animeTitle))
                     
