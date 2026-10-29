@@ -19,6 +19,20 @@ public final class MockCommunityClient: CommunityClient {
         }
     }
 
+    public struct PostsRequest: Equatable, Sendable {
+        public let seriesId: Int
+        public let sort: String
+        public let lastValue: String?
+        public let lastId: Int?
+
+        public init(seriesId: Int, sort: String, lastValue: String?, lastId: Int?) {
+            self.seriesId = seriesId
+            self.sort = sort
+            self.lastValue = lastValue
+            self.lastId = lastId
+        }
+    }
+
     /// 글 저장 요청 기록
     public enum SaveRequest: Equatable, Sendable {
         case upload(fileName: String, bytes: Int)
@@ -32,6 +46,8 @@ public final class MockCommunityClient: CommunityClient {
         var uploads: [Result<Int?, TransportError>] = [.success(1)]
         var saveResult: Result<PostSaveOutcome, TransportError> = .success(.saved)
         var saveRequests: [SaveRequest] = []
+        var posts: [Result<CommunityPostPage, TransportError>] = []
+        var postsRequests: [PostsRequest] = []
     }
 
     private let state: OSAllocatedUnfairLock<State>
@@ -45,6 +61,28 @@ public final class MockCommunityClient: CommunityClient {
 
     public var boardRequests: [BoardsRequest] {
         return state.withLock { $0.requests }
+    }
+
+    public var postsRequests: [PostsRequest] {
+        return state.withLock { $0.postsRequests }
+    }
+
+    /// 게시판 글 목록 결과를 차례로 (다 쓰면 마지막 것을 반복, 없으면 빈 페이지)
+    public func stubPosts(_ pages: [Result<CommunityPostPage, TransportError>]) {
+        state.withLock { $0.posts = pages }
+    }
+
+    public func posts(seriesId: Int, sort: String, lastValue: String?, lastId: Int?)
+        async throws(TransportError) -> CommunityPostPage
+    {
+        let result = state.withLock { state -> Result<CommunityPostPage, TransportError>? in
+            state.postsRequests.append(
+                PostsRequest(seriesId: seriesId, sort: sort, lastValue: lastValue, lastId: lastId))
+            return state.posts.count > 1 ? state.posts.removeFirst() : state.posts.first
+        }
+        await pause()
+        return try (result ?? .success(CommunityPostPage(posts: [], lastId: nil, lastValue: nil)))
+            .get()
     }
 
     public var saveRequests: [SaveRequest] {
@@ -125,5 +163,18 @@ extension CommunityBoard {
     /// 테스트·Example용
     public static func sample(_ id: Int, genres: [String] = ["액션", "판타지"]) -> CommunityBoard {
         return CommunityBoard(seriesId: id, title: "애니 \(id)", coverImageUrl: nil, genres: genres)
+    }
+}
+
+extension CommunityPost {
+    /// 테스트·Example용
+    public static func sample(_ id: Int, isSpoiler: Bool = false, imageCount: Int = 0)
+        -> CommunityPost
+    {
+        return CommunityPost(
+            id: id, authorName: "작성자 \(id)", authorImageURL: nil, date: "2026.10.30",
+            title: "글 \(id)", content: "내용 \(id)",
+            thumbnailURL: imageCount > 0 ? URL(string: "https://image.test/api/image/\(id)") : nil,
+            imageCount: imageCount, likeCount: id, commentCount: 2, isSpoiler: isSpoiler)
     }
 }

@@ -143,6 +143,54 @@ struct LiveCommunityClientTests {
         #expect(outcome == .rejected(message: "금지어가 있어요."))
     }
 
+    @Test("CP1. 게시판 글: GET api/community/boards/{id}/posts, sort·커서·size=20. 비어 있는 값은 레거시 기본값으로")
+    func posts() async throws {
+        let stub = ClientStub(
+            .json(
+                #"{"code":200,"value":"SUCCESS","result":{"count":2,"cursor":{"sort":"latest","lastId":8,"lastValue":"v"},"posts":[{"postId":8,"title":"제목","content":"본문","thumbnailImageId":30,"imageCount":3,"isSpoiler":true,"likeCount":4,"commentCount":1,"createdAt":"10.30","nickname":"닉","profileImageUrl":"https://x/api/image/12"},{"postId":9,"thumbnailImageId":31,"profileImageUrl":"https://x/profile/abc"}]}}"#
+            ))
+        let client = LiveCommunityClient(client: stub.client, imageBaseURL: Self.imageBase)
+
+        let page = try await client.posts(
+            seriesId: 5, sort: "popularWeekly", lastValue: "3", lastId: 2)
+
+        let request = try #require(stub.requests.first)
+        #expect(request.url?.path() == "/api/community/boards/5/posts")
+        #expect(
+            query(request) == [
+                "sort": "popularWeekly", "lastValue": "3", "lastId": "2", "size": "20",
+            ])
+        #expect(page.lastId == 8)
+        #expect(page.lastValue == "v")
+        #expect(
+            page.posts
+                == [
+                    CommunityPost(
+                        id: 8, authorName: "닉",
+                        authorImageURL: URL(string: "https://img.test/api/image/12"),
+                        date: "10.30", title: "제목", content: "본문",
+                        thumbnailURL: URL(string: "https://img.test/api/image/30"), imageCount: 3,
+                        likeCount: 4,
+                        commentCount: 1, isSpoiler: true),
+                    CommunityPost(
+                        id: 9, authorName: "익명", authorImageURL: nil, date: "", title: "",
+                        content: "",
+                        thumbnailURL: URL(string: "https://img.test/api/image/31"), imageCount: 1,
+                        likeCount: 0,
+                        commentCount: 0, isSpoiler: false),
+                ])
+    }
+
+    @Test("CP1. 결과가 없으면 빈 페이지, 비어 있는 커서는 보내지 않는다")
+    func postsEmptyAndFailure() async throws {
+        let stub = ClientStub(.json(#"{"code":200,"value":"SUCCESS","result":null}"#))
+        let page = try await LiveCommunityClient(client: stub.client, imageBaseURL: Self.imageBase)
+            .posts(seriesId: 1, sort: "latest", lastValue: nil, lastId: nil)
+
+        #expect(page == CommunityPostPage(posts: [], lastId: nil, lastValue: nil))
+        #expect(query(try #require(stub.requests.first)) == ["sort": "latest", "size": "20"])
+    }
+
     @Test("CW5. 첨부 사진 주소는 {서버}api/image/{id}")
     func imageURL() {
         let client = LiveCommunityClient(

@@ -15,6 +15,62 @@ public struct LiveCommunityClient: CommunityClient {
         self.imageBaseURL = imageBaseURL
     }
 
+    public func posts(seriesId: Int, sort: String, lastValue: String?, lastId: Int?)
+        async throws(TransportError) -> CommunityPostPage
+    {
+        let response = try await client.send(
+            Self.postsEndpoint(seriesId: seriesId, sort: sort, lastValue: lastValue, lastId: lastId)
+        )
+        let result = response.result
+        return CommunityPostPage(
+            posts: (result?.posts ?? []).map(post),
+            lastId: result?.cursor?.lastId,
+            lastValue: result?.cursor?.lastValue
+        )
+    }
+
+    static func postsEndpoint(seriesId: Int, sort: String, lastValue: String?, lastId: Int?)
+        -> Endpoint<PostsResult>
+    {
+        let parameters: [String: String?] = [
+            "sort": sort, "lastValue": lastValue, "lastId": lastId.map(String.init), "size": "20",
+        ]
+        return Endpoint(
+            method: .get,
+            path: "api/community/boards/\(seriesId)/posts",
+            query: parameters.compactMapValues { $0 }.sorted { $0.key < $1.key }
+                .map { URLQueryItem(name: $0.key, value: $0.value) },
+            requiresAuth: true
+        )
+    }
+
+    /// 레거시 `CommunityViewModel.mapPost`
+    private func post(_ dto: PostsResult.Post) -> CommunityPost {
+        return CommunityPost(
+            id: dto.postId,
+            authorName: dto.nickname ?? "익명",
+            authorImageURL: profileImageURL(dto.profileImageUrl),
+            date: dto.createdAt ?? "",
+            title: dto.title ?? "",
+            content: dto.content ?? "",
+            thumbnailURL: dto.thumbnailImageId.map(imageURL(id:)),
+            imageCount: dto.imageCount ?? (dto.thumbnailImageId == nil ? 0 : 1),
+            likeCount: dto.likeCount ?? 0,
+            commentCount: dto.commentCount ?? 0,
+            isSpoiler: dto.isSpoiler ?? false
+        )
+    }
+
+    /// 레거시 `CommunityProfileAvatar`: 프로필 주소의 마지막 경로를 이미지 id로 본다
+    func profileImageURL(_ value: String?) -> URL? {
+        guard let value = value?.trimmingCharacters(in: .whitespacesAndNewlines), !value.isEmpty,
+            let id = value.split(separator: "/").last.flatMap({ Int($0) })
+        else {
+            return nil
+        }
+        return imageURL(id: id)
+    }
+
     public func imageURL(id: Int) -> URL {
         return imageBaseURL.appending(path: "api/image/\(id)")
     }
@@ -149,4 +205,29 @@ struct UpdateBody: Encodable, Sendable {
     let content: String
     let isSpoiler: Bool
     let imageIds: [Int]
+}
+
+/// 레거시 `CommunityPostPage`
+struct PostsResult: Decodable, Sendable {
+    struct Cursor: Decodable, Sendable {
+        let lastId: Int?
+        let lastValue: String?
+    }
+
+    struct Post: Decodable, Sendable {
+        let postId: Int
+        let title: String?
+        let content: String?
+        let thumbnailImageId: Int?
+        let imageCount: Int?
+        let isSpoiler: Bool?
+        let likeCount: Int?
+        let commentCount: Int?
+        let createdAt: String?
+        let nickname: String?
+        let profileImageUrl: String?
+    }
+
+    let cursor: Cursor?
+    let posts: [Post]?
 }

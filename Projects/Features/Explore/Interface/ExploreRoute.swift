@@ -2,7 +2,7 @@ import SwiftUI
 
 /// 탐색 Feature(커뮤니티 포함)의 화면.
 ///
-/// 아직 레거시인 화면(`communityBoard`·`communityPost`)도 미리 둔다. 이관하기 전까지는 App이 이 Route를 가로채
+/// 아직 레거시인 화면(`communityPost`)도 미리 둔다. 이관하기 전까지는 App이 이 Route를 가로채
 /// 레거시 화면을 보여 준다 (같은 Feature 안의 Strangler).
 public enum ExploreRoute: Hashable, Sendable {
     /// 하단 "탐색" 탭 (작품 탐색 | 커뮤니티)

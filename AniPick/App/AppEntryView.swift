@@ -55,15 +55,8 @@ struct AppEntryView: View {
             }
             .navigationDestination(for: ExploreRoute.self) { route in
                 Group {
-                    // 아직 레거시인 커뮤니티 게시판·게시글은 App이 가로챈다 (Explore 이관 중)
+                    // 아직 레거시인 커뮤니티 게시글은 App이 가로챈다 (Explore 이관 중)
                     switch route {
-                    case let .communityBoard(seriesId, animeTitle, coverImageUrl, genreNames):
-                        CommunityView(
-                            seriesId: seriesId,
-                            animeTitle: animeTitle,
-                            coverImageUrl: coverImageUrl,
-                            genreNames: genreNames
-                        )
                     case .communityPost(let id):
                         CommunityDetailView(postId: id)
                     default:
@@ -169,12 +162,10 @@ struct AppEntryView: View {
                     case .recommendView(let animeId):
                         AppDIContainer.makeRecommendationView(animeId: animeId)
                     case let .community(seriesId, animeTitle, coverImageUrl, genreNames):
-                        CommunityView(
-                            seriesId: seriesId,
-                            animeTitle: animeTitle,
-                            coverImageUrl: coverImageUrl,
-                            genreNames: genreNames
-                        )
+                        AppDIContainer.exploreBuilder.make(
+                            .communityBoard(
+                                seriesId: seriesId, animeTitle: animeTitle, coverImageUrl: coverImageUrl,
+                                genreNames: genreNames))
                     case let .communityDetail(postId):
                         CommunityDetailView(postId: postId)
                     case let .communityWrite(seriesId, animeTitle):

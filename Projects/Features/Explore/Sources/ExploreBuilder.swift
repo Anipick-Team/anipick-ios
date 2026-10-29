@@ -86,7 +86,16 @@ public struct ExploreBuilder: ExploreBuilding {
                 CommunityWriteReducer.State(
                     seriesId: seriesId, postId: postId, title: title, content: content,
                     isSpoiler: isSpoiler, imageIds: imageIds))
-        case .communityBoard, .communityPost:
+        case .communityBoard(let seriesId, let animeTitle, let coverImageUrl, let genreNames):
+            let reducer = CommunityBoardReducer(
+                communityClient: dependencies.communityClient, navigator: dependencies.navigator)
+            return AnyView(
+                CommunityBoardView(
+                    state: CommunityBoardReducer.State(
+                        seriesId: seriesId, animeTitle: animeTitle, coverImageUrl: coverImageUrl,
+                        genreNames: genreNames),
+                    reducer: reducer))
+        case .communityPost:
             // 아직 레거시 화면 — App이 가로챈다
             assertionFailure("레거시 화면 Route가 Explore 빌더로 왔다: \(route)")
             return AnyView(EmptyView())
