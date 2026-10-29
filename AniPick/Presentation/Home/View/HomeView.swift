@@ -341,9 +341,7 @@ struct WeekdayNewAnimeView: View {
         VStack(spacing: 0) {
             header
 
-            Rectangle()
-                .frame(height: 9)
-                .foregroundStyle(.gray7)
+            scheduleNotice
 
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 0) {
@@ -455,6 +453,34 @@ struct WeekdayNewAnimeView: View {
         .frame(height: 58)
         .background(Color.white)
         .shadow(color: .black.opacity(0.08), radius: 6, y: 4)
+    }
+
+    // Figma `배너`: 위아래 10·좌우 20, 간격 10, 배경 #F3F3F3
+    private var scheduleNotice: some View {
+        HStack(spacing: 10) {
+            // Figma `Ellipse 172`: 34.24x34.24, 채움 #E3E3E3, 테두리 1px #CCCCCC
+            Circle()
+                .fill(Color(red: 227 / 255, green: 227 / 255, blue: 227 / 255))
+                .overlay(
+                    Circle().stroke(Color(red: 204 / 255, green: 204 / 255, blue: 204 / 255), lineWidth: 1)
+                )
+                .overlay(
+                    // Figma `Union`: 6.96x16.1, #000000
+                    Image(.infoIcon)
+                        .resizable()
+                        .frame(width: 7, height: 16)
+                )
+                .frame(width: 34, height: 34)
+                .accessibilityHidden(true)
+
+            Text("제공되는 정보는 공식 방영 일정을 기준으로 하며,\nOTT 플랫폼별 방영 일정과는 다를 수 있습니다.")
+                .customFontStyle(size: 11, color: .black)
+                .lineSpacing(2)  // 줄 높이 15.4pt(140%)에 맞춘 근사값
+        }
+        .padding(.vertical, 10)
+        .padding(.horizontal, 20)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(red: 243 / 255, green: 243 / 255, blue: 243 / 255))
     }
 
     private var weekdayPicker: some View {
