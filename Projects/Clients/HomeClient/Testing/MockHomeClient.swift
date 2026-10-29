@@ -9,12 +9,22 @@ public final class MockHomeClient: HomeClient {
         case recentRecommendations(animeId: Int, lastId: Int?, lastValue: String?)
         case comingSoon(sort: String, lastId: Int?, includeAdult: Bool)
         case weekday(day: String, sort: String, lastId: Int?)
+        case popular
+        case searchAnimes(query: String, lastId: Int?)
+        case searchPersons(query: String, lastId: Int?)
+        case searchStudios(query: String, lastId: Int?)
+        case trackingLog(String)
     }
 
     private struct State {
         var recommendations: [Result<RecommendationPage?, TransportError>] = []
         var comingSoon: [Result<ComingSoonPage?, TransportError>] = []
         var weekday: [Result<WeekdayAnimePage, TransportError>] = []
+        var popular: Result<[HomeAnime], TransportError> = .success([])
+        var animePages: [Result<SearchPage<SearchAnime>?, TransportError>] = []
+        var personPages: [Result<SearchPage<SearchPerson>?, TransportError>] = []
+        var studioPages: [Result<SearchPage<SearchStudio>?, TransportError>] = []
+        var keywords: [String] = []
         var requests: [Request] = []
     }
 
@@ -65,6 +75,92 @@ public final class MockHomeClient: HomeClient {
         }
         await pause()
         return try result.get()
+    }
+
+    /// 검색 결과. 각 목록은 차례로 (다 쓰면 마지막 것을 반복, 없으면 nil)
+    public func stubSearch(
+        popular: Result<[HomeAnime], TransportError> = .success([]),
+        animes: [Result<SearchPage<SearchAnime>?, TransportError>] = [],
+        persons: [Result<SearchPage<SearchPerson>?, TransportError>] = [],
+        studios: [Result<SearchPage<SearchStudio>?, TransportError>] = [],
+        keywords: [String] = []
+    ) {
+        state.withLock {
+            $0.popular = popular
+            $0.animePages = animes
+            $0.personPages = persons
+            $0.studioPages = studios
+            $0.keywords = keywords
+        }
+    }
+
+    public var storedKeywords: [String] {
+        return state.withLock { $0.keywords }
+    }
+
+    public func popularAnimes() async throws(TransportError) -> [HomeAnime] {
+        let result = state.withLock { state in
+            state.requests.append(.popular)
+            return state.popular
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func searchAnimes(query: String, lastId: Int?) async throws(TransportError)
+        -> SearchPage<SearchAnime>?
+    {
+        let result = state.withLock { state in
+            state.requests.append(.searchAnimes(query: query, lastId: lastId))
+            return Self.next(&state.animePages) ?? .success(nil)
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func searchPersons(query: String, lastId: Int?) async throws(TransportError)
+        -> SearchPage<SearchPerson>?
+    {
+        let result = state.withLock { state in
+            state.requests.append(.searchPersons(query: query, lastId: lastId))
+            return Self.next(&state.personPages) ?? .success(nil)
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func searchStudios(query: String, lastId: Int?) async throws(TransportError)
+        -> SearchPage<SearchStudio>?
+    {
+        let result = state.withLock { state in
+            state.requests.append(.searchStudios(query: query, lastId: lastId))
+            return Self.next(&state.studioPages) ?? .success(nil)
+        }
+        await pause()
+        return try result.get()
+    }
+
+    public func sendTrackingLog(_ url: String) async {
+        state.withLock { $0.requests.append(.trackingLog(url)) }
+    }
+
+    public func recentKeywords() -> [String] {
+        return state.withLock { $0.keywords }
+    }
+
+    public func saveRecentKeyword(_ keyword: String) {
+        state.withLock {
+            $0.keywords.removeAll { $0 == keyword }
+            $0.keywords.insert(keyword, at: 0)
+        }
+    }
+
+    public func setRecentKeywords(_ keywords: [String]) {
+        state.withLock { $0.keywords = keywords }
+    }
+
+    public func clearRecentKeywords() {
+        state.withLock { $0.keywords = [] }
     }
 
     /// 앞에서부터 꺼내고, 마지막 하나는 계속 돌려준다
@@ -127,5 +223,30 @@ extension ComingSoonAnime {
     public static func sample(_ id: Int, releaseDate: String? = "2026.11.01") -> ComingSoonAnime {
         return ComingSoonAnime(
             animeId: id, title: "애니 \(id)", coverImageUrl: nil, releaseDate: releaseDate)
+    }
+}
+
+extension SearchAnime {
+    /// 테스트·Example용
+    public static func sample(_ id: Int, clickLog: String? = nil, impressionLog: String? = nil)
+        -> SearchAnime
+    {
+        return SearchAnime(
+            animeId: id, title: "애니 \(id)", coverImageUrl: nil, clickLog: clickLog,
+            impressionLog: impressionLog)
+    }
+}
+
+extension SearchPerson {
+    /// 테스트·Example용
+    public static func sample(_ id: Int) -> SearchPerson {
+        return SearchPerson(personId: id, name: "인물 \(id)", profileImage: nil)
+    }
+}
+
+extension SearchStudio {
+    /// 테스트·Example용
+    public static func sample(_ id: Int) -> SearchStudio {
+        return SearchStudio(studioId: id, name: "제작사 \(id)")
     }
 }

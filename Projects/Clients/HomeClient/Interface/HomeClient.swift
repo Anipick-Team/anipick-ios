@@ -66,6 +66,63 @@ public struct WeekdayAnimePage: Equatable, Sendable {
     }
 }
 
+/// 검색 결과 작품 (레거시 `AnimeWithClickLog`). 로그 주소는 받는 대로 서버에 알린다
+public struct SearchAnime: Hashable, Sendable {
+    public let animeId: Int?
+    public let title: String?
+    public let coverImageUrl: String?
+    public let clickLog: String?
+    public let impressionLog: String?
+
+    public init(
+        animeId: Int?, title: String?, coverImageUrl: String?, clickLog: String?,
+        impressionLog: String?
+    ) {
+        self.animeId = animeId
+        self.title = title
+        self.coverImageUrl = coverImageUrl
+        self.clickLog = clickLog
+        self.impressionLog = impressionLog
+    }
+}
+
+/// 검색 결과 인물 (레거시 `Person`)
+public struct SearchPerson: Hashable, Sendable {
+    public let personId: Int?
+    public let name: String?
+    public let profileImage: String?
+
+    public init(personId: Int?, name: String?, profileImage: String?) {
+        self.personId = personId
+        self.name = name
+        self.profileImage = profileImage
+    }
+}
+
+/// 검색 결과 제작사 (레거시 `Studio`)
+public struct SearchStudio: Hashable, Sendable {
+    public let studioId: Int?
+    public let name: String?
+
+    public init(studioId: Int?, name: String?) {
+        self.studioId = studioId
+        self.name = name
+    }
+}
+
+/// 검색 한 페이지. count는 서버가 준 전체 개수 (없으면 0)
+public struct SearchPage<Item: Hashable & Sendable>: Equatable, Sendable {
+    public let items: [Item]
+    public let count: Int
+    public let lastId: Int?
+
+    public init(items: [Item], count: Int, lastId: Int?) {
+        self.items = items
+        self.count = count
+        self.lastId = lastId
+    }
+}
+
 public protocol HomeClient: Sendable {
     /// 취향 추천 (`GET api/recommendation/animes`). 결과나 목록이 없으면 nil
     func recommendations(lastId: Int?, lastValue: String?) async throws(TransportError)
@@ -80,4 +137,27 @@ public protocol HomeClient: Sendable {
     /// 요일별 신작 (`GET api/animes`, 18개씩). day는 MON~SUN, sort는 popularity·latest. 결과가 없으면 빈 페이지
     func weekdayNewAnimes(day: String, sort: String, lastId: Int?) async throws(TransportError)
         -> WeekdayAnimePage
+    /// 검색 첫 화면의 인기 작품 (`GET api/search/init`). 결과가 없으면 빈 목록
+    func popularAnimes() async throws(TransportError) -> [HomeAnime]
+    /// 작품 검색 (`GET api/search/animes?query&lastId`). 결과가 없으면 nil
+    func searchAnimes(query: String, lastId: Int?) async throws(TransportError) -> SearchPage<
+        SearchAnime
+    >?
+    /// 인물 검색 (`GET api/search/persons`). 결과가 없으면 nil
+    func searchPersons(query: String, lastId: Int?) async throws(TransportError) -> SearchPage<
+        SearchPerson
+    >?
+    /// 제작사 검색 (`GET api/search/studios`). 결과가 없으면 nil
+    func searchStudios(query: String, lastId: Int?) async throws(TransportError) -> SearchPage<
+        SearchStudio
+    >?
+    /// 검색 결과의 노출·클릭 로그 주소를 그대로 요청한다 (인증 없음, 결과는 보지 않는다)
+    func sendTrackingLog(_ url: String) async
+
+    /// 최근 검색어 (최신이 앞). 이 기기에 저장한다
+    func recentKeywords() -> [String]
+    /// 맨 앞에 넣는다 (같은 검색어는 앞으로 옮긴다)
+    func saveRecentKeyword(_ keyword: String)
+    func setRecentKeywords(_ keywords: [String])
+    func clearRecentKeywords()
 }

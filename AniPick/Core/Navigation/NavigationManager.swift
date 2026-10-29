@@ -227,6 +227,7 @@ extension DetailRoute {
         switch self {
         case .anime: return "anime_detail"
         case .voiceActor: return "voice_actor_detail"
+        case .producer: return "producer_detail"
         }
     }
 }

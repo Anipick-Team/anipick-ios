@@ -31,6 +31,7 @@ struct ExampleRoot: View {
             HomeBuilder(
                 dependencies: HomeDependencies(
                     homeClient: client, reviewClient: MockReviewClient(), navigator: navigator,
+                    analytics: RecordingTracker(),
                     cachedNickname: { "하노" },
                     imageURL: { URL(string: "https://example.invalid/api/image/\($0)")! })
             )

@@ -140,6 +140,7 @@ struct AppDIContainer {
             homeClient: LiveHomeClient(client: AppSession.httpClient),
             reviewClient: LiveReviewClient(client: AppSession.httpClient),
             navigator: navigator,
+            analytics: AppAnalytics.tracker,
             cachedNickname: { UserDefaultsManager.shared.getNickname() },
             imageURL: { URL(string: "\(NetworkManager.baseUrl)api/image/\($0)")! }
         )

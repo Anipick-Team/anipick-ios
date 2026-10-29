@@ -1,3 +1,4 @@
+import Analytics
 import Foundation
 import HomeClientInterface
 import HomeInterface
@@ -9,6 +10,7 @@ public struct HomeDependencies {
     public let homeClient: any HomeClient
     public let reviewClient: any ReviewClient
     public let navigator: any Navigator
+    public let analytics: any AnalyticsTracking
     /// 이 기기에 저장된 닉네임 (없으면 "--")
     public let cachedNickname: @MainActor () -> String
     /// 이미지 id를 받을 주소 (`{서버}api/image/{id}`, 인증 필요)
@@ -18,12 +20,14 @@ public struct HomeDependencies {
         homeClient: any HomeClient,
         reviewClient: any ReviewClient,
         navigator: any Navigator,
+        analytics: any AnalyticsTracking,
         cachedNickname: @escaping @MainActor () -> String,
         imageURL: @escaping @Sendable (Int) -> URL
     ) {
         self.homeClient = homeClient
         self.reviewClient = reviewClient
         self.navigator = navigator
+        self.analytics = analytics
         self.cachedNickname = cachedNickname
         self.imageURL = imageURL
     }
@@ -63,9 +67,12 @@ public struct HomeBuilder: HomeBuilding {
                         reviewClient: dependencies.reviewClient, navigator: dependencies.navigator),
                     imageURL: dependencies.imageURL))
         case .search:
-            // 아직 레거시 화면 — App이 가로챈다
-            assertionFailure("레거시 화면 Route가 Home 빌더로 왔다: \(route)")
-            return AnyView(EmptyView())
+            return AnyView(
+                HomeSearchView(
+                    state: HomeSearchReducer.State(),
+                    reducer: HomeSearchReducer(
+                        homeClient: dependencies.homeClient, navigator: dependencies.navigator,
+                        analytics: dependencies.analytics)))
         }
     }
 

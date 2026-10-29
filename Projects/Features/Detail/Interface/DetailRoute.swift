@@ -6,6 +6,8 @@ public enum DetailRoute: Hashable, Sendable {
     case anime(id: Int)
     /// 성우(인물) 상세 (레거시 `AppRoute.voiceActorDetail`)
     case voiceActor(id: Int)
+    /// 제작사 상세 (레거시 `AppRoute.producerDetail`)
+    case producer(id: Int)
 }
 
 /// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).

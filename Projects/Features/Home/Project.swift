@@ -5,6 +5,6 @@ import ProjectDescriptionHelpers
 let project = Project.feature(
     "Home",
     dependencies: [.client("Home"), .client("Review"), .feature("Detail")],
-    modules: [.core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
-    testModules: [.shared("FeatureTestSupport"), .core("ClientCore")]
+    modules: [.core("Analytics"), .core("MVICore"), .core("Navigation"), .shared("DesignSystem")],
+    testModules: [.shared("FeatureTestSupport"), .core("ClientCore"), .core("Analytics")]
 )

@@ -51,6 +51,9 @@ struct AppEntryView: View {
                 case .voiceActor(let id):
                     AppDIContainer.makeVoiceActorDetailView(animeId: id)
                         .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                case .producer(let id):
+                    AppDIContainer.makeProducerDetailView(studioId: id)
+                        .onAppear { AnalyticsManager.logScreen(route.screenName) }
                 }
             }
             .navigationDestination(for: ExploreRoute.self) { route in
@@ -58,16 +61,8 @@ struct AppEntryView: View {
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: HomeRoute.self) { route in
-                Group {
-                    // 아직 레거시인 검색은 App이 가로챈다 (Home 이관 중)
-                    switch route {
-                    case .search:
-                        AppDIContainer.makeHomeSearchView()
-                    default:
-                        AppDIContainer.homeBuilder.make(route)
-                    }
-                }
-                .onAppear { AnalyticsManager.logScreen(route.screenName) }
+                AppDIContainer.homeBuilder.make(route)
+                    .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: AuthRoute.self) { route in
                 AppDIContainer.authBuilder.make(route)
@@ -93,7 +88,7 @@ struct AppEntryView: View {
                     case .findPassword:
                         AppDIContainer.authBuilder.make(.findPassword)
                     case .homeSearch:
-                        AppDIContainer.makeHomeSearchView()
+                        AppDIContainer.homeBuilder.make(.search)
                     case .homeView:
                         AppDIContainer.makeHomeView()
                     case .editNickname:

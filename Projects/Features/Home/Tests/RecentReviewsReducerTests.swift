@@ -169,7 +169,8 @@ struct RecentReviewsReducerTests {
         let store = Store(
             initialState: RecentReviewsReducer.State(),
             reducer: RecentReviewsReducer(
-                reviewClient: MockReviewClient(), navigator: navigator, toastDuration: .milliseconds(300)))
+                reviewClient: MockReviewClient(), navigator: navigator,
+                toastDuration: .milliseconds(300)))
 
         let first = store.send(.reported)
         #expect(store.state.isReportToastPresented)
