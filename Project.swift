@@ -82,6 +82,7 @@ let project = Project(
                 .project(target: "RankingFeature", path: .relativeToRoot("Projects/Features/Ranking")),
                 .project(target: "RankingClientLive", path: .relativeToRoot("Projects/Clients/RankingClient")),
                 .project(target: "MetadataClientLive", path: .relativeToRoot("Projects/Clients/MetadataClient")),
+                .project(target: "MetadataClientInterface", path: .relativeToRoot("Projects/Clients/MetadataClient")),
                 .project(target: "DetailInterface", path: .relativeToRoot("Projects/Features/Detail")),
                 .project(target: "DetailFeature", path: .relativeToRoot("Projects/Features/Detail")),
                 .project(target: "DetailClientLive", path: .relativeToRoot("Projects/Clients/DetailClient")),
@@ -167,6 +168,7 @@ let project = Project(
                 .project(target: "AuthClientInterface", path: .relativeToRoot("Projects/Clients/AuthClient")),
                 .project(target: "ExploreClientTesting", path: .relativeToRoot("Projects/Clients/ExploreClient")),
                 .project(target: "ExploreClientInterface", path: .relativeToRoot("Projects/Clients/ExploreClient")),
+                .project(target: "MetadataClientInterface", path: .relativeToRoot("Projects/Clients/MetadataClient")),
                 .project(target: "MetadataClientTesting", path: .relativeToRoot("Projects/Clients/MetadataClient")),
                 .project(target: "CommunityClientTesting", path: .relativeToRoot("Projects/Clients/CommunityClient")),
                 .project(target: "HomeClientTesting", path: .relativeToRoot("Projects/Clients/HomeClient")),
@@ -187,7 +189,6 @@ let project = Project(
                 .project(target: "MyInfoInterface", path: .relativeToRoot("Projects/Features/MyInfo")),
                 .project(target: "MyInfoFeature", path: .relativeToRoot("Projects/Features/MyInfo")),
                 .project(target: "MyInfoClientLive", path: .relativeToRoot("Projects/Clients/MyInfoClient")),
-                .external(name: "Alamofire"),
             ]
         ),
         .target(

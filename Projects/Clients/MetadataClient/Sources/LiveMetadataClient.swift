@@ -20,7 +20,8 @@ public struct LiveMetadataClient: MetadataClient {
     }
 
     /// 레거시 `fetchMataData`: 없는 값은 빈 목록으로 저장한다
-    public func refresh() async {
+    @discardableResult
+    public func refresh() async -> Bool {
         guard
             let client,
             let response = try? await client.send(
@@ -28,12 +29,13 @@ public struct LiveMetadataClient: MetadataClient {
                     method: .get, path: "api/animes/meta-data-group", requiresAuth: true)),
             let result = response.result
         else {
-            return
+            return false
         }
         preferences.set(result.seasonYear ?? [], for: Self.seasonYearsKey)
         preferences.set(result.type ?? [], for: Self.typesKey)
         try? preferences.setCodable(result.genres ?? [], for: Self.genresKey)
         try? preferences.setCodable(result.season ?? [], for: Self.seasonsKey)
+        return true
     }
 
     /// 레거시는 `[Genre]`를 JSON `Data`로 저장한다 (`UserDefaultsManager.setMetaDataForGenres`)

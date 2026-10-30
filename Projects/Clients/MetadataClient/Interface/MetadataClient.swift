@@ -16,6 +16,7 @@ public protocol MetadataClient: Sendable {
     func cachedSeasonYears() -> [Int]
     /// 작품 유형 (TV, OVA, MOVIE 등)
     func cachedTypes() -> [String]
-    /// 서버에서 다시 받아 이 기기에 저장한다 (`GET api/animes/meta-data-group`). 실패하면 저장값을 그대로 둔다
-    func refresh() async
+    /// 서버에서 다시 받아 이 기기에 저장한다 (`GET api/animes/meta-data-group`). 실패하면 저장값을 그대로 두고 `false`
+    @discardableResult
+    func refresh() async -> Bool
 }

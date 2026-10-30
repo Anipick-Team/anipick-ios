@@ -17,8 +17,8 @@ struct SessionStateTests {
     private func loggedInNavigation() -> NavigationManager {
         let navigationManager = NavigationManager()
         navigationManager.isLoggedIn = true
-        navigationManager.path.append(AppRoute.setting)
-        navigationManager.path.append(AppRoute.logout)
+        navigationManager.path.append(AppRoute.content(activeTab: .home))
+        navigationManager.path.append(AppRoute.content(activeTab: .myInfo))
         return navigationManager
     }
 

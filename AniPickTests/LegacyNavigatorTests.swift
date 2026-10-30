@@ -46,9 +46,9 @@ struct LegacyNavigatorTests {
         return LegacyNavigator(navigationManager: navigationManager)
     }
 
-    @Test("레거시 경로 위에 새 Route를 push하고 pop한다")
+    @Test("경로 위에 새 Route를 push하고 pop한다")
     func pushesOntoLegacyPath() {
-        navigationManager.path.append(AppRoute.setting)
+        navigationManager.path.append(NewRoute(id: 0))
 
         navigator.push(NewRoute(id: 1))
         #expect(navigationManager.path.count == 2)
@@ -66,7 +66,7 @@ struct LegacyNavigatorTests {
 
     @Test("popToRoot는 경로를 비운다")
     func popsToRoot() {
-        navigationManager.path.append(AppRoute.setting)
+        navigationManager.path.append(NewRoute(id: 0))
         navigator.push(NewRoute(id: 1))
 
         navigator.popToRoot()

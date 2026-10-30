@@ -33,16 +33,17 @@ struct AppEntryView: View {
             .onChange(of: navigationManager.isLoggedIn) { newValue in
                 DLog("🔐 [Login] AppEntryView 루트 전환 - isLoggedIn=\(newValue) → \(newValue ? "홈" : "로그인") 화면")
             }
-            .onAppear {
-                viewModel.fetchMataData()
-                viewModel.checkVersion()
+            // 로그인·로그아웃으로 루트가 바뀔 때도 다시 받는다 (레거시 onAppear와 같음)
+            .task {
+                async let metaData: Void = viewModel.fetchMetaData()
+                async let version: Void = viewModel.checkVersion()
+                _ = await (metaData, version)
             }
             // 새 Feature가 push한 Route의 목적지. 탭 루트에서 한 번만 등록한다 (A2)
             .navigationDestination(for: SettingRoute.self) { route in
                 AppDIContainer.settingBuilder.make(route)
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
-            // 아직 레거시인 화면: 이관한 Feature가 push한 Route를 레거시 화면에 연결한다
             .navigationDestination(for: DetailRoute.self) { route in
                 AppDIContainer.detailBuilder.make(route)
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
@@ -68,117 +69,9 @@ struct AppEntryView: View {
                     .onAppear { AnalyticsManager.logScreen(route.screenName) }
             }
             .navigationDestination(for: AppRoute.self) { route in
-                Group {
-                    switch route {
-                    case .emailSignup:
-                        AppDIContainer.authBuilder.make(.emailSignup)
-                    case .emailLogin:
-                        AppDIContainer.authBuilder.make(.emailLogin)
-                    case .LoginProblem:
-                        AppDIContainer.authBuilder.make(.loginProblem)
-                    case .findPassword:
-                        AppDIContainer.authBuilder.make(.findPassword)
-                    case .homeSearch:
-                        AppDIContainer.homeBuilder.make(.search)
-                    case .homeView:
-                        AppDIContainer.homeBuilder.make(.main)
-                    case .editNickname:
-                        AppDIContainer.settingBuilder.make(.editNickname)
-                    case .editEmail:
-                        AppDIContainer.settingBuilder.make(.editEmail)
-                    case .editPassword:
-                        AppDIContainer.settingBuilder.make(.editPassword)
-                    case .deleteAccount:
-                        AppDIContainer.settingBuilder.make(.withdrawal)
-                    case .myInfoInToWatchList:
-                        AppDIContainer.myInfoBuilder.make(.watchList)
-                    case .myInfo:
-                        AppDIContainer.myInfoBuilder.make(.main)
-                    case .myInfoWatchingList:
-                        AppDIContainer.myInfoBuilder.make(.watching)
-                    case .finishedWatchList:
-                        AppDIContainer.myInfoBuilder.make(.finished)
-                    case .likeAnimeList:
-                        AppDIContainer.myInfoBuilder.make(.likedAnimes)
-                    case .likePersonList:
-                        AppDIContainer.myInfoBuilder.make(.likedPersons)
-                    case .ratedAnimeList:
-                        AppDIContainer.myInfoBuilder.make(.ratedReviews)
-                    case .myContent:
-                        AppDIContainer.myInfoBuilder.make(.myContent)
-                    case .ranking:
-                        AppDIContainer.rankingBuilder.make(.main)
-                    case .research:
-                        AppDIContainer.makeResearchView()
-                    case .review(let starRating, let animeId, let reviewContent):
-                        AppDIContainer.reviewBuilder.make(
-                            .write(animeId: animeId, rating: starRating, content: reviewContent)
-                        )
-                    case .explore:
-                        // 레거시도 연도·분기 인자를 쓰지 않는다
-                        AppDIContainer.exploreBuilder.make(.main)
-                    case .animeDetail(let animeId):
-                        AppDIContainer.detailBuilder.make(.anime(id: animeId))
-                    case .resetPassword:
-                        AppDIContainer.authBuilder.make(.resetPassword)
-                    case .content(let activeTab):
-                        AppDIContainer.makeContentView(activeTab: activeTab)
-                    case .adultSetting:
-                        AppDIContainer.makeAdultSettingView()
-                    case .adultCheck:
-                        // TODO: 성인인증 화면 구현 시 연결
-                        AppDIContainer.makeAdultSettingView()
-                    case .setting:
-                        AppDIContainer.settingBuilder.make(.main)
-                    case .inquiry:
-                        InquiryView()
-                    case .preferenceSelection:
-                        AppDIContainer.authBuilder.make(.preferenceSelection)
-                    case .comingSoonDetail:
-                        AppDIContainer.homeBuilder.make(.comingSoon)
-                    case .weekdayNewAnime(let day):
-                        AppDIContainer.homeBuilder.make(.weekdayNewAnime(day: day))
-                    case .mainLoginView:
-                        AppDIContainer.authBuilder.make(.mainLogin)
-                    case .recentReview:
-                        AppDIContainer.homeBuilder.make(.recentReviews)
-                    case .recommendView(let animeId):
-                        AppDIContainer.homeBuilder.make(.similarRecommendations(animeId: animeId))
-                    case let .community(seriesId, animeTitle, coverImageUrl, genreNames):
-                        AppDIContainer.exploreBuilder.make(
-                            .communityBoard(
-                                seriesId: seriesId, animeTitle: animeTitle, coverImageUrl: coverImageUrl,
-                                genreNames: genreNames))
-                    case let .communityDetail(postId):
-                        AppDIContainer.exploreBuilder.make(.communityPost(id: postId))
-                    case let .communityWrite(seriesId, animeTitle):
-                        AppDIContainer.exploreBuilder.make(.communityWrite(seriesId: seriesId, animeTitle: animeTitle))
-                    case let .communityEdit(postId, seriesId, animeTitle, title, content, isSpoiler, imageIds):
-                        AppDIContainer.exploreBuilder.make(
-                            .communityEdit(
-                                postId: postId, seriesId: seriesId, animeTitle: animeTitle, title: title,
-                                content: content, isSpoiler: isSpoiler, imageIds: imageIds))
-                    case .producerDetail(let studioId):
-                        AppDIContainer.detailBuilder.make(.producer(id: studioId))
-                    case .voiceActorDetail(let animeId):
-                        AppDIContainer.detailBuilder.make(.voiceActor(id: animeId))
-                    case .characterAndVoiceActorDetail(let animeId):
-                        AppDIContainer.detailBuilder.make(.cast(animeId: animeId))
-                    case let .seriesDetail(animeId, animeTitle):
-                        AppDIContainer.detailBuilder.make(.series(animeId: animeId, animeTitle: animeTitle))
-                    
-                    case let .recommend(animeId, animeTitle):
-                        AppDIContainer.detailBuilder.make(.recommendations(animeId: animeId, animeTitle: animeTitle))
-                    case let .recommend2(animeId, animeTitle):
-                        AppDIContainer.homeBuilder.make(.recommendations(animeId: animeId, animeTitle: animeTitle))
-                    default:
-                        Text("asdfasdf")
-                    }
-                }
-                .onAppear {
-                    if let screenName = route.screenName {
-                        AnalyticsManager.logScreen(screenName)
-                    }
+                switch route {
+                case .content(let activeTab):
+                    AppDIContainer.makeContentView(activeTab: activeTab)
                 }
             }
         }

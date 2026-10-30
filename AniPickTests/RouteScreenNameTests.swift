@@ -2,7 +2,8 @@
 //  RouteScreenNameTests.swift
 //  AniPickTests
 //
-//  이관한 화면의 Route가 레거시 AppRoute와 같은 화면 조회 이름을 쓰는지 (R14)
+//  Route의 화면 조회 이름이 레거시 AppRoute가 쓰던 이름과 같은지 (R14).
+//  레거시 AppRoute는 Phase 5에서 지웠으므로, 그때의 이름을 문자열로 고정한다.
 //
 
 import AuthInterface
@@ -17,100 +18,97 @@ import Testing
 @testable import AniPick
 
 @MainActor
-@Suite("Route 화면 이름 ↔ 레거시 AppRoute")
+@Suite("Route 화면 이름 = 레거시 이름")
 struct RouteScreenNameTests {
     @Test(
         "설정 Route",
         arguments: [
-            (SettingRoute.main, AppRoute.setting), (.editNickname, .editNickname),
-            (.withdrawal, .deleteAccount), (.editPassword, .editPassword), (.editEmail, .editEmail),
+            (SettingRoute.main, "setting"), (.editNickname, "edit_nickname"),
+            (.withdrawal, "delete_account"), (.editPassword, "edit_password"), (.editEmail, "edit_email"),
         ]
     )
-    func setting(route: SettingRoute, legacy: AppRoute) {
-        #expect(route.screenName == legacy.screenName)
+    func setting(route: SettingRoute, name: String) {
+        #expect(route.screenName == name)
     }
 
     @Test("리뷰 Route")
     func review() {
-        let route = ReviewRoute.write(animeId: 1, rating: 3, content: "")
-        let legacy = AppRoute.review(starRating: 3, animeId: 1, reviewContent: "")
-
-        #expect(route.screenName == legacy.screenName)
-    }
-
-    @Test("아직 레거시인 상세·검색 Route")
-    func legacyBacked() {
-        #expect(DetailRoute.anime(id: 1).screenName == AppRoute.animeDetail(animeId: 1).screenName)
-        #expect(HomeRoute.search.screenName == AppRoute.homeSearch.screenName)
-        #expect(HomeRoute.main.screenName == AppRoute.homeView.screenName)
-        #expect(
-            HomeRoute.recommendations(animeId: 1, animeTitle: nil).screenName
-                == AppRoute.recommend2(animeId: 1, animeTitle: nil).screenName)
-        #expect(HomeRoute.comingSoon.screenName == AppRoute.comingSoonDetail.screenName)
-        #expect(HomeRoute.recentReviews.screenName == AppRoute.recentReview.screenName)
-        #expect(HomeRoute.weekdayNewAnime(day: 1).screenName == AppRoute.weekdayNewAnime(day: 1).screenName)
-        #expect(
-            HomeRoute.similarRecommendations(animeId: 1).screenName
-                == AppRoute.recommendView(animeId: 1).screenName)
+        #expect(ReviewRoute.write(animeId: 1, rating: 3, content: "").screenName == "review_write")
     }
 
     @Test(
-        "마이페이지 목록 Route",
+        "홈 Route",
         arguments: [
-            (MyInfoRoute.main, AppRoute.myInfo), (.watchList, .myInfoInToWatchList), (.watching, .myInfoWatchingList),
-            (.finished, .finishedWatchList), (.likedAnimes, .likeAnimeList), (.likedPersons, .likePersonList),
-            (.ratedReviews, .ratedAnimeList), (.myContent, .myContent),
+            (HomeRoute.main, "home"), (.search, "home_search"),
+            (.recommendations(animeId: 1, animeTitle: nil), "recommend"), (.comingSoon, "coming_soon"),
+            (.recentReviews, "recent_review"), (.weekdayNewAnime(day: 1), "weekday_new_anime"),
+            (.similarRecommendations(animeId: 1), "recommend"),
         ]
     )
-    func myInfo(route: MyInfoRoute, legacy: AppRoute) {
-        #expect(route.screenName == legacy.screenName)
+    func home(route: HomeRoute, name: String) {
+        #expect(route.screenName == name)
     }
 
-    @Test("성우 상세 Route")
-    func voiceActor() {
-        #expect(
-            DetailRoute.voiceActor(id: 1).screenName == AppRoute.voiceActorDetail(animeId: 1).screenName)
-        #expect(DetailRoute.producer(id: 1).screenName == AppRoute.producerDetail(studioId: 1).screenName)
-        #expect(
-            DetailRoute.cast(animeId: 1).screenName == AppRoute.characterAndVoiceActorDetail(animeId: 1).screenName)
-        #expect(
-            DetailRoute.series(animeId: 1, animeTitle: "").screenName
-                == AppRoute.seriesDetail(animeId: 1, animeTitle: "").screenName)
-        #expect(
-            DetailRoute.recommendations(animeId: 1, animeTitle: "").screenName
-                == AppRoute.recommend(animeId: 1, animeTitle: "").screenName)
+    @Test(
+        "마이페이지 Route",
+        arguments: [
+            (MyInfoRoute.main, "my_info"), (.watchList, "my_to_watch_list"), (.watching, "my_watching_list"),
+            (.finished, "my_finished_list"), (.likedAnimes, "my_liked_anime"), (.likedPersons, "my_liked_person"),
+            (.ratedReviews, "my_rated_anime"), (.myContent, "my_content"),
+        ]
+    )
+    func myInfo(route: MyInfoRoute, name: String) {
+        #expect(route.screenName == name)
     }
 
-    @Test("커뮤니티 게시글 Route")
-    func communityPost() {
-        #expect(
-            ExploreRoute.communityPost(id: 1).screenName
-                == AppRoute.communityDetail(postId: 1).screenName)
-        #expect(
-            ExploreRoute.communityBoard(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []).screenName
-                == AppRoute.community(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []).screenName)
-        #expect(
-            ExploreRoute.communityWrite(seriesId: 1, animeTitle: "").screenName
-                == AppRoute.communityWrite(seriesId: 1, animeTitle: "").screenName)
-        #expect(
-            ExploreRoute.communityEdit(
-                postId: 1, seriesId: 1, animeTitle: "", title: "", content: "", isSpoiler: false, imageIds: []
-            ).screenName
-                == AppRoute.communityEdit(
-                    postId: 1, seriesId: 1, animeTitle: "", title: "", content: "", isSpoiler: false, imageIds: []
-                ).screenName)
+    @Test(
+        "상세 Route",
+        arguments: [
+            (DetailRoute.anime(id: 1), "anime_detail"), (.voiceActor(id: 1), "voice_actor_detail"),
+            (.producer(id: 1), "producer_detail"), (.cast(animeId: 1), "character_voice_actor"),
+            (.series(animeId: 1, animeTitle: ""), "series_detail"),
+            (.recommendations(animeId: 1, animeTitle: ""), "recommend"),
+        ]
+    )
+    func detail(route: DetailRoute, name: String) {
+        #expect(route.screenName == name)
+    }
+
+    @Test(
+        "탐색·커뮤니티 Route",
+        arguments: [
+            (ExploreRoute.main, "explore"), (.communityPost(id: 1), "community_detail"),
+            (.communityBoard(seriesId: 1, animeTitle: "", coverImageUrl: nil, genreNames: []), "community"),
+            (.communityWrite(seriesId: 1, animeTitle: ""), "community_write"),
+            (
+                .communityEdit(
+                    postId: 1, seriesId: 1, animeTitle: "", title: "", content: "", isSpoiler: false, imageIds: []),
+                "community_edit"
+            ),
+        ]
+    )
+    func explore(route: ExploreRoute, name: String) {
+        #expect(route.screenName == name)
     }
 
     @Test(
         "로그인 Route",
         arguments: [
-            (AuthRoute.emailLogin, AppRoute.emailLogin), (.emailSignup, .emailSignup),
-            (.findPassword, .findPassword), (.loginProblem, .LoginProblem),
-            (.preferenceSelection, .preferenceSelection), (.resetPassword, .resetPassword),
-            (.mainLogin, .mainLoginView),
+            (AuthRoute.emailLogin, "email_login"), (.emailSignup, "email_signup"),
+            (.findPassword, "find_password"), (.loginProblem, "login_problem"),
+            (.preferenceSelection, "preference_selection"), (.resetPassword, "reset_password"),
+            (.mainLogin, "login"),
         ]
     )
-    func auth(route: AuthRoute, legacy: AppRoute) {
-        #expect(route.screenName == legacy.screenName)
+    func auth(route: AuthRoute, name: String) {
+        #expect(route.screenName == name)
+    }
+
+    @Test(
+        "탭",
+        arguments: [(Tab.home, "home"), (.ranking, "ranking"), (.research, "explore"), (.myInfo, "my_info")]
+    )
+    func tab(tab: Tab, name: String) {
+        #expect(tab.screenName == name)
     }
 }

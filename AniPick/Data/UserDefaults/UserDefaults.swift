@@ -20,11 +20,6 @@ enum UserDefaultKey: String {
     case appleUserId
     case appleEmail
     
-    case seasonYear
-    case seasonQuater
-    case animeGenres
-    case animeType
-    
     case lastVisitedAnime
 
     case imageId
@@ -134,51 +129,6 @@ extension UserDefaultsManager {
 
 
 extension UserDefaultsManager {
-    func setMetaDataForSeasonYear(_ seasonYear: [Int]) {
-        defaults.set(seasonYear, forKey: UserDefaultKey.seasonYear.rawValue)
-    }
-    
-    func setMetaDataForType(_ type: [String]) {
-        defaults.set(type, forKey: UserDefaultKey.animeType.rawValue)
-    }
-    
-    func setMetaDataForGenres(_ genres: [Genre]) {
-        if let genreData = try? JSONEncoder().encode(genres) {
-            defaults.set(genreData, forKey: UserDefaultKey.animeGenres.rawValue)
-        }
-    }
-    
-    func setMetaDataForSeason(_ season: [Season]) {
-        if let seasonData = try? JSONEncoder().encode(season) {
-            defaults.set(seasonData, forKey: UserDefaultKey.seasonQuater.rawValue)
-        }
-    }
-    
-    func getMetaDataForSeasonYear() -> [Int] {
-        return defaults.object(forKey: UserDefaultKey.seasonYear.rawValue) as? [Int] ?? []
-    }
-    
-    func getMetaDataForType() -> [String] {
-        return defaults.object(forKey: UserDefaultKey.animeType.rawValue) as? [String] ?? []
-    }
-    
-    func getMetaDataForGenres() -> [Genre] {
-        if let data = defaults.data(forKey: UserDefaultKey.animeGenres.rawValue),
-           let genres = try? JSONDecoder().decode([Genre].self, from: data) {
-            return genres
-        }
-        return []
-    }
-    
-    func getMetaDataForSeason() -> [Season] {
-        if let data = defaults.data(forKey: UserDefaultKey.seasonQuater.rawValue),
-           let seasonQuater = try? JSONDecoder().decode([Season].self, from: data) {
-            return seasonQuater
-        }
-        
-        return []
-    }
-    
     func setLastVisitedAnimeId(animeId: Int) {
         defaults.set(animeId, forKey: UserDefaultKey.lastVisitedAnime.rawValue)
     }

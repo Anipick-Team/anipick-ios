@@ -5,6 +5,7 @@
 
 import DetailInterface
 import ExploreInterface
+import HomeInterface
 import SwiftUI
 import Testing
 @testable import AniPick
@@ -78,7 +79,7 @@ struct AppStateDeepLinkTests {
     @Test func 지연_없이_바로_이동하고_쌓여_있던_화면은_비운다() {
         let navigationManager = NavigationManager()
         navigationManager.isLoggedIn = true
-        navigationManager.path.append(AppRoute.homeSearch)
+        navigationManager.path.append(HomeRoute.search)
         let appState = AppState(navigationManager: navigationManager)
 
         appState.deepLink = .anime(id: 45)

@@ -39,8 +39,9 @@ struct LiveMetadataClientTests {
         let client = LiveMetadataClient(
             preferences: Preferences(defaults: defaults), client: stub.client)
 
-        await client.refresh()
+        let succeeded = await client.refresh()
 
+        #expect(succeeded)
         #expect(stub.requests.first?.url?.path() == "/api/animes/meta-data-group")
         #expect(client.cachedSeasonYears() == [2026])
         #expect(client.cachedGenres() == [Genre(id: 3, name: "SF")])
@@ -49,5 +50,18 @@ struct LiveMetadataClientTests {
         let seasons = try JSONDecoder().decode(
             [Genre].self, from: try #require(defaults.data(forKey: "seasonQuater")))
         #expect(seasons == [Genre(id: 1, name: "1분기")])
+    }
+
+    @Test("PS3. refresh 실패: false를 돌려주고 저장값을 그대로 둔다 (앱 시작 재시도 판단)")
+    func refreshFailureKeepsCache() async {
+        defaults.set([2025], forKey: "seasonYear")
+        let stub = ClientStub(.failure(.notConnectedToInternet))
+        let client = LiveMetadataClient(
+            preferences: Preferences(defaults: defaults), client: stub.client)
+
+        let succeeded = await client.refresh()
+
+        #expect(!succeeded)
+        #expect(client.cachedSeasonYears() == [2025])
     }
 }
