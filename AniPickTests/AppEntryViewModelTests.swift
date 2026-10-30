@@ -26,9 +26,9 @@ private nonisolated final class FlakyMetadataClient: MetadataClient {
         return state.withLock { $0.calls }
     }
 
-    func cachedGenres() -> [Genre] { [] }
-    func cachedSeasonYears() -> [Int] { [] }
-    func cachedTypes() -> [String] { [] }
+    func cachedGenres() -> [Genre] { return [] }
+    func cachedSeasonYears() -> [Int] { return [] }
+    func cachedTypes() -> [String] { return [] }
 
     func refresh() async -> Bool {
         return state.withLock { state in
@@ -40,7 +40,7 @@ private nonisolated final class FlakyMetadataClient: MetadataClient {
 
 /// 버전 확인은 인증 요청이다 (레거시 Authorization 헤더)
 private nonisolated struct FixedToken: TokenProviding {
-    func accessToken() async -> String? { "token" }
+    func accessToken() async -> String? { return "token" }
     func refreshAccessToken() async throws(TransportError) {}
 }
 

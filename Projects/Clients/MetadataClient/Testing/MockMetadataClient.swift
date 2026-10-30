@@ -28,5 +28,7 @@ public struct MockMetadataClient: MetadataClient {
         return types
     }
 
-    public func refresh() async -> Bool { true }
+    public func refresh() async -> Bool {
+        return true
+    }
 }

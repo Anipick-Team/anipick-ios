@@ -44,7 +44,7 @@ final class AppRouter: ObservableObject, Navigator {
 
     func pathBinding(for tab: Tab) -> Binding<NavigationPath> {
         return Binding(
-            get: { self.path(for: tab) },
+            get: { return self.path(for: tab) },
             set: { self.tabPaths[tab] = $0 }
         )
     }
@@ -52,7 +52,7 @@ final class AppRouter: ObservableObject, Navigator {
     /// 탭바 선택. 지금 탭을 다시 누르면 그 탭의 루트로 돌아간다 (TB3)
     var tabSelection: Binding<Tab> {
         return Binding(
-            get: { self.selectedTab },
+            get: { return self.selectedTab },
             set: { self.tapTab($0) }
         )
     }
@@ -101,7 +101,7 @@ final class AppRouter: ObservableObject, Navigator {
 
     /// 로그인 전이면 로그인 스택, 아니면 지금 탭의 스택
     private var currentPath: NavigationPath {
-        get { isLoggedIn ? path(for: selectedTab) : authPath }
+        get { return isLoggedIn ? path(for: selectedTab) : authPath }
         set {
             if isLoggedIn {
                 tabPaths[selectedTab] = newValue

@@ -42,7 +42,7 @@ struct AppDIContainer {
     static let router = AppRouter(isLoggedIn: !UserDefaultsManager.shared.getAccessToken().isEmpty)
     static let appState = AppState(router: router)
     static let sessionState = SessionState(router: router)
-    static var navigator: any Navigator { router }
+    static var navigator: any Navigator { return router }
 
     // MARK: - Feature 빌더
     static let settingBuilder: any SettingBuilding = makeSettingBuilder()
