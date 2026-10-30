@@ -14,7 +14,7 @@ import Testing
 @MainActor
 @Suite("SessionState", .timeLimit(.minutes(1)))
 struct SessionStateTests {
-    private struct Screen: Hashable, Sendable {}
+    private nonisolated struct Screen: Hashable, Sendable {}
 
     private func loggedInRouter() -> AppRouter {
         let router = AppRouter(isLoggedIn: true)

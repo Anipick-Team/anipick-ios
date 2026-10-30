@@ -13,8 +13,8 @@ import Testing
 
 @testable import AniPick
 
-/// Interface 모듈의 Route를 흉내 낸다
-private struct NewRoute: Hashable, Sendable {
+/// Interface 모듈의 Route를 흉내 낸다 (Route는 nonisolated여야 push할 수 있다 — 설계 N2)
+private nonisolated struct NewRoute: Hashable, Sendable {
     let id: Int
 }
 

@@ -15,7 +15,7 @@ import os
 @testable import AniPick
 
 /// 앞의 `failures`번은 실패하고 그 뒤로 성공한다
-private final class FlakyMetadataClient: MetadataClient {
+private nonisolated final class FlakyMetadataClient: MetadataClient {
     private let state: OSAllocatedUnfairLock<(failures: Int, calls: Int)>
 
     init(failures: Int) {
@@ -39,7 +39,7 @@ private final class FlakyMetadataClient: MetadataClient {
 }
 
 /// 버전 확인은 인증 요청이다 (레거시 Authorization 헤더)
-private struct FixedToken: TokenProviding {
+private nonisolated struct FixedToken: TokenProviding {
     func accessToken() async -> String? { "token" }
     func refreshAccessToken() async throws(TransportError) {}
 }

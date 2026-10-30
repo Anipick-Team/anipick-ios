@@ -45,18 +45,22 @@ struct AppDIContainer {
     static var navigator: any Navigator { router }
 
     // MARK: - Feature 빌더
-    static let settingBuilder: any SettingBuilding = SettingBuilder(
-        dependencies: SettingDependencies(
-            userClient: LiveUserClient(
-                client: AppSession.httpClient,
-                onWithdrawn: { await AppSession.shared.signOut(.withdrawal) }
-            ),
-            authClient: liveAuthClient,
-            navigator: navigator,
-            openURL: { UIApplication.shared.open($0) },
-            appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+    static let settingBuilder: any SettingBuilding = makeSettingBuilder()
+
+    private static func makeSettingBuilder() -> any SettingBuilding {
+        return SettingBuilder(
+            dependencies: SettingDependencies(
+                userClient: LiveUserClient(
+                    client: AppSession.httpClient,
+                    onWithdrawn: { await AppSession.shared.signOut(.withdrawal) }
+                ),
+                authClient: liveAuthClient,
+                navigator: navigator,
+                openURL: { UIApplication.shared.open($0) },
+                appVersion: Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+            )
         )
-    )
+    }
 
     static let authBuilder: any AuthBuilding = AuthBuilder(
         dependencies: AuthDependencies(
@@ -87,31 +91,38 @@ struct AppDIContainer {
         kakaoAppKey: "0342f72c46d8653e8a501fe5704a540c"
     )
 
-    static let exploreBuilder: any ExploreBuilding = ExploreBuilder(
-        dependencies: ExploreDependencies(
-            communityClient: LiveCommunityClient(
-                client: AppSession.httpClient, imageBaseURL: URL(string: NetworkManager.baseUrl)!),
-            exploreClient: LiveExploreClient(client: AppSession.httpClient),
-            metadataClient: LiveMetadataClient(client: AppSession.httpClient),
-            navigator: navigator,
-            // 홈 "곧 방영"이 넘긴 연도·분기 (레거시 AppState)
-            consumePendingFilter: {
-                appState.consumeExploreFilter().map { PendingExploreFilter(year: $0.year, season: $0.season) }
-            },
-            pendingFilterUpdates: {
-                AsyncStream { continuation in
-                    let cancellable = appState.$pendingExploreFilter.dropFirst().sink { _ in
-                        continuation.yield()
+    static let exploreBuilder: any ExploreBuilding = makeExploreBuilder()
+
+    private static func makeExploreBuilder() -> any ExploreBuilding {
+        return ExploreBuilder(
+            dependencies: ExploreDependencies(
+                communityClient: LiveCommunityClient(
+                    client: AppSession.httpClient, imageBaseURL: URL(string: NetworkManager.baseUrl)!),
+                exploreClient: LiveExploreClient(client: AppSession.httpClient),
+                metadataClient: LiveMetadataClient(client: AppSession.httpClient),
+                navigator: navigator,
+                // 홈 "곧 방영"이 넘긴 연도·분기 (레거시 AppState)
+                consumePendingFilter: {
+                    appState.consumeExploreFilter().map { PendingExploreFilter(year: $0.year, season: $0.season) }
+                },
+                pendingFilterUpdates: {
+                    AsyncStream { continuation in
+                        let task = Task {
+                            for await _ in appState.$pendingExploreFilter.dropFirst().values {
+                                continuation.yield()
+                            }
+                            continuation.finish()
+                        }
+                        continuation.onTermination = { _ in task.cancel() }
                     }
-                    continuation.onTermination = { _ in cancellable.cancel() }
+                },
+                // 레거시 CommunityDetailViewModel.makeShareItems와 같은 링크
+                sharePost: { postId in
+                    ShareSheet.present(items: DeepLink.communityPost(id: postId).universalLink.map { [$0] } ?? [])
                 }
-            },
-            // 레거시 CommunityDetailViewModel.makeShareItems와 같은 링크
-            sharePost: { postId in
-                ShareSheet.present(items: DeepLink.communityPost(id: postId).universalLink.map { [$0] } ?? [])
-            }
+            )
         )
-    )
+    }
 
     static let myInfoBuilder: any MyInfoBuilding = MyInfoBuilder(
         dependencies: MyInfoDependencies(
@@ -180,18 +191,22 @@ struct AppDIContainer {
         )
     )
 
-    static let reviewBuilder: any ReviewBuilding = ReviewBuilder(
-        dependencies: ReviewDependencies(
-            reviewClient: LiveReviewClient(client: AppSession.httpClient),
-            navigator: navigator,
-            analytics: AppAnalytics.tracker,
-            openURL: { UIApplication.shared.open($0) },
-            // 별점 남긴 애니 목록이 다시 불러온다 (레거시 WriteReviewViewModel.swift:54-57)
-            onReviewWritten: {
-                await MainActor.run {
-                    NotificationCenter.default.post(name: .reloadRatedAnime, object: nil)
+    static let reviewBuilder: any ReviewBuilding = makeReviewBuilder()
+
+    private static func makeReviewBuilder() -> any ReviewBuilding {
+        return ReviewBuilder(
+            dependencies: ReviewDependencies(
+                reviewClient: LiveReviewClient(client: AppSession.httpClient),
+                navigator: navigator,
+                analytics: AppAnalytics.tracker,
+                openURL: { UIApplication.shared.open($0) },
+                // 별점 남긴 애니 목록이 다시 불러온다 (레거시 WriteReviewViewModel.swift:54-57)
+                onReviewWritten: {
+                    await MainActor.run {
+                        NotificationCenter.default.post(name: .reloadRatedAnime, object: nil)
+                    }
                 }
-            }
+            )
         )
-    )
+    }
 }

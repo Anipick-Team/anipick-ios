@@ -8,7 +8,7 @@ import SwiftUI
 
 import Storage
 
-enum UserDefaultKey: String {
+nonisolated enum UserDefaultKey: String {
     case accessToken
     case refreshToken
     case homeRecentKeyword
@@ -26,7 +26,8 @@ enum UserDefaultKey: String {
 
 }
 
-final class UserDefaultsManager {
+/// UserDefaults(스레드 안전 — Apple 문서)·Keychain만 감싸 어느 스레드에서나 부른다 (로그아웃 클로저 등)
+nonisolated final class UserDefaultsManager: @unchecked Sendable {
     static let shared = UserDefaultsManager()
     private let defaults = UserDefaults.standard
     // 토큰은 Keychain에 저장한다. 이전 버전이 UserDefaults에 저장한 토큰은 앱 시작 시 옮긴다.
@@ -40,7 +41,7 @@ final class UserDefaultsManager {
 }
 
 // MARK: - Auth
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
     /// 앱 시작 시 토큰을 읽는 어떤 코드보다 먼저 호출한다 (재설치 정리, UserDefaults 토큰 이관).
     func prepareTokenStorage() {
         tokenStore.prepareOnLaunch()
@@ -87,7 +88,7 @@ extension UserDefaultsManager {
 
 
 // MARK: - Home Recent Keyword
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
     func getHomeRecentKeyword() -> [String] {
         return defaults.object(forKey: UserDefaultKey.homeRecentKeyword.rawValue) as? [String] ?? []
     }
@@ -109,7 +110,7 @@ extension UserDefaultsManager {
 }
 
 
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
     func getNickname() -> String {
         return defaults.string(forKey: UserDefaultKey.nickname.rawValue) ?? "--"
     }
@@ -128,7 +129,7 @@ extension UserDefaultsManager {
 }
 
 
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
     func setLastVisitedAnimeId(animeId: Int) {
         defaults.set(animeId, forKey: UserDefaultKey.lastVisitedAnime.rawValue)
     }

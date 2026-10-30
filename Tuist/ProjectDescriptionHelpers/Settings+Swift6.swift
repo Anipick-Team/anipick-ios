@@ -9,7 +9,7 @@ public enum DefaultIsolation: String {
 
 extension Settings {
     /// 새 TMA 모듈 공통 설정: Swift 6 언어 모드 + Approachable Concurrency(SE-0461).
-    /// 레거시 앱 타깃(Swift 5 모드)에는 적용하지 않는다.
+    /// 앱 타깃은 프로젝트 설정에 같은 값(MainActor)을 직접 둔다 (`Project.swift`).
     /// - Parameter extra: 모듈마다 덧붙이는 설정 (예: DesignSystem의 에셋 심볼 자동 생성 끄기)
     public static func swift6(
         isolation: DefaultIsolation,

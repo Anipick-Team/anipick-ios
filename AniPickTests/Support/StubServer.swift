@@ -9,7 +9,7 @@
 import Foundation
 import os
 
-final class StubServer: Sendable {
+nonisolated final class StubServer: Sendable {
     enum Reply: Sendable {
         case json(status: Int, body: String)
         case failure(URLError.Code)
@@ -62,7 +62,7 @@ final class StubServer: Sendable {
     }
 }
 
-final class StubURLProtocol: URLProtocol, @unchecked Sendable {
+nonisolated final class StubURLProtocol: URLProtocol, @unchecked Sendable {
     private static let servers = OSAllocatedUnfairLock(initialState: [String: StubServer]())
 
     static func register(_ server: StubServer) {

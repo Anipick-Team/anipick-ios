@@ -15,7 +15,10 @@ let project = Project(
         base: [
             "DEVELOPMENT_TEAM": .string(teamID),
             "CODE_SIGN_STYLE": "Automatic",
-            "SWIFT_VERSION": "5.0",
+            // Feature와 같은 UI 계층이라 같은 설정 (Phase 5-3, 프로그램 Q3)
+            "SWIFT_VERSION": "6",
+            "SWIFT_APPROACHABLE_CONCURRENCY": "YES",
+            "SWIFT_DEFAULT_ACTOR_ISOLATION": "MainActor",
             "MARKETING_VERSION": "1.2.0",
             "CURRENT_PROJECT_VERSION": "7",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
@@ -198,7 +201,9 @@ let project = Project(
             sources: ["AniPickUITests/**"],
             dependencies: [
                 .target(name: "AniPick"),
-            ]
+            ],
+            // XCTest 템플릿이 메서드마다 @MainActor를 붙이는 구조라 기본 격리는 두지 않는다
+            settings: .settings(base: ["SWIFT_DEFAULT_ACTOR_ISOLATION": "nonisolated"])
         ),
     ]
 )

@@ -5,6 +5,6 @@
 //  Created by cho on 6/8/25.
 //
 
-enum NetworkManager {
+nonisolated enum NetworkManager {
     static let baseUrl: String = "https://anipick.p-e.kr/"
 }

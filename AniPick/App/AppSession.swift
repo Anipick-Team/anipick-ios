@@ -9,7 +9,8 @@ import Foundation
 import Networking
 import Session
 
-enum AppSession {
+/// 어느 스레드에서나 쓰는 Sendable 값만 담는다 (앱 기본 격리 MainActor의 예외)
+nonisolated enum AppSession {
     /// 인증 요청용 클라이언트. 119를 받으면 `shared`로 토큰을 갱신하고 다시 보낸다.
     static let httpClient = HTTPClient(
         // 상수 문자열이라 실패하지 않는다.
