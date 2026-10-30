@@ -1,5 +1,4 @@
 {
-  "originHash" : "08f2d85b836eb8d97e1bb91ba9ddd62140e19845fa3055bdbc8406cb9328e3f7",
   "pins" : [
     {
       "identity" : "abseil-cpp-binary",
@@ -137,15 +136,6 @@
       }
     },
     {
-      "identity" : "kingfisher",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/onevcat/Kingfisher.git",
-      "state" : {
-        "revision" : "410984bf301f4fa224fe56277b3f8672cc465c79",
-        "version" : "8.11.0"
-      }
-    },
-    {
       "identity" : "leveldb",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/firebase/leveldb.git",
@@ -164,15 +154,6 @@
       }
     },
     {
-      "identity" : "popupview",
-      "kind" : "remoteSourceControl",
-      "location" : "https://github.com/exyte/PopupView.git",
-      "state" : {
-        "revision" : "74c070e9a3b0b13735c031414e8b88f473406ab4",
-        "version" : "4.2.2"
-      }
-    },
-    {
       "identity" : "promises",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/google/promises.git",
@@ -182,5 +163,5 @@
       }
     }
   ],
-  "version" : 3
+  "version" : 2
 }

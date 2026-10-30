@@ -97,14 +97,11 @@ let project = Project(
                 .project(target: "MyInfoClientLive", path: .relativeToRoot("Projects/Clients/MyInfoClient")),
                 // Firebase는 AnalyticsLive만 의존한다 (앱이 직접 의존하면 정적 라이브러리가 두 벌 링크된다)
                 .project(target: "AnalyticsLive", path: .relativeToRoot("Projects/Core/AnalyticsLive")),
-                .external(name: "Alamofire"),
                 .external(name: "KakaoSDKAuth"),
                 .external(name: "KakaoSDKCommon"),
                 .external(name: "KakaoSDKUser"),
                 .external(name: "GoogleSignIn"),
                 .external(name: "GoogleSignInSwift"),
-                .external(name: "PopupView"),
-                .external(name: "Kingfisher"),
             ],
             settings: .settings(
                 base: [
