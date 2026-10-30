@@ -5,11 +5,8 @@
 //  Created by cho on 6/1/25.
 //
 
-import KakaoSDKCommon
-import KakaoSDKAuth
 import UIKit
-import GoogleSignIn
-import FirebaseCore
+import AnalyticsLive
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(
@@ -17,21 +14,16 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
     ) -> Bool {
         // TODO: 보안처리 필요
-        FirebaseApp.configure()
+        AnalyticsLive.configure()
         AnalyticsManager.restoreUser()
-        KakaoSDK.initSDK(appKey: "0342f72c46d8653e8a501fe5704a540c")
+        // 소셜 SDK는 AuthClient만 안다 (이관 Q5)
+        AppDIContainer.liveAuthClient.configureSDKs()
         return true
     }
 
     func application(_ app: UIApplication, open url: URL,
                      options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
-        if AuthApi.isKakaoTalkLoginUrl(url) {
-            return AuthController.handleOpenUrl(url: url)
-        }
-        if GIDSignIn.sharedInstance.handle(url) {
-            return true
-        }
-        return false
+        return AppDIContainer.liveAuthClient.handleOpenURL(url)
     }
 
     // Universal Link 콜드 스타트 처리

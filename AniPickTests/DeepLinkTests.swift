@@ -3,6 +3,9 @@
 //  AniPickTests
 //
 
+import DetailInterface
+import ExploreInterface
+import HomeInterface
 import SwiftUI
 import Testing
 @testable import AniPick
@@ -50,55 +53,90 @@ struct DeepLinkParsingTests {
     }
 }
 
+struct DeepLinkTargetTests {
+    @Test(arguments: [
+        (DeepLink.anime(id: 45), DeepLinkTarget.detail(.anime(id: 45))),
+        (.communityPost(id: 123), .explore(.communityPost(id: 123))),
+    ])
+    func 딥링크는_Feature_화면으로_간다(link: DeepLink, expected: DeepLinkTarget) {
+        #expect(DeepLinkTarget.target(for: link) == expected)
+    }
+
+    @Test(arguments: [DeepLink.producer(id: 7), .unknown])
+    func 제작사와_알_수_없는_링크는_이동하지_않는다(link: DeepLink) {
+        #expect(DeepLinkTarget.target(for: link) == nil)
+    }
+}
+
 @MainActor
 struct AppStateDeepLinkTests {
 
-    /// popToRoot(Task) 후 0.3초 지연 push가 끝날 때까지 기다린다.
+    /// 이동은 기다림 없이 바로 일어난다 (Phase 4-1). 늦게 일어나는 이동이 없는지 잠시 본다
     private func waitForNavigation() async throws {
-        try await Task.sleep(for: .milliseconds(600))
+        try await Task.sleep(for: .milliseconds(100))
+    }
+
+    @Test func 지연_없이_바로_이동하고_쌓여_있던_화면은_비운다() {
+        let router = AppRouter(isLoggedIn: true)
+        router.push(HomeRoute.search)
+        let appState = AppState(router: router)
+
+        appState.deepLink = .anime(id: 45)
+
+        #expect(router.path(for: .home) == NavigationPath([DetailRoute.anime(id: 45)]))
+    }
+
+    @Test func 딥링크는_지금_탭을_유지하고_그_탭의_스택만_바꾼다() {
+        let router = AppRouter(isLoggedIn: true)
+        router.push(HomeRoute.search)
+        router.select(.myInfo)
+        let appState = AppState(router: router)
+
+        appState.deepLink = .anime(id: 45)
+
+        #expect(router.selectedTab == .myInfo)
+        #expect(router.path(for: .myInfo) == NavigationPath([DetailRoute.anime(id: 45)]))
+        #expect(router.path(for: .home) == NavigationPath([HomeRoute.search]))
     }
 
     @Test func 로그인_상태면_게시글_상세로_이동한다() async throws {
-        let navigationManager = NavigationManager()
-        navigationManager.isLoggedIn = true
-        let appState = AppState(navigationManager: navigationManager)
+        let router = AppRouter(isLoggedIn: true)
+        let appState = AppState(router: router)
 
         appState.deepLink = .communityPost(id: 123)
         try await waitForNavigation()
 
-        #expect(navigationManager.path == NavigationPath([AppRoute.communityDetail(postId: 123)]))
+        #expect(router.path(for: .home) == NavigationPath([ExploreRoute.communityPost(id: 123)]))
         #expect(appState.pendingDeepLink == nil)
     }
 
     @Test func 로그인_전이면_이동하지_않고_보관한다() async throws {
-        let navigationManager = NavigationManager()
-        navigationManager.isLoggedIn = false
-        let appState = AppState(navigationManager: navigationManager)
+        let router = AppRouter(isLoggedIn: false)
+        let appState = AppState(router: router)
 
         appState.deepLink = .communityPost(id: 123)
         try await waitForNavigation()
 
-        #expect(navigationManager.path.isEmpty)
+        #expect(router.path(for: .home).isEmpty)
+        #expect(router.authPath.isEmpty)
         #expect(appState.pendingDeepLink == .communityPost(id: 123))
     }
 
     @Test func 로그인하면_보관한_딥링크로_이동한다() async throws {
-        let navigationManager = NavigationManager()
-        navigationManager.isLoggedIn = false
-        let appState = AppState(navigationManager: navigationManager)
+        let router = AppRouter(isLoggedIn: false)
+        let appState = AppState(router: router)
         appState.deepLink = .communityPost(id: 123)
 
-        navigationManager.completeLogin()
+        router.completeLogin()
         try await waitForNavigation()
 
-        #expect(navigationManager.path == NavigationPath([AppRoute.communityDetail(postId: 123)]))
+        #expect(router.path(for: .home) == NavigationPath([ExploreRoute.communityPost(id: 123)]))
         #expect(appState.pendingDeepLink == nil)
     }
 
     @Test func 알_수_없는_링크는_보관한_딥링크를_덮어쓰지_않는다() async throws {
-        let navigationManager = NavigationManager()
-        navigationManager.isLoggedIn = false
-        let appState = AppState(navigationManager: navigationManager)
+        let router = AppRouter(isLoggedIn: false)
+        let appState = AppState(router: router)
         appState.deepLink = .communityPost(id: 123)
 
         // 카카오 로그인 콜백 URL이 onOpenURL로 들어오는 경우

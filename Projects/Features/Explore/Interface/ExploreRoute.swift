@@ -1,0 +1,37 @@
+import SwiftUI
+
+/// 탐색 Feature(커뮤니티 포함)의 화면.
+public enum ExploreRoute: Hashable, Sendable {
+    /// 하단 "탐색" 탭 (작품 탐색 | 커뮤니티)
+    case main
+    /// 탐색 탭의 "커뮤니티" 하위 탭 내용 (탐색 화면 안에 들어간다)
+    case communityBoards
+    /// 애니 커뮤니티 게시판 (레거시 `AppRoute.community`)
+    case communityBoard(
+        seriesId: Int, animeTitle: String, coverImageUrl: String?, genreNames: [String])
+    /// 커뮤니티 게시글 상세 (레거시 `AppRoute.communityDetail`)
+    case communityPost(id: Int)
+    /// 커뮤니티 글 작성 (레거시 `AppRoute.communityWrite`)
+    case communityWrite(seriesId: Int, animeTitle: String)
+    /// 커뮤니티 글 수정 (레거시 `AppRoute.communityEdit`). 기존 내용·첨부 사진 id로 채운다
+    case communityEdit(
+        postId: Int, seriesId: Int, animeTitle: String, title: String, content: String,
+        isSpoiler: Bool, imageIds: [Int])
+}
+
+/// App이 구현을 주입한다 (TMA: 다른 Feature는 이 프로토콜만 안다).
+@MainActor
+public protocol ExploreBuilding {
+    func make(_ route: ExploreRoute) -> AnyView
+}
+
+/// 다른 화면이 탐색 탭으로 넘기는 연도·분기 (레거시 `AppState.ExploreFilter`)
+public struct PendingExploreFilter: Equatable, Sendable {
+    public let year: String?
+    public let season: String?
+
+    public init(year: String?, season: String?) {
+        self.year = year
+        self.season = season
+    }
+}

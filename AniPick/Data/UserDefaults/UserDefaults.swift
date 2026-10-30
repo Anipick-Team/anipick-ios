@@ -6,7 +6,9 @@
 //
 import SwiftUI
 
-enum UserDefaultKey: String {
+import Storage
+
+nonisolated enum UserDefaultKey: String {
     case accessToken
     case refreshToken
     case homeRecentKeyword
@@ -18,40 +20,47 @@ enum UserDefaultKey: String {
     case appleUserId
     case appleEmail
     
-    case seasonYear
-    case seasonQuater
-    case animeGenres
-    case animeType
-    
     case lastVisitedAnime
 
     case imageId
 
 }
 
-final class UserDefaultsManager {
+/// UserDefaults(스레드 안전 — Apple 문서)·Keychain만 감싸 어느 스레드에서나 부른다 (로그아웃 클로저 등)
+nonisolated final class UserDefaultsManager: @unchecked Sendable {
     static let shared = UserDefaultsManager()
     private let defaults = UserDefaults.standard
+    // 토큰은 Keychain에 저장한다. 이전 버전이 UserDefaults에 저장한 토큰은 앱 시작 시 옮긴다.
+    // AppSession도 같은 저장소를 쓴다.
+    let tokenStore = AuthTokenStore(
+        secureStore: Keychain(service: "com.moana.AniPick.auth"),
+        defaults: .standard
+    )
 
     private init() {}
 }
 
 // MARK: - Auth
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
+    /// 앱 시작 시 토큰을 읽는 어떤 코드보다 먼저 호출한다 (재설치 정리, UserDefaults 토큰 이관).
+    func prepareTokenStorage() {
+        tokenStore.prepareOnLaunch()
+    }
+
     func setAccessToken(accessToken: String) {
-        defaults.set(accessToken, forKey: UserDefaultKey.accessToken.rawValue)
+        tokenStore.setAccessToken(accessToken)
     }
-    
+
     func getAccessToken() -> String {
-        return defaults.string(forKey: UserDefaultKey.accessToken.rawValue) ?? ""
+        return tokenStore.accessToken
     }
-    
+
     func setRefreshToken(refreshToken: String) {
-        defaults.set(refreshToken, forKey: UserDefaultKey.refreshToken.rawValue)
+        tokenStore.setRefreshToken(refreshToken)
     }
-    
+
     func getRefreshToken() -> String {
-        return defaults.string(forKey: UserDefaultKey.refreshToken.rawValue) ?? ""
+        return tokenStore.refreshToken
     }
     
     // 값이 있으면 sns로 가입된 것, 빈 값이면 이메일로그인
@@ -79,7 +88,7 @@ extension UserDefaultsManager {
 
 
 // MARK: - Home Recent Keyword
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
     func getHomeRecentKeyword() -> [String] {
         return defaults.object(forKey: UserDefaultKey.homeRecentKeyword.rawValue) as? [String] ?? []
     }
@@ -101,7 +110,7 @@ extension UserDefaultsManager {
 }
 
 
-extension UserDefaultsManager {
+nonisolated extension UserDefaultsManager {
     func getNickname() -> String {
         return defaults.string(forKey: UserDefaultKey.nickname.rawValue) ?? "--"
     }
@@ -120,52 +129,7 @@ extension UserDefaultsManager {
 }
 
 
-extension UserDefaultsManager {
-    func setMetaDataForSeasonYear(_ seasonYear: [Int]) {
-        defaults.set(seasonYear, forKey: UserDefaultKey.seasonYear.rawValue)
-    }
-    
-    func setMetaDataForType(_ type: [String]) {
-        defaults.set(type, forKey: UserDefaultKey.animeType.rawValue)
-    }
-    
-    func setMetaDataForGenres(_ genres: [Genre]) {
-        if let genreData = try? JSONEncoder().encode(genres) {
-            defaults.set(genreData, forKey: UserDefaultKey.animeGenres.rawValue)
-        }
-    }
-    
-    func setMetaDataForSeason(_ season: [Season]) {
-        if let seasonData = try? JSONEncoder().encode(season) {
-            defaults.set(seasonData, forKey: UserDefaultKey.seasonQuater.rawValue)
-        }
-    }
-    
-    func getMetaDataForSeasonYear() -> [Int] {
-        return defaults.object(forKey: UserDefaultKey.seasonYear.rawValue) as? [Int] ?? []
-    }
-    
-    func getMetaDataForType() -> [String] {
-        return defaults.object(forKey: UserDefaultKey.animeType.rawValue) as? [String] ?? []
-    }
-    
-    func getMetaDataForGenres() -> [Genre] {
-        if let data = defaults.data(forKey: UserDefaultKey.animeGenres.rawValue),
-           let genres = try? JSONDecoder().decode([Genre].self, from: data) {
-            return genres
-        }
-        return []
-    }
-    
-    func getMetaDataForSeason() -> [Season] {
-        if let data = defaults.data(forKey: UserDefaultKey.seasonQuater.rawValue),
-           let seasonQuater = try? JSONDecoder().decode([Season].self, from: data) {
-            return seasonQuater
-        }
-        
-        return []
-    }
-    
+nonisolated extension UserDefaultsManager {
     func setLastVisitedAnimeId(animeId: Int) {
         defaults.set(animeId, forKey: UserDefaultKey.lastVisitedAnime.rawValue)
     }
