@@ -14,12 +14,13 @@ import Testing
 @MainActor
 @Suite("SessionState", .timeLimit(.minutes(1)))
 struct SessionStateTests {
-    private func loggedInNavigation() -> NavigationManager {
-        let navigationManager = NavigationManager()
-        navigationManager.isLoggedIn = true
-        navigationManager.path.append(AppRoute.content(activeTab: .home))
-        navigationManager.path.append(AppRoute.content(activeTab: .myInfo))
-        return navigationManager
+    private struct Screen: Hashable, Sendable {}
+
+    private func loggedInRouter() -> AppRouter {
+        let router = AppRouter(isLoggedIn: true)
+        router.push(Screen())
+        router.push(Screen())
+        return router
     }
 
     @Test(
@@ -27,26 +28,26 @@ struct SessionStateTests {
         arguments: [SignOutReason.userLogout, .withdrawal, .expired]
     )
     func logsOutOnSignedOut(reason: SignOutReason) async {
-        let navigationManager = loggedInNavigation()
+        let router = loggedInRouter()
         let (events, continuation) = AsyncStream.makeStream(of: SessionEvent.self)
         continuation.yield(.signedOut(reason))
         continuation.finish()
 
-        await SessionState(navigationManager: navigationManager).observe(events)
+        await SessionState(router: router).observe(events)
 
-        #expect(navigationManager.isLoggedIn == false)
-        #expect(navigationManager.path.isEmpty)
+        #expect(router.isLoggedIn == false)
+        #expect(router.path(for: .home).isEmpty)
     }
 
     @Test("S10. 이벤트가 없으면 화면을 바꾸지 않는다")
     func keepsStateWithoutEvents() async {
-        let navigationManager = loggedInNavigation()
+        let router = loggedInRouter()
         let (events, continuation) = AsyncStream.makeStream(of: SessionEvent.self)
         continuation.finish()
 
-        await SessionState(navigationManager: navigationManager).observe(events)
+        await SessionState(router: router).observe(events)
 
-        #expect(navigationManager.isLoggedIn == true)
-        #expect(navigationManager.path.count == 2)
+        #expect(router.isLoggedIn == true)
+        #expect(router.path(for: .home).count == 2)
     }
 }

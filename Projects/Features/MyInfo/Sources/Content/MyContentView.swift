@@ -62,8 +62,6 @@ struct MyContentView: View {
                     }
                 }
             }
-
-            mainTabBar()
         }
         .padding(.horizontal, 20)
         .background(Color.gray7.ignoresSafeArea())
@@ -104,39 +102,6 @@ struct MyContentView: View {
                 .frame(maxWidth: .infinity)
                 .frame(height: 1)
                 .foregroundColor(.gray5)
-        }
-    }
-
-    /// 화면 아래에 따로 그리는 앱 탭 바. 누르면 그 탭으로 간다 (MC8)
-    private func mainTabBar() -> some View {
-        return HStack(spacing: 0) {
-            mainTabItem(.homeUnfilled, "홈", .home)
-            mainTabItem(.rankingUnfilled, "랭킹", .ranking)
-            mainTabItem(.researchUnfilled, "탐색", .explore)
-            mainTabItem(.myInfoFilled, "마이", .myInfo)
-        }
-        .padding(.top, 8)
-        .padding(.bottom, 4)
-        .background(Color.white)
-        .overlay(alignment: .top) {
-            Rectangle().fill(Color.gray5).frame(height: 1)
-        }
-        .padding(.horizontal, -20)
-    }
-
-    private func mainTabItem(_ image: ImageResource, _ title: String, _ tab: MainTab) -> some View {
-        return Button {
-            store.send(.mainTabTapped(tab))
-        } label: {
-            VStack(spacing: 4) {
-                Image(image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 22, height: 22)
-                Text(title)
-                    .textStyle(size: 11, color: tab == .myInfo ? .anipickPrimary : .gray6)
-            }
-            .frame(maxWidth: .infinity)
         }
     }
 

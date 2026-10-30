@@ -6,15 +6,13 @@ import MyInfoClientInterface
 import MyInfoClientTesting
 import MyInfoInterface
 import Testing
-import os
 
 @testable import MyInfoFeature
 
-/// 동작 목록 MC2~MC10 (notes/2026-10-29-R-myinfo-03-content.md)과 1:1
+/// 동작 목록 MC2~MC10 (notes/2026-10-29-R-myinfo-03-content.md)과 1:1. MC8(가짜 탭 바)은 Phase 4-2에서 지웠다
 @Suite("내 콘텐츠", .timeLimit(.minutes(1)))
 struct MyContentReducerTests {
     private let navigator = RecordingNavigator()
-    private let openedTabs = OSAllocatedUnfairLock(initialState: [MainTab]())
 
     private func makeStore(_ scenario: MockMyInfoClient.Scenario) -> (
         Store<MyContentReducer>, MockMyInfoClient
@@ -23,8 +21,7 @@ struct MyContentReducerTests {
         let store = Store(
             initialState: MyContentReducer.State(),
             reducer: MyContentReducer(
-                myInfoClient: client, navigator: navigator,
-                openTab: { [openedTabs] tab in openedTabs.withLock { $0.append(tab) } })
+                myInfoClient: client, navigator: navigator)
         )
         return (store, client)
     }
@@ -135,14 +132,5 @@ struct MyContentReducerTests {
                     .push(ExploreRoute.communityPost(id: 4)),
                     .push(ExploreRoute.communityPost(id: 40)), .pop,
                 ])
-    }
-
-    @Test("MC8. 아래 탭 바를 누르면 App에 그 탭으로 보내 달라고 한다", arguments: MainTab.allCases)
-    func mainTab(tab: MainTab) async {
-        let (store, _) = makeStore(.init())
-
-        await store.send(.mainTabTapped(tab)).finish()
-
-        #expect(openedTabs.withLock { $0 } == [tab])
     }
 }

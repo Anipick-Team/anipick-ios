@@ -5,65 +5,56 @@
 //  Created by cho on 4/14/25.
 //
 
+import DesignSystem
 import SwiftUI
 import Utils
 
-enum Tab: Hashable {
-    case home
-    case ranking
-    case research
-    case myInfo
-}
-
+/// 로그인 후 루트. 탭마다 내비게이션 스택을 따로 둔다 (TB1·TB2)
 struct ContentView: View {
-    
-    @StateObject var viewModel: ContentViewModel
-    
+    @EnvironmentObject var router: AppRouter
+
     var body: some View {
-        TabView(selection: $viewModel.activeTab) {
-            AppDIContainer.homeBuilder.make(.main)
-                .tabItem {
-                    Image(viewModel.activeTab == .home ? .homeFilled : .homeUnfilled)
-                    Text("홈")
-                }
-                .foregroundStyle(viewModel.activeTab == .home ? Color.primaryColor: Color.textGrayColor)
-                .tag(Tab.home)
-            
-            AppDIContainer.rankingBuilder.make(.main)
-                .tabItem {
-                    Image(viewModel.activeTab == .ranking ? .rankingFilled : .rankingUnfilled)
-                    Text("랭킹")
-                }
-                .tag(Tab.ranking)
-            
-            AppDIContainer.exploreBuilder.make(.main)
-                .tabItem {
-                    Image(viewModel.activeTab == .research ? .reseachFilled : .researchUnfilled)
-                    Text("탐색")
-                }
-                .tag(Tab.research)
-            
-            AppDIContainer.myInfoBuilder.make(.main)
-                .tabItem {
-                    Image(viewModel.activeTab == .myInfo ? .myInfoFilled : .myInfoUnfilled)
-                    Text("마이")
-                }
-                .tag(Tab.myInfo)
-        }
-        .onAppear {
-            DLog("")
-            // 상세 화면에서 돌아올 때도 다시 호출되어 현재 탭을 기록한다
-            AnalyticsManager.logScreen(viewModel.activeTab.screenName)
-        }
-        .onChange(of: viewModel.activeTab) { tab in
-            AnalyticsManager.logScreen(tab.screenName)
+        TabView(selection: router.tabSelection) {
+            tab(.home, title: "홈", filled: .homeFilled, unfilled: .homeUnfilled) {
+                // 레거시가 홈 탭에만 준 기본 글자색 (홈이 보일 때는 늘 선택 상태)
+                AppDIContainer.homeBuilder.make(.main)
+                    .foregroundStyle(Color.primaryColor)
+            }
+            tab(.ranking, title: "랭킹", filled: .rankingFilled, unfilled: .rankingUnfilled) {
+                AppDIContainer.rankingBuilder.make(.main)
+            }
+            tab(.research, title: "탐색", filled: .reseachFilled, unfilled: .researchUnfilled) {
+                AppDIContainer.exploreBuilder.make(.main)
+            }
+            tab(.myInfo, title: "마이", filled: .myInfoFilled, unfilled: .myInfoUnfilled) {
+                AppDIContainer.myInfoBuilder.make(.main)
+            }
         }
         .background(Color.white)
-        .navigationBarBackButtonHidden()
-        
+    }
+
+    private func tab(
+        _ tab: Tab,
+        title: String,
+        filled: ImageResource,
+        unfilled: ImageResource,
+        @ViewBuilder root: () -> some View
+    ) -> some View {
+        return NavigationStack(path: router.pathBinding(for: tab)) {
+            root()
+                // 탭을 바꿀 때와 상세 화면에서 탭 루트로 돌아올 때 기록한다 (TB8)
+                .onAppear { AnalyticsManager.logScreen(tab.screenName) }
+                .featureDestinations()
+        }
+        .tabItem {
+            Image(router.selectedTab == tab ? filled : unfilled)
+            Text(title)
+        }
+        .tag(tab)
     }
 }
 
 #Preview {
-    AppDIContainer.makeContentView(activeTab: .home)
+    ContentView()
+        .environmentObject(AppRouter(isLoggedIn: true))
 }

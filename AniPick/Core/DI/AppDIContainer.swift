@@ -24,6 +24,7 @@ import MetadataClientLive
 import MyInfoClientLive
 import MyInfoFeature
 import MyInfoInterface
+import Navigation
 import RankingClientLive
 import RankingFeature
 import RankingInterface
@@ -37,10 +38,11 @@ import UserClientLive
 
 @MainActor
 struct AppDIContainer {
-    static let navigationManager = NavigationManager()
-    static let appState = AppState(navigationManager: navigationManager)
-    static let sessionState = SessionState(navigationManager: navigationManager)
-    static let navigator = LegacyNavigator(navigationManager: navigationManager)
+    /// 탭별 스택과 로그인 상태. Feature의 Navigator이기도 하다 (Phase 4-2)
+    static let router = AppRouter(isLoggedIn: !UserDefaultsManager.shared.getAccessToken().isEmpty)
+    static let appState = AppState(router: router)
+    static let sessionState = SessionState(router: router)
+    static var navigator: any Navigator { router }
 
     // MARK: - Feature 빌더
     static let settingBuilder: any SettingBuilding = SettingBuilder(
@@ -64,7 +66,7 @@ struct AppDIContainer {
             metadataClient: LiveMetadataClient(client: AppSession.httpClient),
             navigator: navigator,
             analytics: AppAnalytics.tracker,
-            onLoginCompleted: { navigationManager.completeLogin() },
+            onLoginCompleted: { router.completeLogin() },
             openURL: { UIApplication.shared.open($0) }
         )
     )
@@ -120,11 +122,6 @@ struct AppDIContainer {
             reviewClient: LiveReviewClient(client: AppSession.httpClient),
             navigator: navigator,
             ratedReviewsReloadNotification: .reloadRatedAnime,
-            // 레거시 MyContentView: 루트로 돌아간 뒤 그 탭의 ContentView를 push한다
-            openTab: { tab in
-                navigationManager.popToRoot()
-                navigationManager.push(route: .content(activeTab: Tab(tab)))
-            },
             openURL: { UIApplication.shared.open($0) }
         )
     )
@@ -166,11 +163,11 @@ struct AppDIContainer {
             cachedNickname: { UserDefaultsManager.shared.getNickname() },
             imageURL: { URL(string: "\(NetworkManager.baseUrl)api/image/\($0)")! },
             lastVisitedAnimeId: { UserDefaultsManager.shared.getLastVisitedAnimeId() },
-            // 레거시 HomeViewModel.moveToRankingView·moveToExploreView 그대로 (탭 구조는 Phase 4)
-            showRanking: { navigationManager.push(route: .content(activeTab: .ranking)) },
+            // 탭을 고른다. 레거시는 탭 화면 전체를 한 겹 더 push했다 (TB4)
+            showRanking: { router.select(.ranking) },
             showExplore: { year, season in
                 appState.pushExplore(year: String(year), season: String(season))
-                navigationManager.push(route: .content(activeTab: .research))
+                router.select(.research)
             }
         )
     )
@@ -197,25 +194,4 @@ struct AppDIContainer {
             }
         )
     )
-    
-    static func makeContentView(activeTab: Tab) -> some View {
-        let viewModel = ContentViewModel(activeTab: activeTab, navigationManager: navigationManager)
-        return ContentView(viewModel: viewModel)
-            .environmentObject(navigationManager)
-    }
-}
-
-extension Tab {
-    init(_ tab: MainTab) {
-        switch tab {
-        case .home:
-            self = .home
-        case .ranking:
-            self = .ranking
-        case .explore:
-            self = .research
-        case .myInfo:
-            self = .myInfo
-        }
-    }
 }

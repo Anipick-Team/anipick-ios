@@ -11,9 +11,9 @@ struct HomeMainReducer: Reducer {
     let cachedNickname: @MainActor () -> String
     /// 마지막으로 본 애니 id (없으면 0)
     let lastVisitedAnimeId: @MainActor () -> Int
-    /// 랭킹 탭으로 (App: 레거시 `.content(activeTab: .ranking)` push)
+    /// 랭킹 탭으로 (App이 탭을 고른다)
     let showRanking: @MainActor () -> Void
-    /// 탐색 탭으로 연도·분기를 넘긴다 (App: 레거시 `AppState.pushExplore` + 탭 push)
+    /// 탐색 탭으로 연도·분기를 넘긴다 (App이 연도·분기를 넘겨 두고 탭을 고른다)
     let showExplore: @MainActor (_ year: Int, _ season: Int) -> Void
 
     struct State: Equatable {

@@ -10,10 +10,10 @@ import Utils
 
 @MainActor
 final class SessionState {
-    private let navigationManager: NavigationManager
+    private let router: AppRouter
 
-    init(navigationManager: NavigationManager) {
-        self.navigationManager = navigationManager
+    init(router: AppRouter) {
+        self.router = router
     }
 
     /// 스트림이 끝날 때까지 로그아웃 이벤트마다 로그인 화면으로 돌아간다.
@@ -22,7 +22,7 @@ final class SessionState {
             switch event {
             case .signedOut(let reason):
                 DLog("🔐 [Login] Session 로그아웃(\(reason)) - completeLogout")
-                navigationManager.completeLogout()
+                router.completeLogout()
             }
         }
     }

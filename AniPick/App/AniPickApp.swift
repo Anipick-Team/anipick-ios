@@ -16,7 +16,7 @@ struct AniPickApp: App {
 //    @StateObject private var appState = AppState()
     
     init() {
-        // NavigationManager가 로그인 여부를 판단하기 위해 토큰을 읽기 전에 실행해야 한다.
+        // AppRouter가 로그인 여부를 판단하기 위해 토큰을 읽기 전에 실행해야 한다.
         UserDefaultsManager.shared.prepareTokenStorage()
         // 토큰 만료·로그아웃·탈퇴 시 로그인 화면으로 돌아가는 경로는 여기 하나다.
         Task {
@@ -43,7 +43,7 @@ struct AniPickApp: App {
     var body: some Scene {
         WindowGroup {
             AppEntryView()
-                .environmentObject(AppDIContainer.navigationManager)
+                .environmentObject(AppDIContainer.router)
                 // .environmentObject(appState)
                 .onOpenURL { url in
                     _ = AppDIContainer.liveAuthClient.handleKakaoURL(url)

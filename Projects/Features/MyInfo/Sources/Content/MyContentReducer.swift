@@ -8,7 +8,6 @@ import Navigation
 struct MyContentReducer: Reducer {
     let myInfoClient: any MyInfoClient
     let navigator: any Navigator
-    let openTab: @MainActor @Sendable (MainTab) -> Void
 
     enum Tab: String, CaseIterable, Sendable {
         case posts = "내 게시글"
@@ -41,7 +40,6 @@ struct MyContentReducer: Reducer {
         case loadFailed
         case postTapped(MyPost)
         case commentTapped(MyComment)
-        case mainTabTapped(MainTab)
         case backTapped
     }
 
@@ -98,12 +96,6 @@ struct MyContentReducer: Reducer {
                 return .none
             }
             return push(ExploreRoute.communityPost(id: postId))
-
-        case .mainTabTapped(let tab):
-            return .run { [openTab] in
-                await openTab(tab)
-                return nil
-            }
 
         case .backTapped:
             return .run { [navigator] in

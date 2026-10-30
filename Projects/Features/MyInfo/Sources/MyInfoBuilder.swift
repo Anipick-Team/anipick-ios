@@ -11,8 +11,6 @@ public struct MyInfoDependencies {
     public let navigator: any Navigator
     /// 이 알림을 받으면 평가한 작품 첫 페이지를 다시 받는다 (App: 레거시 `.reloadRatedAnime`)
     public let ratedReviewsReloadNotification: Notification.Name?
-    /// 내 콘텐츠 아래 탭 바를 누르면 그 탭으로 보낸다 (App이 구현)
-    public let openTab: @MainActor @Sendable (MainTab) -> Void
     /// 피드백 설문 등 외부 링크
     public let openURL: @MainActor @Sendable (URL) -> Void
 
@@ -21,14 +19,12 @@ public struct MyInfoDependencies {
         reviewClient: any ReviewClient,
         navigator: any Navigator,
         ratedReviewsReloadNotification: Notification.Name? = nil,
-        openTab: @escaping @MainActor @Sendable (MainTab) -> Void = { _ in },
         openURL: @escaping @MainActor @Sendable (URL) -> Void = { _ in }
     ) {
         self.myInfoClient = myInfoClient
         self.reviewClient = reviewClient
         self.navigator = navigator
         self.ratedReviewsReloadNotification = ratedReviewsReloadNotification
-        self.openTab = openTab
         self.openURL = openURL
     }
 }
@@ -77,8 +73,7 @@ public struct MyInfoBuilder: MyInfoBuilding {
         case .myContent:
             let reducer = MyContentReducer(
                 myInfoClient: dependencies.myInfoClient,
-                navigator: dependencies.navigator,
-                openTab: dependencies.openTab
+                navigator: dependencies.navigator
             )
             return AnyView(MyContentView(state: MyContentReducer.State(), reducer: reducer))
         case .likedPersons:
