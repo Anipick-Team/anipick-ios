@@ -17,7 +17,6 @@ struct CommunityWriteView: View {
     @State private var draggingImageID: UUID?
     @State private var isRegistering = false
     @State private var titleError = false
-    @State private var contentError = false
     @State private var imageError: String?
     @State private var feedbackMessage: String?
 
@@ -85,12 +84,6 @@ struct CommunityWriteView: View {
                     fieldTitle("내용")
                         .padding(.top, titleError ? 20 : 22)
             contentEditor()
-            if contentError {
-                Text("내용을 입력해 주세요.")
-                    .font(.system(size: 13))
-                    .foregroundColor(.pink)
-                    .padding(.top, 8)
-            }
 
             HStack(spacing: 8) {
                         Spacer()
@@ -237,7 +230,6 @@ struct CommunityWriteView: View {
                 .frame(height: 214)
                 .onChange(of: content) { value in
                     if value.count > 1000 { content = String(value.prefix(1000)) }
-                    contentError = false
                 }
 
             VStack {
@@ -257,12 +249,12 @@ struct CommunityWriteView: View {
 
     private func register() {
         let trimmedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        // 내용은 0자 허용 (서버 0~1000자). 공백만 있으면 빈 문자열로 보낸다
         let trimmedContent = content.trimmingCharacters(in: .whitespacesAndNewlines)
         titleError = trimmedTitle.isEmpty
-        contentError = trimmedContent.isEmpty
 
-        guard !titleError, !contentError, imageError == nil else {
-            DLog("커뮤니티 글 등록 검증 실패 - titleEmpty: \(titleError), contentEmpty: \(contentError), imageError: \(imageError ?? "없음")")
+        guard !titleError, imageError == nil else {
+            DLog("커뮤니티 글 등록 검증 실패 - titleEmpty: \(titleError), imageError: \(imageError ?? "없음")")
             return
         }
 
@@ -289,14 +281,14 @@ struct CommunityWriteView: View {
                 }
                 DLog("커뮤니티 이미지 준비 완료 - imageIds: \(imageIds)")
 
-                let requestImageIds = imageIds.isEmpty ? nil : imageIds
                 let response: BaseResponse
                 if let postId {
+                    // 수정은 전체 교체라 사진이 없어도 imageIds를 빈 배열로 보낸다
                     let request = CommunityPostUpdateRequest(
                         title: trimmedTitle,
                         content: trimmedContent,
                         isSpoiler: isSpoiler,
-                        imageIds: requestImageIds
+                        imageIds: imageIds
                     )
                     response = try await CommunityAPIService.shared.updatePost(postId: postId, body: request)
                 } else {
@@ -305,7 +297,7 @@ struct CommunityWriteView: View {
                         title: trimmedTitle,
                         content: trimmedContent,
                         isSpoiler: isSpoiler,
-                        imageIds: requestImageIds
+                        imageIds: imageIds.isEmpty ? nil : imageIds
                     )
                     response = try await CommunityAPIService.shared.createPost(request)
                 }
