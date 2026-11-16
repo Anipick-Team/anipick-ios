@@ -7,10 +7,11 @@
 
 import Combine
 import SwiftUI
+import Utils
 
 @MainActor
 final class AppState: ObservableObject {
-    private let navigationManager: NavigationManager
+    private let router: AppRouter
     private var cancellables = Set<AnyCancellable>()
 
     @Published var pendingExploreFilter: ExploreFilter?
@@ -23,10 +24,10 @@ final class AppState: ObservableObject {
     /// 로그인 전에 들어온 딥링크. 로그인(신규 가입은 취향 선택 완료) 후 이동한다.
     private(set) var pendingDeepLink: DeepLink?
 
-    init(navigationManager: NavigationManager) {
-        self.navigationManager = navigationManager
+    init(router: AppRouter) {
+        self.router = router
 
-        navigationManager.$isLoggedIn
+        router.$isLoggedIn
             .removeDuplicates()
             .filter { $0 }
             .sink { [weak self] _ in
@@ -38,7 +39,7 @@ final class AppState: ObservableObject {
     func handle(_ link: DeepLink) {
         switch link {
         case .anime, .communityPost:
-            guard navigationManager.isLoggedIn else {
+            guard router.isLoggedIn else {
                 DLog("로그인 전 딥링크 보관: \(link)")
                 pendingDeepLink = link
                 return
@@ -60,26 +61,15 @@ final class AppState: ObservableObject {
         navigate(to: link)
     }
 
+    /// 지금 탭의 스택을 딥링크 화면 하나로 한 번에 바꾼다 (TB7). 레거시는 popToRoot(Task) 뒤 0.3초를 기다려 push했다 (Phase 4-1에서 제거)
     private func navigate(to link: DeepLink) {
-        let route: AppRoute
-        switch link {
-        case .anime(let id):
-            DLog("Anime Detail 이동 id: \(id)")
-            route = .animeDetail(animeId: id)
-        case .communityPost(let id):
-            DLog("Community Detail 이동 postId: \(id)")
-            route = .communityDetail(postId: id)
-        case .producer, .unknown:
+        guard let target = DeepLinkTarget.target(for: link) else {
             return
         }
-        navigationManager.popToRoot()
-        // popToRoot Task 처리 후 push 실행되도록 딜레이
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.navigationManager.push(route: route)
-        }
+        DLog("딥링크 이동: \(target)")
+        router.replaceSelectedTabPath(with: target.path)
     }
-    
-    
+
     func pushExplore(year: String?, season: String?) {
         DLog("explore push push - \(year) - \(season)")
         pendingExploreFilter = .init(year: year, season: season)

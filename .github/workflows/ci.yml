@@ -1,0 +1,75 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # 린트 대상은 새 코드만. 레거시(AniPick/, 루트 Project.swift)는 교체 후 제거되므로 제외한다.
+  LINT_PATHS: Projects Tuist/ProjectDescriptionHelpers Workspace.swift Tuist.swift
+
+jobs:
+  lint:
+    name: swift-format
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Lint
+        run: |
+          paths=()
+          for path in $LINT_PATHS; do
+            [ -e "$path" ] && paths+=("$path")
+          done
+          xcrun swift-format lint --strict --recursive --parallel \
+            --configuration .swift-format "${paths[@]}"
+
+  test:
+    name: Generate, inspect, test
+    runs-on: xcode-27
+    steps:
+      - uses: actions/checkout@v4
+
+      # .mise.toml의 Tuist 버전을 그대로 설치한다.
+      - uses: jdx/mise-action@v2
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: Tuist/.build
+          key: spm-${{ runner.os }}-${{ hashFiles('Tuist/Package.resolved') }}
+          restore-keys: spm-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: tuist install
+
+      - name: Generate
+        run: tuist generate --no-open
+
+      # Feature → 다른 Feature·Client 구현 의존은 헬퍼가 막고,
+      # 선언하지 않은 모듈을 import하는 경우는 이 검사가 막는다 (tech-stack C7).
+      - name: Inspect implicit dependencies
+        run: tuist inspect dependencies --only implicit
+
+      # Tuist 4.201의 `tuist test`는 결과 조회 명령이라 xcodebuild로 직접 실행한다.
+      # AniPick-Workspace 스킴은 Tuist가 생성하며 모든 모듈의 테스트 타깃을 포함한다.
+      # AniPickUITests는 템플릿뿐이라 제외 (핵심 흐름 XCUITest는 각 Example 앱에 둔다, tech-stack C6).
+      - name: Test
+        run: |
+          udid=$(xcrun simctl list devices available -j | python3 -c '
+          import json, sys
+          devices = json.load(sys.stdin)["devices"]
+          print(next(d["udid"] for runtime, ds in sorted(devices.items(), reverse=True)
+                     if "iOS" in runtime for d in ds if d["name"].startswith("iPhone")))
+          ')
+          xcodebuild test \
+            -workspace AniPick.xcworkspace \
+            -scheme AniPick-Workspace \
+            -destination "id=$udid" \
+            -skip-testing:AniPickUITests

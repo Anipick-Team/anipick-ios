@@ -5,26 +5,20 @@
 //  Created by cho on 4/12/26.
 //
 
-import FirebaseAnalytics
-import FirebaseCrashlytics
+import Analytics
 
+/// 레거시 화면이 쓰는 분석 이벤트 함수. 이벤트 정의와 Firebase 전송은 Analytics·AnalyticsLive 모듈이 맡는다.
+/// 각 화면을 이관하면 호출부가 `AnalyticsTracking`을 직접 쓰게 된다.
 enum AnalyticsManager {
 
     // MARK: - 사용자 식별 (Crashlytics·Analytics 공통)
     // 서버 내부 userId만 쓴다. 이메일·닉네임 같은 개인정보는 넣지 않는다.
     static func setUser(userId: Int?, loginMethod: String) {
-        let id = userId.map(String.init)
-        Crashlytics.crashlytics().setUserID(id)
-        Crashlytics.crashlytics().setCustomValue(loginMethod, forKey: "login_method")
-        Analytics.setUserID(id)
-        Analytics.setUserProperty(loginMethod, forName: "login_method")
+        AppAnalytics.tracker.setUser(id: userId.map(String.init), loginMethod: loginMethod)
     }
 
     static func clearUser() {
-        Crashlytics.crashlytics().setUserID(nil)
-        Crashlytics.crashlytics().setCustomValue(nil, forKey: "login_method")
-        Analytics.setUserID(nil)
-        Analytics.setUserProperty(nil, forName: "login_method")
+        AppAnalytics.tracker.setUser(id: nil, loginMethod: nil)
     }
 
     // 앱 실행 시 이미 로그인된 사용자의 식별 정보를 다시 붙인다
@@ -36,108 +30,58 @@ enum AnalyticsManager {
     }
 
     // MARK: - 화면 조회
-    // SwiftUI 화면은 자동 수집이 부정확해 직접 기록한다. 크래시 직전 화면을 알 수 있게 Crashlytics에도 남긴다.
     static func logScreen(_ name: String) {
-        Analytics.logEvent(AnalyticsEventScreenView, parameters: [
-            AnalyticsParameterScreenName: name,
-            AnalyticsParameterScreenClass: name
-        ])
-        Crashlytics.crashlytics().setCustomValue(name, forKey: "last_screen")
-        Crashlytics.crashlytics().log("[Screen] \(name)")
+        AppAnalytics.tracker.logScreen(name)
     }
 
     // MARK: - 온보딩 (취향 선택)
     static func logOnboardingComplete(ratedCount: Int) {
-        Analytics.logEvent("onboarding_complete", parameters: [
-            "rated_count": ratedCount
-        ])
+        AppAnalytics.tracker.log(.onboardingComplete(ratedCount: ratedCount))
     }
 
     // MARK: - 애니 상세
     static func logAnimeDetailView(animeId: Int, animeTitle: String?) {
-        Analytics.logEvent("anime_detail_view", parameters: [
-            "anime_id": animeId,
-            "anime_title": animeTitle ?? ""
-        ])
+        AppAnalytics.tracker.log(.animeDetailView(animeId: animeId, animeTitle: animeTitle))
     }
 
     static func logAnimeLike(animeId: Int, animeTitle: String?) {
-        Analytics.logEvent("anime_like", parameters: [
-            "anime_id": animeId,
-            "anime_title": animeTitle ?? ""
-        ])
+        AppAnalytics.tracker.log(.animeLike(animeId: animeId, animeTitle: animeTitle))
     }
 
     static func logAnimeUnlike(animeId: Int, animeTitle: String?) {
-        Analytics.logEvent("anime_unlike", parameters: [
-            "anime_id": animeId,
-            "anime_title": animeTitle ?? ""
-        ])
+        AppAnalytics.tracker.log(.animeUnlike(animeId: animeId, animeTitle: animeTitle))
     }
 
     static func logAnimeShare(animeId: Int, animeTitle: String?) {
-        Analytics.logEvent(AnalyticsEventShare, parameters: [
-            AnalyticsParameterItemID: "\(animeId)",
-            AnalyticsParameterItemName: animeTitle ?? "",
-            AnalyticsParameterContentType: "anime"
-        ])
+        AppAnalytics.tracker.log(.animeShare(animeId: animeId, animeTitle: animeTitle))
     }
 
     // MARK: - 리뷰
     static func logReviewWrite(animeId: Int, rating: Double, isSpoiler: Bool) {
-        Analytics.logEvent("review_write", parameters: [
-            "anime_id": animeId,
-            "rating": rating,
-            "is_spoiler": isSpoiler ? 1 : 0
-        ])
+        AppAnalytics.tracker.log(.reviewWrite(animeId: animeId, rating: rating, isSpoiler: isSpoiler))
     }
 
     // MARK: - 검색
     static func logSearch(query: String) {
-        Analytics.logEvent(AnalyticsEventSearch, parameters: [
-            AnalyticsParameterSearchTerm: query
-        ])
+        AppAnalytics.tracker.log(.search(query: query))
     }
 
     // MARK: - 로그인 / 회원가입
     static func logLogin(method: String) {
-        Analytics.logEvent(AnalyticsEventLogin, parameters: [
-            AnalyticsParameterMethod: method
-        ])
+        AppAnalytics.tracker.log(.login(method: method))
     }
 
     static func logSignUp() {
-        Analytics.logEvent(AnalyticsEventSignUp, parameters: [
-            AnalyticsParameterMethod: "email"
-        ])
+        AppAnalytics.tracker.log(.signUp)
     }
 
     // MARK: - 에러 (Crashlytics)
     static func logError(_ error: Error, context: String) {
-        Crashlytics.crashlytics().log("[\(context)] \(error.localizedDescription)")
-        Crashlytics.crashlytics().record(error: error)
-        Analytics.logEvent("api_error", parameters: [
-            "context": context,
-            "message": error.localizedDescription
-        ])
+        AppAnalytics.tracker.logError(error, context: context)
     }
 
     // MARK: - 로그인 이슈 (에러 객체 없는 논리적 실패도 Crashlytics로 리포팅)
     static func logLoginIssue(provider: String, reason: String) {
-        Crashlytics.crashlytics().log("[Login][\(provider)] \(reason)")
-        // 비치명적 이벤트로 기록하여 Crashlytics 대시보드에서 조회 가능하게 함
-        let error = NSError(
-            domain: "LoginIssue",
-            code: 0,
-            userInfo: [
-                NSLocalizedDescriptionKey: reason,
-                "provider": provider
-            ]
-        )
-        Crashlytics.crashlytics().record(error: error)
-        Analytics.logEvent("login_issue", parameters: [
-            "provider": provider,
-            "reason": reason
-        ])
+        AppAnalytics.tracker.logLoginIssue(provider: provider, reason: reason)
     }
 }
