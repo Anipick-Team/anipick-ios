@@ -16,7 +16,7 @@ let project = Project(
             "DEVELOPMENT_TEAM": .string(teamID),
             "CODE_SIGN_STYLE": "Automatic",
             "SWIFT_VERSION": "5.0",
-            "MARKETING_VERSION": "1.2.1",
+            "MARKETING_VERSION": "1.2.2",
             "CURRENT_PROJECT_VERSION": "1",
             "ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS": "YES",
             "LOCALIZATION_PREFERS_STRING_CATALOGS": "YES",
